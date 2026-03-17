@@ -45,7 +45,6 @@ namespace MaggyHelper.Entities
         
         // Movement
         private List<Vector2> teleportNodes;
-        private int currentNode;
         private float teleportCooldownTimer;
         
         // Visual
@@ -53,7 +52,6 @@ namespace MaggyHelper.Entities
         private Sprite auraSprite;
         private VertexLight light;
         private float flashTimer;
-        private float phaseTransitionTimer;
         
         // Level reference
         private Level level;

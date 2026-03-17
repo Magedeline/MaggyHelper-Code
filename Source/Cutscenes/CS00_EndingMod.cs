@@ -5,6 +5,7 @@ namespace MaggyHelper.Cutscenes
     public class Cs00EndingMod : CutsceneEntity
     {
         private readonly global::Celeste.Player? player;
+        private TimeRateModifier timeRateModifier;
 
         /// <summary>
         /// Flag to trigger title screen transition after ending
@@ -14,6 +15,7 @@ namespace MaggyHelper.Cutscenes
         public Cs00EndingMod(global::Celeste.Player? player) : base(false, true)
         {
             this.player = player;
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
         }
 
         public override void OnBegin(Level level)
@@ -63,18 +65,17 @@ namespace MaggyHelper.Cutscenes
 
         private IEnumerator manageTimeRateDuringCutscene()
         {
-            var originalTimeRate = Engine.TimeRate;
-            Engine.TimeRate = 0.5f;
+            timeRateModifier.SetTimeRateMultiplier(0.5f);
 
             yield return 5f;
 
-            Engine.TimeRate = originalTimeRate;
+            timeRateModifier.ResetTimeRateMultiplier();
         }
 
         public override void OnEnd(Level level)
         {
             if (level == null) return;
-            Engine.TimeRate = 1f; // Reset time rate to normal after cutscene ends
+            timeRateModifier.ResetTimeRateMultiplier();
         }
     }
 }

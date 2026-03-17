@@ -57,7 +57,6 @@ namespace MaggyHelper.Entities
 
         // Audio
         private SoundSource ambientSound;
-        private EventInstance collectMusic;
 
         public bool IsCollected => collected;
         public StaffColor Color => staffColor;

@@ -18,7 +18,7 @@ public abstract class CustomDreamBlock : DreamBlock
      * We want to tie the Custom DreamParticles to the vanilla DreamParticles, but since DreamBlock.DreamParticle is private it would require a lot of reflection.
      * Instead we just IL hook stuff and ignore accessibility modifiers entirely. It's fine.
      */
-    new protected struct DreamParticle
+    protected struct DreamParticle
     {
         internal static Type t_DreamParticle = typeof(DreamBlock).GetNestedType("DreamParticle", BindingFlags.NonPublic);
 
@@ -78,7 +78,7 @@ public abstract class CustomDreamBlock : DreamBlock
     private static readonly MethodInfo m_DreamBlock_WobbleLine = typeof(DreamBlock).GetMethod("WobbleLine", BindingFlags.NonPublic | BindingFlags.Instance);
 
     protected MTexture[] featherTextures;
-    new protected DreamParticle[] particles;
+    protected DreamParticle[] particles;
     protected MTexture[] doubleRefillStarTextures;
 
     public bool PlayerHasDreamDash => baseData.Get<bool>("playerHasDreamDash");
@@ -337,7 +337,7 @@ public abstract class CustomDreamBlock : DreamBlock
         return 1 / (0.3f + (0.25f * layer));
     }
 
-    protected new void WobbleLine(Vector2 from, Vector2 to, float offset)
+    protected void WobbleLine(Vector2 from, Vector2 to, float offset)
     {
         m_DreamBlock_WobbleLine.Invoke(this, [from, to, offset]);
     }
@@ -521,7 +521,7 @@ public abstract class CustomDreamBlock : DreamBlock
         RemoveSelf();
     }
 
-    protected virtual new void OneUseDestroy()
+    protected virtual void OneUseDestroy()
     {
         Collidable = Visible = false;
         DisableStaticMovers();

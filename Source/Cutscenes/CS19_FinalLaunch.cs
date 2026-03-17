@@ -21,6 +21,7 @@ public class CS19_FinalLaunch : CutsceneEntity
     private bool hasGolden;
     private bool hasPinkPlatinum;
     private bool sayDialog;
+    private TimeRateModifier timeRateModifier;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public CS19_FinalLaunch(global::Celeste.Player player, CustomCharaBoost boost, bool sayDialog = true) : base(false, false)
@@ -28,6 +29,7 @@ public class CS19_FinalLaunch : CutsceneEntity
         this.player = player;
         this.boost = null;
         this.sayDialog = sayDialog;
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
         base.Depth = 10010;
     }
 
@@ -39,6 +41,7 @@ public class CS19_FinalLaunch : CutsceneEntity
         this.sayDialog = !hasGoldenStrawberry && !hasPinkPlatinumBerry;
         this.hasGolden = hasGoldenStrawberry;
         this.hasPinkPlatinum = hasPinkPlatinumBerry;
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
         base.Depth = 10010;
     }
 
@@ -65,7 +68,7 @@ public class CS19_FinalLaunch : CutsceneEntity
 
     private IEnumerator Cutscene()
     {
-        Engine.TimeRate = 1f;
+        timeRateModifier.ResetTimeRateMultiplier();
         if (boost != null)
         {
             boost.Active = false;
@@ -122,7 +125,7 @@ public class CS19_FinalLaunch : CutsceneEntity
         ScreenWipe.WipeColor = Color.White;
         if (!hasGolden)
         {
-            yield return 1f;
+            timeRateModifier.ResetTimeRateMultiplier();
         }
         p = cameraOffset.Y;
         int to = 180;
@@ -170,7 +173,7 @@ public class CS19_FinalLaunch : CutsceneEntity
         player.DummyGravity = true;
         player.DummyAutoAnimate = true;
         player.ForceCameraUpdate = false;
-        Engine.TimeRate = 1f;
+        timeRateModifier.ResetTimeRateMultiplier();
         Level.OnEndOfFrame += [MethodImpl(MethodImplOptions.NoInlining)] () =>
         {
             if (Level.Wipe != null)

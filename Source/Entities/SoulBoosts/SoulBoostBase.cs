@@ -49,6 +49,7 @@ namespace MaggyHelper.Entities.SoulBoosts
         protected VertexLight light;
         protected BloomPoint bloom;
         protected SoundSource relocateSfx;
+        protected readonly TimeRateModifier timeRateModifier;
 
         // Movement and state (FlingBird-style)
         protected Vector2[] nodes;
@@ -115,6 +116,7 @@ namespace MaggyHelper.Entities.SoulBoosts
             // Lighting
             Add(light = new VertexLight(SoulColor, 0.8f, 16, 32));
             Add(bloom = new BloomPoint(0.6f, 16f));
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
 
             // Wiggler for pulse
             Add(wiggler = Wiggler.Create(0.4f, 3f, f =>
@@ -394,7 +396,7 @@ namespace MaggyHelper.Entities.SoulBoosts
                 yield return ApplyAbilityEnd(player);
 
                 player.SummitLaunch(X);
-                Engine.TimeRate = 1f;
+                timeRateModifier.ResetTimeRateMultiplier();
 
                 Finish();
             }

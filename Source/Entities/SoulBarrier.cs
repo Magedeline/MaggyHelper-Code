@@ -154,7 +154,6 @@ namespace MaggyHelper.Entities
     {
         private string barrierId;
         private string color;
-        private Sprite sprite;
         private float floatOffset = 0f;
         private bool collected = false;
         

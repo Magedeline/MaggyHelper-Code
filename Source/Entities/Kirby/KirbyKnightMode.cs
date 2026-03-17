@@ -103,7 +103,6 @@ namespace MaggyHelper.Entities.Kirby
         private float stateTimer;
         
         // Visual components
-        private Sprite knightSprite;
         private SoundSource chargeSound;
         private BloomPoint bloom;
         private VertexLight light;
@@ -119,6 +118,7 @@ namespace MaggyHelper.Entities.Kirby
         private float comboTimer;
         private Vector2 lastAttackDirection;
         private bool isChapterEligible;
+        private readonly TimeRateModifier timeRateModifier;
 
         #endregion
 
@@ -128,6 +128,7 @@ namespace MaggyHelper.Entities.Kirby
         {
             Tag = Tags.Persistent | Tags.TransitionUpdate;
             Depth = -100;
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
             
             InitializeParticles();
         }
@@ -576,12 +577,12 @@ namespace MaggyHelper.Entities.Kirby
             level.Flash(Color.Gold * 0.6f, true);
             
             // Slow down time effect
-            Engine.TimeRate = 0.5f;
+            timeRateModifier.SetTimeRateMultiplier(0.5f);
         }
 
         private void CompleteFinisher()
         {
-            Engine.TimeRate = 1f;
+            timeRateModifier.ResetTimeRateMultiplier();
             
             // Massive damage in area
             float damage = DamageMultiplier * 5f;
@@ -880,7 +881,6 @@ namespace MaggyHelper.Entities.Kirby
     public class KnightSwordBeam : Entity
     {
         private Vector2 speed;
-        private Sprite sprite;
         private float damage;
         private float lifetime = 2f;
         private Level level;

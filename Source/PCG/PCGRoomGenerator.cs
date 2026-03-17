@@ -246,17 +246,6 @@ namespace MaggyHelper.PCG
         private static void PlaceExits(char[,] m, int w, int h,
             bool exitL, bool exitR, bool exitT, bool exitB, int exitSize)
         {
-            void ClearExit(int startX, int startY, int dx, int dy, int length, int depth)
-            {
-                for (int d = 0; d < depth; d++)
-                    for (int i = 0; i < length; i++)
-                    {
-                        int x = startX + dx * i + (dx == 0 ? 0 : 0) + (dy != 0 ? 0 : d * (startX == 0 ? 1 : -1));
-                        int y = startY + dy * i + (dx != 0 ? 0 : d * (startY == 0 ? 1 : -1));
-                        // Simplified: just clear the border region
-                    }
-            }
-
             if (exitL)
             {
                 int startY = h / 2 - exitSize / 2;

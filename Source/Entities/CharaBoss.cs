@@ -59,6 +59,7 @@ namespace MaggyHelper.Entities {
         private CharaBossStarfield bossBg;
         private SoundSource chargeSfx;
         private SoundSource laserSfx;
+        private readonly TimeRateModifier timeRateModifier;
         private bool canChangeMusic;
         private string attackSequence;
 
@@ -99,6 +100,7 @@ namespace MaggyHelper.Entities {
             this.Add((Component)(this.scaleWiggler = Wiggler.Create(0.6f, 3f)));
             this.Add((Component)(this.chargeSfx = new SoundSource()));
             this.Add((Component)(this.laserSfx = new SoundSource()));
+            this.Add((Component)(this.timeRateModifier = new TimeRateModifier(1f, false)));
         }
 
         public CharaBoss(EntityData e, Vector2 offset)
@@ -382,9 +384,9 @@ namespace MaggyHelper.Entities {
             {
                 Celeste.Celeste.Freeze(0.1f);
                 if (lastHit)
-                    Engine.TimeRate = 0.5f;
+                    timeRateModifier.SetTimeRateMultiplier(0.5f);
                 else
-                    Engine.TimeRate = 0.75f;
+                    timeRateModifier.SetTimeRateMultiplier(0.75f);
                 Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
             }
             
@@ -404,14 +406,15 @@ namespace MaggyHelper.Entities {
             yield return 0.05f;
             Audio.SetMusicParam("boss_pitch", 0f);
             
-            float from = Engine.TimeRate;
-            Tween tween3 = Tween.Create(Tween.TweenMode.Oneshot, null, 0.35f / Engine.TimeRateB, start: true);
+            float from = timeRateModifier.CurrentTimeRate();
+            float assistAdjustedRate = Engine.EffectiveTimeRate / Math.Max(from, 0.0001f);
+            Tween tween3 = Tween.Create(Tween.TweenMode.Oneshot, null, 0.35f / assistAdjustedRate, start: true);
             tween3.UseRawDeltaTime = true;
             tween3.OnUpdate = (Tween t) =>
             {
                 if (bossBg != null && bossBg.Alpha < t.Eased)
                     bossBg.Alpha = t.Eased;
-                Engine.TimeRate = MathHelper.Lerp(from, 1f, t.Eased);
+                timeRateModifier.SetTimeRateMultiplier(MathHelper.Lerp(from, 1f, t.Eased));
                 if (lastHit)
                     Glitch.Value = 0.6f * (1f - t.Eased);
             };
@@ -484,7 +487,7 @@ namespace MaggyHelper.Entities {
             if (player != null)
             {
                 Celeste.Celeste.Freeze(0.1f);
-                Engine.TimeRate = 0.5f;
+                timeRateModifier.SetTimeRateMultiplier(0.5f);
                 Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
             }
             
@@ -504,14 +507,15 @@ namespace MaggyHelper.Entities {
             yield return 0.05f;
             Audio.SetMusicParam("boss_pitch", 0f);
             
-            float from = Engine.TimeRate;
-            Tween tween3 = Tween.Create(Tween.TweenMode.Oneshot, null, 0.35f / Engine.TimeRateB, start: true);
+            float from = timeRateModifier.CurrentTimeRate();
+            float assistAdjustedRate = Engine.EffectiveTimeRate / Math.Max(from, 0.0001f);
+            Tween tween3 = Tween.Create(Tween.TweenMode.Oneshot, null, 0.35f / assistAdjustedRate, start: true);
             tween3.UseRawDeltaTime = true;
             tween3.OnUpdate = (Tween t) =>
             {
                 if (bossBg != null && bossBg.Alpha < t.Eased)
                     bossBg.Alpha = t.Eased;
-                Engine.TimeRate = MathHelper.Lerp(from, 1f, t.Eased);
+                timeRateModifier.SetTimeRateMultiplier(MathHelper.Lerp(from, 1f, t.Eased));
                 if (lastHit)
                     Glitch.Value = 0.6f * (1f - t.Eased);
             };

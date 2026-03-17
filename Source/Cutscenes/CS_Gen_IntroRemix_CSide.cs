@@ -51,7 +51,6 @@ public class CS_Gen_IntroRemix_CSide : Scene
     private float tapeWarpAmount;
     private float tapeSpeedVariation = 1f;
     private bool tapeJammed;
-    private float jamTimer;
 
     public bool CanPause { get; private set; } = true;
 

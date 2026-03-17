@@ -33,10 +33,8 @@ namespace MaggyHelper.Cutscenes
         private Player player;
         private NPC starlo;
         private NPC marlet;
-        private NPC marletPossessed;
         private NPC theo;
         private NPC chara;
-        private NPC darkMatterEntity;
         #endregion
 
         public CS11_BossIntro(EntityData data, Vector2 offset)

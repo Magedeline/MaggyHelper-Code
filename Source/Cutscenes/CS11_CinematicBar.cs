@@ -36,7 +36,6 @@ namespace MaggyHelper.Cutscenes
         private NPC maggy;
         private NPC mom;
         private NPC alex;
-        private Coroutine screenShakeCoroutine;
         private float screenFade = 0f;
         #endregion
 

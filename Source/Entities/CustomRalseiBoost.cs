@@ -28,6 +28,7 @@ public class CustomRalseiBoost : Entity
 	private string goldenTeleport;
 	private bool cutsceneBird;
 	private Color transitionColor;
+	private readonly TimeRateModifier timeRateModifier;
 
 	// Add chapter completion tracking
 	private bool chapterCompleted = false;
@@ -104,6 +105,7 @@ public class CustomRalseiBoost : Entity
 		{
 			Add(new CameraLocker(Level.CameraLockModes.BoostSequence, 0f, 160f));
 		}
+		Add(timeRateModifier = new TimeRateModifier(1f, false));
 		Add(relocateSfx = new SoundSource());
 	}
 
@@ -222,7 +224,7 @@ public class CustomRalseiBoost : Entity
 				Calc.Clamp(player.Y - level.Camera.Y, 60f, 120f)
 			);
 			Add(new Coroutine(level.ZoomTo(screenSpaceFocusPoint, 1.5f, 0.18f)));
-			Engine.TimeRate = 0.5f;
+			timeRateModifier.SetTimeRateMultiplier(0.5f);
 		}
 		else
 		{
@@ -328,7 +330,7 @@ public class CustomRalseiBoost : Entity
 			level.Displacement.AddBurst(Center, 0.6f, 8f, 64f, 0.5f);
 			level.ResetZoom();
 			player.SummitLaunch(X);
-			Engine.TimeRate = 1f;
+			timeRateModifier.ResetTimeRateMultiplier();
 			finish();
 		}
 		yield return null;

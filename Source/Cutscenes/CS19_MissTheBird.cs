@@ -13,11 +13,13 @@ namespace MaggyHelper.Cutscenes
         private BirdNPC bird;
         private Coroutine zoomRoutine;
         private EventInstance crashMusicSfx;
+        private readonly TimeRateModifier timeRateModifier;
 
         public CS19_MissTheBird(global::Celeste.Player player, FlingBirdIntroMod flingBirdmod) : base(true, false)
         {
             this.player = player;
             this.flingBirdmod = flingBirdmod;
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
             Add(new LevelEndingHook(delegate {
                 Audio.Stop(this.crashMusicSfx, true);
             }));
@@ -186,7 +188,7 @@ namespace MaggyHelper.Cutscenes
         public override void OnEnd(Level level)
         {
             Audio.Stop(this.crashMusicSfx, true);
-            Engine.TimeRate = 1f;
+            timeRateModifier.ResetTimeRateMultiplier();
             level.Session.SetFlag(Flag);
             if (this.WasSkipped)
             {

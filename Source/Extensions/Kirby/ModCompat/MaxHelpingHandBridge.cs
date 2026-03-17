@@ -31,7 +31,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
         public bool IsActive => KirbyModCompatManager.MaxHelpingHandLoaded;
 
         private int _previousDashCount = -1;
-        private bool _flagRefillTracking;
 
         public void Load()
         {

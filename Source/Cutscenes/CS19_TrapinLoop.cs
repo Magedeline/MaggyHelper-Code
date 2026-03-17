@@ -17,6 +17,7 @@ namespace MaggyHelper.Cutscenes
         private CharaDummy charaEntity;
         private CustomCharaBoost charabooster;
         private Npc19MaggyLoop magolorEntity;
+        private TimeRateModifier timeRateModifier;
 
         // Constructor implementation
         public Cs19TrapinLoop(global::Celeste.Player sourceTrapinLoop, CharaDummy charaDummy)
@@ -31,6 +32,7 @@ namespace MaggyHelper.Cutscenes
             // Set up other properties as required for CutsceneEntity
             Tag = Tags.TransitionUpdate; // Ensure it updates during scene transitions
             playerSpeed = player.Speed;
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
         }
 
         // Replace coroutine override with a void override that starts the coroutine
@@ -52,7 +54,7 @@ namespace MaggyHelper.Cutscenes
 
             yield return MovePlayerToGround();
 
-            Engine.TimeRate = 0.65f;
+            timeRateModifier.SetTimeRateMultiplier(0.65f);
             player.Dashes = 1;
             player.DummyGravity = false;
             player.DummyFriction = false;
@@ -136,11 +138,13 @@ namespace MaggyHelper.Cutscenes
 
         private IEnumerator RestoreTimeRate()
         {
-            while (Engine.TimeRate < 1.0)
+            while (timeRateModifier.CurrentTimeRate() < 1.0)
             {
-                Engine.TimeRate = Calc.Approach(Engine.TimeRate, 1f, 4f * Engine.DeltaTime);
+                timeRateModifier.SetTimeRateMultiplier(Calc.Approach(timeRateModifier.CurrentTimeRate(), 1f, 4f * Engine.DeltaTime));
                 yield return null;
             }
+
+            timeRateModifier.ResetTimeRateMultiplier();
         }
 
         // Trigger -1: Camera zoom in
@@ -264,6 +268,7 @@ namespace MaggyHelper.Cutscenes
 
         private IEnumerator OnEndRoutine(Level level)
         {
+            timeRateModifier.ResetTimeRateMultiplier();
             // Player is already unlocked in CutsceneRoutine, so no need to unlock again
             Audio.ReleaseSnapshot(snapshot);
             snapshot = null;

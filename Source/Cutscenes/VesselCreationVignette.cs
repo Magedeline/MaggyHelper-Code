@@ -62,7 +62,6 @@ namespace MaggyHelper.Cutscenes
         private float fade = 0f;
         
         // UI Components
-        private TextMenu? currentMenu;
         private TextMenu? pauseMenu;
         private HudRenderer hud;
         private Coroutine? sequenceCoroutine;

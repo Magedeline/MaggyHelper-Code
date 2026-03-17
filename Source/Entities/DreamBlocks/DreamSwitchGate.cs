@@ -22,7 +22,7 @@ public class DreamSwitchGate : CustomDreamBlock
     private Vector2 iconOffset;
     private readonly Wiggler wiggler;
 
-    new private Vector2 node;
+    private Vector2 node;
 
     private readonly SoundSource openSfx;
 

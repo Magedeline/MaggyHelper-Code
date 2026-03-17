@@ -11,6 +11,7 @@ namespace MaggyHelper.Entities
         public static ParticleType PGoldShine;
         public static ParticleType PFakeShine;
         public static ParticleType PPinkShine;
+        private readonly TimeRateModifier timeRateModifier;
         
       // Static constructor to initialize particle types
       static HeartGem()
@@ -119,6 +120,7 @@ PFakeShine = new ParticleType
   }
 
         public HeartGem(Vector2 position) : base(position) {
+          Add(this.timeRateModifier = new TimeRateModifier(1f, false));
         Add(this.holdableCollider = new HoldableCollider(this.OnHoldable, null));
        Add(new MirrorReflection());
  }
@@ -340,7 +342,7 @@ foreach (Follower follower in player.Leader.Followers) {
             yield return null;
             Celeste.Celeste.Freeze(0.2f);
       yield return null;
-       Engine.TimeRate = 0.5f;
+       this.timeRateModifier.SetTimeRateMultiplier(0.5f);
           player.Depth = -2000000;
             for (int i = 0; i < 10; i++) {
        Scene.Add(new AbsorbOrb(this.Position, null, null));
@@ -353,14 +355,14 @@ foreach (Follower follower in player.Leader.Followers) {
        this.light.Alpha = (this.bloom.Alpha = 0f);
    this.Visible = false;
  for (float t = 0f; t < 2f; t += Engine.RawDeltaTime) {
-                Engine.TimeRate = Calc.Approach(Engine.TimeRate, 0f, Engine.RawDeltaTime * 0.25f);
+                this.timeRateModifier.SetTimeRateMultiplier(Calc.Approach(this.timeRateModifier.CurrentTimeRate(), 0f, Engine.RawDeltaTime * 0.25f));
       yield return null;
 }
             yield return null;
       if (player.Dead) {
     yield return 100f;
     }
-  Engine.TimeRate = 1f;
+  this.timeRateModifier.ResetTimeRateMultiplier();
     Tag = Tags.FrozenUpdate;
       level.Frozen = true;
    if (!this.IsFake) {
@@ -458,15 +460,15 @@ Glitch.Value = 0.75f;
             }
         this.bird.RemoveSelf();
           this.bird = null;
-     Engine.TimeRate = 0f;
+     this.timeRateModifier.SetTimeRateMultiplier(0f);
             level.Frozen = false;
             player.Active = false;
     player.StateMachine.State = 11;
-            while (Engine.TimeRate != 1f) {
- Engine.TimeRate = Calc.Approach(Engine.TimeRate, 1f, 0.5f * Engine.RawDeltaTime);
+            while (this.timeRateModifier.CurrentTimeRate() < 0.9999f) {
+ this.timeRateModifier.SetTimeRateMultiplier(Calc.Approach(this.timeRateModifier.CurrentTimeRate(), 1f, 0.5f * Engine.RawDeltaTime));
       yield return null;
      }
-   Engine.TimeRate = 1f;
+   this.timeRateModifier.ResetTimeRateMultiplier();
             yield return Textbox.Say("CH19_WRONG_HEART", new Func<IEnumerator>[]
             {
                 this.KirbyPicksUpHeartGem,
@@ -557,7 +559,7 @@ Glitch.Value = 0.75f;
         }
 
         public void SkipFakeHeartCutscene(Level level) {
-            Engine.TimeRate = 1f;
+          this.timeRateModifier.ResetTimeRateMultiplier();
             Glitch.Value = 0.0f;
 
             if (sfx != null) {
@@ -630,7 +632,7 @@ Level level = Scene as Level;
             level.Frozen = false;
      level.CanRetry = true;
     level.FormationBackdrop.Display = false;
-   Engine.TimeRate = 1f;
+         this.timeRateModifier.ResetTimeRateMultiplier();
     if (poem != null) {
          poem.RemoveSelf();
      }

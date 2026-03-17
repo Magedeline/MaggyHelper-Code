@@ -41,18 +41,18 @@ public class CS05_Ending : CutsceneEntity
 
     private Sprite oshiroSprite;
 
+    private TimeRateModifier timeRateModifier;
+
     private EventInstance smashSfx;
 
     private bool smashRumble;
-    private Entities.ResortRoofEnding resortRoofEnding;
-    private CelestePlayer entity;
-
     [MethodImpl(MethodImplOptions.NoInlining)]
     public CS05_Ending(ResortRoofEnding roof, Player player)
         : base(fadeInOnSkip: false, endingChapterAfter: true)
     {
         this.roof = roof;
         this.player = player;
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
         base.Depth = -1000000;
     }
 
@@ -119,7 +119,7 @@ public class CS05_Ending : CutsceneEntity
         player.Sprite.Play("fall");
         roof.BeginFalling = true;
         yield return null;
-        Engine.TimeRate = 0.01f;
+        timeRateModifier.SetTimeRateMultiplier(0.01f);
         player.Sprite.Play("fallFast");
         player.DummyGravity = true;
         player.Speed.Y = -200f;
@@ -138,17 +138,17 @@ public class CS05_Ending : CutsceneEntity
             oshiroFallSpeed.Y += Engine.DeltaTime * 800f;
             angyOshiro.Position += oshiroFallSpeed * Engine.DeltaTime;
             bgFlash.Alpha = Calc.Approach(bgFlash.Alpha, 0f, Engine.RawDeltaTime);
-            Engine.TimeRate = Calc.Approach(Engine.TimeRate, 1f, Engine.RawDeltaTime * 0.6f);
+            timeRateModifier.SetTimeRateMultiplier(Calc.Approach(timeRateModifier.CurrentTimeRate(), 1f, Engine.RawDeltaTime * 0.6f));
             yield return null;
         }
-        level.DirectionalShake(new Vector2(0f, -1f), 0.5f);
+        timeRateModifier.ResetTimeRateMultiplier();
         Input.Rumble(RumbleStrength.Medium, RumbleLength.Long);
         yield return 1f;
         while (!player.OnGround())
         {
             player.MoveV(1f);
         }
-        player.DummyAutoAnimate = false;
+            timeRateModifier.SetTimeRateMultiplier(Calc.Approach(timeRateModifier.CurrentTimeRate(), 1f, Engine.RawDeltaTime * 0.6f));
         player.Sprite.Play("tired");
         angyOshiro.RemoveSelf();
         Scene.Add(oshiro = new Entity(new Vector2(level.Bounds.Left + 110, player.Y)));
@@ -294,6 +294,7 @@ public class CS05_Ending : CutsceneEntity
     [MethodImpl(MethodImplOptions.NoInlining)]
     public override void OnEnd(Level level)
     {
+        timeRateModifier.ResetTimeRateMultiplier();
         Audio.SetMusic("event:/desolozantas/music/lvl5/intro");
         Audio.Stop(smashSfx);
         Level.CompleteArea(true, true);

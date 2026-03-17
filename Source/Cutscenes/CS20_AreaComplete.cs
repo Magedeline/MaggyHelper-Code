@@ -15,6 +15,7 @@ public class CS20_AreaComplete : CutsceneEntity
     private readonly string nextLevel;
     private float fadeAlpha;
     private bool showingComplete;
+    private TimeRateModifier timeRateModifier;
 
     public CS20_AreaComplete(bool hasGoldenStrawberry = false, bool hasPinkPlatinumBerry = false, bool skipCredits = false, string nextLevelName = null)
         : base(fadeInOnSkip: false)
@@ -24,6 +25,7 @@ public class CS20_AreaComplete : CutsceneEntity
         this.skipCredits = skipCredits;
         this.nextLevel = nextLevelName;
         Depth = -10000;
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -38,10 +40,9 @@ public class CS20_AreaComplete : CutsceneEntity
 
     private IEnumerator CompletionSequence()
     {
-        Engine.TimeRate = 1f;
+        timeRateModifier.ResetTimeRateMultiplier();
         global::Celeste.Player player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-        
-        if (player != null)
+
         {
             player.StateMachine.State = global::Celeste.Player.StDummy;
         }
@@ -61,7 +62,7 @@ public class CS20_AreaComplete : CutsceneEntity
         
         for (float t = 0f; t < 2.5f; t += Engine.DeltaTime)
         {
-            fadeAlpha = Ease.SineIn(t / 2.5f);
+                timeRateModifier.SetTimeRateMultiplier(3f);
             yield return null;
         }
         fadeAlpha = 1f;
@@ -142,7 +143,7 @@ public class CS20_AreaComplete : CutsceneEntity
         };
         
         // Clean up
-        Engine.TimeRate = 1f;
+        timeRateModifier.ResetTimeRateMultiplier();
         fadeAlpha = 0f;
     }
 
@@ -169,7 +170,7 @@ public class CS20_AreaComplete : CutsceneEntity
         // Allow skipping with certain inputs (speeds up the sequence)
         if (!skipCredits && (Input.MenuConfirm.Pressed || Input.MenuCancel.Pressed || Input.Pause.Pressed))
         {
-            Engine.TimeRate = 3f;
+            timeRateModifier.SetTimeRateMultiplier(3f);
         }
     }
 }

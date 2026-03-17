@@ -15,13 +15,11 @@ namespace MaggyHelper.Entities.Bosses
     {
         private float floatHeight;
         private Vector2 targetPosition;
-        private bool isFloating;
         private CopyAbilityType mirroredAbility;
         private float attackTimer;
         
         // Attack patterns
         private int attackPattern;
-        private float patternTimer;
         
         public KirbyBoss(EntityData data, Vector2 offset) : base(data, offset)
         {

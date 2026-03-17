@@ -147,14 +147,12 @@ namespace MaggyHelper.Entities
         private int patternIndex;
         private Coroutine attackCoroutine;
         private Coroutine triggerBlocksCoroutine;
-        private bool playerHasMoved;
         private SineWave floatSine;
         private bool dialog;
         private bool startHit;
 #pragma warning disable CS0414
         private bool isAttacking;
 #pragma warning restore CS0414
-        private bool canHit = true;
         
         // Phase management (BadelineBoss style) - HP System
         private int currentPhase = 0;
@@ -213,14 +211,10 @@ namespace MaggyHelper.Entities
         
         // Boss state management
         private BossState currentState = BossState.Waiting;
-        private float playerHitCooldown = 0f;
-        private float flashTimer = 0f;
         private Vector2 knockbackVelocity = Vector2.Zero;
         private float knockbackTimer = 0f;
-        private float mercyTimer = 0f;
-        private bool playerMercyActive = false;
-        private float hitSlowdownTimer = 0f;
         private bool isHitSlowdownActive = false;
+        private readonly TimeRateModifier timeRateModifier;
         
         // Phase tracking
         private ElsPhase currentElsPhase = ElsPhase.DoppiaElillca;
@@ -345,6 +339,7 @@ namespace MaggyHelper.Entities
             this.Add((Component)(this.scaleWiggler = Wiggler.Create(0.6f, 3f)));
             this.Add((Component)(this.chargeSfx = new SoundSource()));
             this.Add((Component)(this.laserSfx = new SoundSource()));
+            this.Add((Component)(this.timeRateModifier = new TimeRateModifier(1f, false)));
             
             Add(energyPulse = new SineWave(0.5f, 0f));
             energyPulse.Randomize();
@@ -1039,19 +1034,20 @@ namespace MaggyHelper.Entities
             if (player != null)
             {
                 global::Celeste.Celeste.Freeze(0.1f);
-                Engine.TimeRate = !lastHit ? 0.75f : 0.5f;
+                timeRateModifier.SetTimeRateMultiplier(!lastHit ? 0.75f : 0.5f);
                 Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
             }
             yield return 0.05f;
             Audio.SetMusicParam("boss_pitch", 0.0f);
-            float from1 = Engine.TimeRate;
-            Tween tween1 = Tween.Create(Tween.TweenMode.Oneshot, duration: (0.35f / Engine.TimeRateB), start: true);
+            float from1 = timeRateModifier.CurrentTimeRate();
+            float assistAdjustedRate = Engine.EffectiveTimeRate / Math.Max(from1, 0.0001f);
+            Tween tween1 = Tween.Create(Tween.TweenMode.Oneshot, duration: (0.35f / assistAdjustedRate), start: true);
             tween1.UseRawDeltaTime = true;
             tween1.OnUpdate = t =>
             {
                 if (bossBg != null && bossBg.Alpha < (double) t.Eased)
                     bossBg.Alpha = t.Eased;
-                Engine.TimeRate = MathHelper.Lerp(from1, 1f, t.Eased);
+                timeRateModifier.SetTimeRateMultiplier(MathHelper.Lerp(from1, 1f, t.Eased));
                 if (!lastHit)
                     return;
                 Glitch.Value = (float) (0.60000002384185791 * (1.0 - t.Eased));
@@ -1175,16 +1171,13 @@ namespace MaggyHelper.Entities
         {
             isHitSlowdownActive = true;
             
-            // Store original time rate
-            float originalTimeRate = Engine.TimeRate;
-            
             // Slowdown parameters - shorter and more impactful for hit feedback
             float slowdownScale = 0.3f; // Slow to 30% speed
             float slowdownDuration = 0.15f; // Very brief slowdown
             float pitchSlowdown = 0.5f; // Music pitch during slowdown (lower = deeper)
             
             // Apply time slowdown
-            Engine.TimeRate = slowdownScale;
+            timeRateModifier.SetTimeRateMultiplier(slowdownScale);
             
             // Apply music pitch slowdown for dramatic effect
             if (level != null)
@@ -1224,7 +1217,7 @@ namespace MaggyHelper.Entities
             yield return slowdownDuration;
             
             // Restore normal time rate
-            Engine.TimeRate = originalTimeRate;
+            timeRateModifier.ResetTimeRateMultiplier();
             
             // Restore normal music pitch
             if (level != null)

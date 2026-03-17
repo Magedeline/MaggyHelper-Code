@@ -14,7 +14,6 @@ namespace MaggyHelper.Cutscenes
         private NPC starJumpController;
         private global::Celeste.Player player;
         private Bonfire bonfire;
-        private BadelineDummy badeline;
         private CharaDummy chara;
         private Plateau plateau;
         private TestBreathingGame breathing;

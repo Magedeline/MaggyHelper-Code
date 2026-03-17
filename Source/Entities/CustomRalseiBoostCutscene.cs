@@ -16,6 +16,7 @@ internal class CustomRalseiBoostCutscene : CutsceneEntity
 	private float timer;
 	private Coroutine wave;
 	private bool hasGolden;
+	private readonly TimeRateModifier timeRateModifier;
 	private string sayDialog;
 	private bool haveBird;
 	private string teleportTo;
@@ -42,6 +43,7 @@ internal class CustomRalseiBoostCutscene : CutsceneEntity
 		this.teleportTo = teleportTo;
 		this.goldenTeleportTo = goldenTeleportTo;
 		this.haveBird = haveBird;
+		Add(timeRateModifier = new TimeRateModifier(1f, false));
 		base.Depth = 10010;
 	}
 
@@ -76,7 +78,7 @@ internal class CustomRalseiBoostCutscene : CutsceneEntity
     }
     private IEnumerator cutscene()
     {
-        Engine.TimeRate = 1f;
+		timeRateModifier.ResetTimeRateMultiplier();
         boost.Active = false;
         yield return null;
         if (!String.IsNullOrWhiteSpace(sayDialog))
@@ -159,7 +161,7 @@ internal class CustomRalseiBoostCutscene : CutsceneEntity
         {
 	        nextLevelName = goldenTeleportTo;
          }
-        Engine.TimeRate = 1f;
+		timeRateModifier.ResetTimeRateMultiplier();
         Level.OnEndOfFrame += () =>
         {
 	        Level.TeleportTo(player, nextLevelName, nextLevelIntro);

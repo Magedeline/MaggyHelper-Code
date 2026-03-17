@@ -29,7 +29,6 @@ public class CS_Gen_IntroRemix_BSide : Scene
     private bool showingRemixTitle;
     private bool canSkip;
     private float titleAlpha;
-    private float vignetteAlpha;
     private float overallAlpha;
 
     // Chapter info
@@ -41,7 +40,6 @@ public class CS_Gen_IntroRemix_BSide : Scene
 
     // Audio
     private string bgMusicEvent;
-    private EventInstance bgMusicInstance;
 
     // Timing
     private const float TAPE_INSERT_DURATION = 2.0f;

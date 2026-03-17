@@ -176,8 +176,6 @@ namespace MaggyHelper.Entities.Projectiles
     /// </summary>
     public class SparkField : BaseProjectile
     {
-        private Entity owner;
-        
         public SparkField(Vector2 position) 
             : base(position, Vector2.Zero)
         {

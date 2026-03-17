@@ -18,6 +18,7 @@ public class FlingPaps : Entity
     private int segmentIndex;
     public List<bool> SegmentsWaiting;
     private States state;
+    private readonly TimeRateModifier timeRateModifier;
 
     public static void Load()
     {
@@ -37,6 +38,7 @@ public class FlingPaps : Entity
         Collider = new Circle(16f);
         Add(new PlayerCollider(OnPlayer));
         Add(moveSfx = new SoundSource());
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
         NodeSegments = new List<Vector2[]>();
         NodeSegments.Add(nodes);
         SegmentsWaiting = new List<bool>();
@@ -159,7 +161,7 @@ public class FlingPaps : Entity
         screenSpaceFocusPoint.X = Calc.Clamp(screenSpaceFocusPoint.X, 145f, 215f);
         screenSpaceFocusPoint.Y = Calc.Clamp(screenSpaceFocusPoint.Y, 85f, 95f);
         flingBird.Add(new Coroutine(level.ZoomTo(screenSpaceFocusPoint, 1.1f, 0.2f)));
-        Engine.TimeRate = 0.8f;
+        timeRateModifier.SetTimeRateMultiplier(0.8f);
         Input.Rumble(RumbleStrength.Light, RumbleLength.Medium);
         while (flingBird.flingSpeed != Vector2.Zero)
             yield return null;
@@ -174,7 +176,7 @@ public class FlingPaps : Entity
         flingBird.flingAccel = 6000f;
         yield return 0.1f;
         Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
-        Engine.TimeRate = 1f;
+        timeRateModifier.ResetTimeRateMultiplier();
         level.Shake();
         flingBird.Add(new Coroutine(level.ZoomBack(0.1f)));
         player.FinishFlingBird();

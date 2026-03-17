@@ -17,6 +17,7 @@ namespace MaggyHelper.Cutscenes
         private readonly bool skipCredits;
         private readonly bool skipMessage;
         private readonly string nextLevelName;
+        private readonly TimeRateModifier timeRateModifier;
         
         public CS09_AreaComplete(
             global::Celeste.Player player = null,
@@ -28,6 +29,7 @@ namespace MaggyHelper.Cutscenes
             this.skipCredits = skipCredits;
             this.skipMessage = skipMessage;
             this.nextLevelName = nextLevelName;
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
             Depth = -10000;
         }
         
@@ -44,7 +46,7 @@ namespace MaggyHelper.Cutscenes
                 player = level.Tracker.GetEntity<global::Celeste.Player>();
             }
             
-            Engine.TimeRate = 1f;
+            timeRateModifier.ResetTimeRateMultiplier();
             
             if (player != null)
             {

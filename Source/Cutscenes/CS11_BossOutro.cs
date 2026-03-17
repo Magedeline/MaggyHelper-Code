@@ -35,7 +35,6 @@ namespace MaggyHelper.Cutscenes
         private Player player;
         private NPC marlet;
         private NPC starlo;
-        private NPC darkMatter;
         private NPC badeline;
         private NPC chara;
         private NPC madeline;

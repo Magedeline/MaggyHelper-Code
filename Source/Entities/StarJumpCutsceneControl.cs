@@ -26,7 +26,6 @@ public class StarJumpCutsceneControl : Entity
     public Level Level;
     public Phases Phase = Phases.NotStarted;
     private global::Celeste.Player player;
-    private Coroutine routine;
     private bool cutsceneStarted;
     
     // Position tracking

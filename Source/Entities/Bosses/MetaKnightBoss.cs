@@ -27,7 +27,6 @@ namespace MaggyHelper.Entities.Bosses
         
         // Dimensional cape
         private bool isTeleporting;
-        private Vector2 teleportTarget;
         private float teleportTimer;
         
         // Sword beam

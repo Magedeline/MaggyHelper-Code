@@ -297,9 +297,6 @@ namespace MaggyHelper
 
             // Pre-compute shared distortion grid (HORIZONTAL+1 x VERTICAL+1 vertices)
             // This avoids recomputing shared vertices between adjacent quads
-            int gridW = HORIZONTAL_SEGMENTS + 1;
-            int gridH = VERTICAL_SEGMENTS + 1;
-
             for (int y = 0; y < VERTICAL_SEGMENTS; y++)
             {
                 for (int x = 0; x < HORIZONTAL_SEGMENTS; x++)

@@ -20,6 +20,7 @@ namespace MaggyHelper.Cutscenes {
 
         public Cs04LegendEnd(Session session, TextMenu? menu = null) 
         {
+            this.session = session;
             this.menu = menu;
             areaMusic = session.Audio.Music.Event;
             session.Audio.Music.Event = null;

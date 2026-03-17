@@ -93,8 +93,6 @@ namespace MaggyHelper
         private const string MUSIC_DX_FLOWEY_PHASE2 = "event:/desolozantas/dx_content/music/dx_flowey_overdrive";
         private const string MUSIC_DX_FLOWEY_FINALE = "event:/desolozantas/dx_content/music/dx_flowey_corruption_overload";
 
-        private SoundSource bossSfx;
-        private SoundSource corruptionSfx;
         #endregion
 
         #region Constructors
@@ -853,7 +851,6 @@ namespace MaggyHelper
         // Multi-part sprites
         private Sprite cosmicWingSprite;
         private Sprite haloSprite;
-        private Sprite riftSprite;
 
         // Attack state
         private List<AttackType> currentAttackPattern;
@@ -876,7 +873,6 @@ namespace MaggyHelper
         private const string MUSIC_DX_ASRIEL_TRANSCENDENCE = "event:/desolozantas/dx_content/music/dx_asriel_transcendence";
         private const string MUSIC_DX_ASRIEL_JUDGMENT = "event:/desolozantas/dx_content/music/dx_asriel_cosmic_judgment";
 
-        private SoundSource cosmicSfx;
         #endregion
 
         #region Constructors
@@ -1678,7 +1674,6 @@ namespace MaggyHelper
         private const string MUSIC_DX_DARKMATTER_VOID = "event:/desolozantas/dx_content/music/dx_darkmatter_voidheart";
         private const string MUSIC_DX_DARKMATTER_SINGULARITY = "event:/desolozantas/dx_content/music/dx_darkmatter_singularity";
 
-        private SoundSource voidSfx;
         #endregion
 
         #region Constructors

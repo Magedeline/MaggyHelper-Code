@@ -108,7 +108,7 @@ namespace MaggyHelper.Entities
         private Monocle.Circle circle;
         private VertexLight light;
         private Wiggler scaleWiggler;
-        private AsrielGodBossStarfield bossBg;
+            private AsrielGodBossStarfield bossBg;
         private SoundSource chargeSfx;
         private SoundSource laserSfx;
         
@@ -120,12 +120,10 @@ namespace MaggyHelper.Entities
         private int facing;
         private Vector2[] nodes;
         private int nodeIndex;
-        private int targetNodeIndex;
         
         // Pattern and attack system (ConqueredPeak style)
         private int patternIndex;
         private Coroutine attackCoroutine;
-        private Coroutine moveCoroutine;
         private Coroutine triggerBlocksCoroutine;
         private bool playerHasMoved;
         private SineWave floatSine;
@@ -133,7 +131,6 @@ namespace MaggyHelper.Entities
         private bool startHit;
         private bool isAttacking;
         private bool canHit = true;
-        private int hits;
         
         // Phase management (BadelineBoss style) - HP System from V2
         private int currentPhase = 0;
@@ -382,29 +379,22 @@ namespace MaggyHelper.Entities
 #pragma warning disable CS0414
         private AttackPhase currentAttackPhase = AttackPhase.Charging;
 #pragma warning restore CS0414
-        private float playerHitCooldown = 0f;
-        private float flashTimer = 0f;
+    private float playerHitCooldown = 0f;
+    private float flashTimer = 0f;
         private Vector2 knockbackVelocity = Vector2.Zero;
         private float knockbackTimer = 0f;
-        private float mercyTimer = 0f;
-        private bool playerMercyActive = false;
+    private float mercyTimer = 0f;
+    private bool playerMercyActive = false;
+        private readonly TimeRateModifier hitTimeRateModifier;
         
         // Sword attack fields
-        private Sprite swordSprite;
-        private bool swordActive = false;
-        private Vector2 swordTargetPosition;
 #pragma warning disable CS0414
         private float swordTweenDuration = 0.3f;
 #pragma warning restore CS0414
-        private float swordTweenTimer = 0f;
-        private Vector2 swordStartPosition;
-        private float swordRotation = 0f;
 #pragma warning disable CS0414
         private float swordTargetRotation = 0f;
 #pragma warning restore CS0414
         // Sword animation fields
-        private float swordAnimTimer = 0f;
-        private bool swordAnimating = false;
 
         // Music progression
         private string[] musicTracks = {
@@ -459,6 +449,7 @@ namespace MaggyHelper.Entities
             this.Add((Component)(this.scaleWiggler = Wiggler.Create(0.6f, 3f)));
             this.Add((Component)(this.chargeSfx = new SoundSource()));
             this.Add((Component)(this.laserSfx = new SoundSource()));
+            this.Add((Component)(this.hitTimeRateModifier = new TimeRateModifier(1f, false)));
         }
 
         public AsrielGodBoss(EntityData e, Vector2 offset)
@@ -1000,7 +991,6 @@ namespace MaggyHelper.Entities
         
         #endregion
         
-        private float hitSlowdownTimer = 0f;
         private bool isHitSlowdownActive = false;
         
         /// <summary>
@@ -1019,16 +1009,13 @@ namespace MaggyHelper.Entities
         {
             isHitSlowdownActive = true;
             
-            // Store original time rate
-            float originalTimeRate = Engine.TimeRate;
-            
             // Slowdown parameters - shorter and more impactful for hit feedback
             float slowdownScale = 0.3f; // Slow to 30% speed
             float slowdownDuration = 0.15f; // Very brief slowdown
             float pitchSlowdown = 0.5f; // Music pitch during slowdown (lower = deeper)
             
             // Apply time slowdown
-            Engine.TimeRate = slowdownScale;
+            hitTimeRateModifier.SetTimeRateMultiplier(slowdownScale);
             
             // Apply music pitch slowdown for dramatic effect
             if (level != null)
@@ -1068,7 +1055,7 @@ namespace MaggyHelper.Entities
             yield return slowdownDuration;
             
             // Restore normal time rate
-            Engine.TimeRate = originalTimeRate;
+            hitTimeRateModifier.ResetTimeRateMultiplier();
             
             // Restore normal music pitch
             if (level != null)
@@ -3008,13 +2995,10 @@ namespace MaggyHelper.Entities
         }
 
         // Dialog trigger flags
-        private bool dialogTriggered_Phase1 = false;
-        private bool dialogTriggered_Phase2 = false;
 #pragma warning disable CS0414
         private bool dialogTriggered_Phase3 = false;
 #pragma warning restore CS0414
         private bool isDialogActive = false;
-        private int maxHealth = 1000; // Set appropriately
         
         #endregion
 

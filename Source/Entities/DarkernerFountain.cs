@@ -30,7 +30,6 @@ namespace MaggyHelper.Entities
         private Sprite sprite;
         private bool isActive;
         private float activeTimer;
-        private ParticleSystem particles;
         private Level level;
 
         public static ParticleType P_DarkParticle;

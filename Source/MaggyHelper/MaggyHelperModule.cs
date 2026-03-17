@@ -34,7 +34,7 @@ public class MaggyHelperModule : EverestModule
         }
 
         string version = assembly.GetName().Version?.ToString() ?? "na";
-        string? location = null;
+        string location = null;
 
         try
         {

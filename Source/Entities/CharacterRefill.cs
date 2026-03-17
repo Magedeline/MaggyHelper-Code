@@ -39,8 +39,6 @@ namespace MaggyHelper.Entities
         // Components
         private Sprite sprite;
         private Sprite flash;
-        private Sprite characterIcon; // Small character icon overlay
-        private Image outline;
         private Wiggler wiggler;
         private BloomPoint bloom;
         private VertexLight light;

@@ -51,8 +51,6 @@ namespace MaggyHelper.Entities.Kirby
         private float invulnerableTimer;
         
         // Visual components
-        private Sprite bossSprite;
-        private ParticleEmitter particleEmitter;
         private float flashTimer;
         
         // State machine

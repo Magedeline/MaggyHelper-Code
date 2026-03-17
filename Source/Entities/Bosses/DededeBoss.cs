@@ -20,8 +20,6 @@ namespace MaggyHelper.Entities.Bosses
         
         // Attack types
         private DededeAttack currentAttack;
-        private float attackDuration;
-        private int comboCount;
         
         // Jump slam attack
         private bool isJumpSlamming;

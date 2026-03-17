@@ -21,8 +21,6 @@ public class BeyondSummitGemManager : Entity
     private bool allCollected;
     private bool opened;
     private readonly string unlockFlag;
-    private float heartGemSfxTimer;
-
     private VertexLight centerLight;
     private BloomPoint centerBloom;
     private Wiggler bounceWiggler;
@@ -90,14 +88,9 @@ public class BeyondSummitGemManager : Entity
         Level level = SceneAs<Level>();
         if (level == null) return;
 
-        bool anyChanged = false;
         for (int i = 0; i < TotalGems; i++)
         {
-            bool wasCollected = gemCollected[i];
             gemCollected[i] = level.Session.GetFlag("beyondsummit_gem_" + i);
-
-            if (gemCollected[i] && !wasCollected)
-                anyChanged = true;
 
             float targetAlpha = gemCollected[i] ? 1f : 0.15f;
             float targetScale = gemCollected[i] ? 1f : 0.5f;

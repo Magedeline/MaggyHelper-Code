@@ -444,7 +444,6 @@ namespace MaggyHelper
     [CustomEntity("MaggyHelper/DXVoidDashRefill")]
     public class DXVoidDashRefill : Entity
     {
-        private Sprite sprite;
         private SineWave floatWave;
         private bool collected;
         private float respawnTimer;

@@ -13,6 +13,7 @@
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
         <ModOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Code\net8.0'))</ModOutputDir>
+        <CommunalHelperAssembly>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..\Cache\CommunalHelper.CommunalHelper.dll'))</CommunalHelperAssembly>
     </PropertyGroup>
 
     <!-- Deploy DLL to Code/net10.0 after build, using cmd move to bypass memory-mapped file locks -->
@@ -36,8 +37,8 @@
             <HintPath>..\..\..\MMHOOK_Celeste.dll</HintPath>
             <Private>false</Private>
         </Reference>
-        <Reference Include="CommunalHelper">
-            <HintPath>..\..\Cache\CommunalHelper.CommunalHelper.dll</HintPath>
+        <Reference Include="CommunalHelper" Condition="Exists('$(CommunalHelperAssembly)')">
+            <HintPath>$(CommunalHelperAssembly)</HintPath>
             <Private>false</Private>
         </Reference>
     </ItemGroup>
@@ -72,6 +73,8 @@
         <Compile Remove="Source\Entities\DreamBlock.cs" />
         <Compile Remove="Entities\DreamBlock.cs" />
         <Compile Remove="**\Entities\DreamBlock.cs" />
+        <!-- DreamBlocks depend on CommunalHelper internals; skip them when the optional dependency is unavailable locally. -->
+        <Compile Remove="Entities\DreamBlocks\**\*.cs" Condition="!Exists('$(CommunalHelperAssembly)')" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

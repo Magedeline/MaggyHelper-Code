@@ -25,6 +25,7 @@ public class FlingAsrielGod : Entity
     private int segmentIndex;
     public List<bool> SegmentsWaiting;
     private States state;
+    private readonly TimeRateModifier timeRateModifier;
 
     public FlingAsrielGod(Vector2[] nodes, bool skippable)
         : base(nodes[0])
@@ -37,6 +38,7 @@ public class FlingAsrielGod : Entity
         Collider = new Circle(20f);
         Add(new PlayerCollider(OnPlayer));
         Add(moveSfx = new SoundSource());
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
         NodeSegments = new List<Vector2[]>();
         NodeSegments.Add(nodes);
         SegmentsWaiting = new List<bool>();
@@ -150,7 +152,7 @@ public class FlingAsrielGod : Entity
         screenSpaceFocusPoint.X = Calc.Clamp(screenSpaceFocusPoint.X, 145f, 215f);
         screenSpaceFocusPoint.Y = Calc.Clamp(screenSpaceFocusPoint.Y, 85f, 95f);
         Add(new Coroutine(level.ZoomTo(screenSpaceFocusPoint, 1.1f, 0.2f)));
-        Engine.TimeRate = 0.8f;
+        timeRateModifier.SetTimeRateMultiplier(0.8f);
         Input.Rumble(RumbleStrength.Light, RumbleLength.Medium);
         while (flingSpeed != Vector2.Zero)
             yield return null;
@@ -166,7 +168,7 @@ public class FlingAsrielGod : Entity
         flingAccel = 6000f;
         yield return 0.1f;
         Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
-        Engine.TimeRate = 1f;
+        timeRateModifier.ResetTimeRateMultiplier();
         level.Shake();
         Add(new Coroutine(level.ZoomBack(0.1f)));
         player.FinishFlingBird();

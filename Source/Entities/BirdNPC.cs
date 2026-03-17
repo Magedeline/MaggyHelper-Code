@@ -27,6 +27,7 @@ namespace MaggyHelper.Entities
         public bool OnlyOnce;
         public bool OnlyIfPlayerLeft;
         public BirdTypes BirdType;
+        private readonly TimeRateModifier timeRateModifier;
         /// <summary>Set to true by Bridge when the last tile falls, starting the freeze + land + dash tutorial sequence.</summary>
         public bool BridgeEndTriggered;
 
@@ -62,6 +63,7 @@ namespace MaggyHelper.Entities
             Sprite.UseRawDeltaTime = true;
             Sprite.OnFrameChange = OnSpriteFrameChange;
             Add(Light = new VertexLight(new Vector2(0f, -8f), Color.White, 1f, 8, 32));
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
             StartPosition = Position;
             setMode(mode);
         }
@@ -418,7 +420,7 @@ namespace MaggyHelper.Entities
             while (!BridgeEndTriggered) yield return null;
 
             // --- Freeze time (near-zero so the screen looks paused but inputs still register) ---
-            Engine.TimeRate = 0.001f;
+            timeRateModifier.SetTimeRateMultiplier(0.001f);
 
             // Start the bird above the screen and fly down to the landing position
             var landingPos = Position;
@@ -467,7 +469,7 @@ namespace MaggyHelper.Entities
             }
 
             // --- Unfreeze time ---
-            Engine.TimeRate = 1f;
+            timeRateModifier.ResetTimeRateMultiplier();
 
             // Hide tutorial
             if (Gui != null)

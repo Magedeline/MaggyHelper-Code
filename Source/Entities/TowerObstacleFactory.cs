@@ -1,3 +1,5 @@
+using MaggyHelper.Utils;
+
 namespace MaggyHelper.Entities
 {
     /// <summary>

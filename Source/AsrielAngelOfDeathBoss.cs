@@ -58,7 +58,6 @@ namespace MaggyHelper
 
         private global::Celeste.Player player;
         private global::Celeste.Level level;
-        private Camera camera;
 
         // Visual components
         private string currentAnimation;
@@ -89,10 +88,6 @@ namespace MaggyHelper
         private const string MUSIC_HIS_THEME_01 = "event:/desolozantas/final_content/music/lvl20/his_theme01";
         private const string MUSIC_HIS_THEME_02 = "event:/desolozantas/final_content/music/lvl20/his_theme02";
         private const string MUSIC_KIRBY_VS_ASRIEL = "event:/desolozantas/final_content/music/lvl20/kirby_vs_asriel_fight_2";
-        
-        private SoundSource angelicSfx;
-        private SoundSource cosmicSfx;
-        private SoundSource emotionalSfx;
         
         // Lost soul tracking
         private Dictionary<string, bool> soulsSaved;
@@ -1073,7 +1068,6 @@ namespace MaggyHelper
         public bool IsSaved { get; private set; }
         
         private AsrielAngelOfDeathBoss parentBoss;
-        private Sprite sprite;
         private float floatOffset;
         private float floatSpeed;
         private Color soulColor;

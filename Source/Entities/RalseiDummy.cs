@@ -46,8 +46,6 @@ namespace MaggyHelper.Entities
         // Internal state
         private Vector2 floatNormal = Vector2.UnitY;
         private bool isInitialized = false;
-        internal float Float;
-
         public RalseiDummy(Vector2 position, int index = 0) : base(position)
         {
             try
@@ -446,7 +444,7 @@ namespace MaggyHelper.Entities
             Sprite.Play("fallSlow");
         }
 
-        public IEnumerator CollidePoint(Vector2 target)
+        public new IEnumerator CollidePoint(Vector2 target)
         {
             if (!isInitialized || Sprite == null) yield break;
 

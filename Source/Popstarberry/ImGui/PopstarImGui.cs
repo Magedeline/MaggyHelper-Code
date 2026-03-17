@@ -16,12 +16,7 @@ public static class PopstarImGui
 {
     #region State
     
-    private static SpriteBatch spriteBatch;
-    private static SpriteFont font;
-    
     // Current frame state
-    private static Vector2 currentPosition;
-    private static Vector2 currentSize;
     private static int currentId;
     private static int hotId;
     private static int activeId;

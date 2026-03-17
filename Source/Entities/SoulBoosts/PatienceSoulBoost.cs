@@ -66,20 +66,21 @@ namespace MaggyHelper.Entities.SoulBoosts
             private float duration;
             private float timer;
             private float slowFactor;
-            private float originalTimeRate;
+            private readonly TimeRateModifier timeRateModifier;
 
             public PatienceBuff(float duration, float slowFactor) : base(true, false)
             {
                 this.duration = duration;
                 this.timer = duration;
                 this.slowFactor = slowFactor;
-                this.originalTimeRate = Engine.TimeRate;
+                this.timeRateModifier = new TimeRateModifier(1f, false);
             }
 
             public override void Added(Entity entity)
             {
                 base.Added(entity);
-                Engine.TimeRate = slowFactor;
+                entity.Add(timeRateModifier);
+                timeRateModifier.SetTimeRateMultiplier(slowFactor);
             }
 
             public override void Update()
@@ -91,7 +92,6 @@ namespace MaggyHelper.Entities.SoulBoosts
                 
                 if (timer <= 0f)
                 {
-                    Engine.TimeRate = originalTimeRate;
                     RemoveSelf();
                     return;
                 }
@@ -127,7 +127,8 @@ namespace MaggyHelper.Entities.SoulBoosts
             public override void Removed(Entity entity)
             {
                 base.Removed(entity);
-                Engine.TimeRate = originalTimeRate;
+                timeRateModifier.ResetTimeRateMultiplier();
+                timeRateModifier.RemoveSelf();
             }
         }
     }

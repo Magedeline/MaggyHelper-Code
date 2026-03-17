@@ -199,7 +199,6 @@ namespace MaggyHelper
     public class KirbyFollowerNPC : Actor
     {
         private Sprite sprite;
-        private Vector2 targetPosition;
         private float followSpeed = 60f;
         private float followDistance = 40f;
         private NPCInteractionState interactionState;

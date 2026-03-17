@@ -29,7 +29,7 @@ namespace MaggyHelper.Cutscenes
         /// Whether this vignette is currently paused.
         /// Subclasses should use this flag to halt coroutines / animations.
         /// </summary>
-        public bool Paused { get; protected set; }
+        public new bool Paused { get; protected set; }
 
         /// <summary>
         /// Opens the pause menu for this vignette.

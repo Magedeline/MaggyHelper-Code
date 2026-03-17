@@ -8,6 +8,8 @@ namespace MaggyHelper.Entities
 	// Token: 0x02000205 RID: 517
 	public class PlayerSeeker : Actor
 	{
+		private readonly TimeRateModifier timeRateModifier;
+
 		// Token: 0x060010E3 RID: 4323 RVA: 0x0004FD94 File Offset: 0x0004DF94
 		public PlayerSeeker(EntityData data, Vector2 offset) : base(data.Position + offset)
 		{
@@ -24,6 +26,7 @@ namespace MaggyHelper.Entities
 			base.Add(new MirrorReflection());
 			base.Add(new PlayerCollider(new Action<Player>(this.OnPlayer), null, null));
 			base.Add(new VertexLight(Color.White, 1f, 32, 64));
+			base.Add(this.timeRateModifier = new TimeRateModifier(1f, false));
 			this.facing = Facings.Right;
 			base.Add(this.shaker = new Shaker(false, null));
 			base.Add(new Coroutine(this.IntroSequence(), true));
@@ -100,7 +103,7 @@ namespace MaggyHelper.Entities
 				PlayerDeadBody playerDeadBody = player.Die((player.Position - this.Position).SafeNormalize(), true, false);
 				playerDeadBody.DeathAction = new Action(this.End);
 				playerDeadBody.ActionDelay = 0.3f;
-				Engine.TimeRate = 0.25f;
+				this.timeRateModifier.SetTimeRateMultiplier(0.25f);
 			}
 		}
 
@@ -112,7 +115,7 @@ namespace MaggyHelper.Entities
 			{
 				Glitch.Value = 0f;
 				Distort.Anxiety = 0f;
-				Engine.TimeRate = 1f;
+				this.timeRateModifier.ResetTimeRateMultiplier();
 				level.Session.ColorGrade = null;
 				level.UnloadLevel();
 				level.CanRetry = true;
@@ -223,7 +226,7 @@ namespace MaggyHelper.Entities
 					{
 						this.Dash((entity2.Center - base.Center).SafeNormalize());
 					}
-					Engine.TimeRate = Calc.ClampedMap(num4, 60f, 220f, 0.5f, 1f);
+					this.timeRateModifier.SetTimeRateMultiplier(Calc.ClampedMap(num4, 60f, 220f, 0.5f, 1f));
 					Camera camera = level.Camera;
 					Vector2 cameraTarget = this.CameraTarget;
 					camera.Position += (cameraTarget - camera.Position) * (1f - (float)Math.Pow(0.009999999776482582, (double)Engine.DeltaTime));
@@ -232,7 +235,7 @@ namespace MaggyHelper.Entities
 				}
 				else
 				{
-					Engine.TimeRate = Calc.Approach(Engine.TimeRate, 1f, 1f * Engine.DeltaTime);
+					this.timeRateModifier.SetTimeRateMultiplier(Calc.Approach(this.timeRateModifier.CurrentTimeRate(), 1f, 1f * Engine.DeltaTime));
 				}
 			}
 			foreach (Entity entity3 in base.Scene.Tracker.GetEntities<SeekerBarrier>())

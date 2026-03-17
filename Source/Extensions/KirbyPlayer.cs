@@ -1121,9 +1121,9 @@ namespace MaggyHelper.Extensions
         Water water = this.CollideFirst<Water>(this.Position);
         if (water != null && (double) this.Center.Y < (double) water.Center.Y)
         {
-          do
-            ;
-          while (this.SwimCheck() && !this.MoveVExact(-1));
+          while (this.SwimCheck() && !this.MoveVExact(-1))
+          {
+          }
           if (this.SwimCheck())
             this.StateMachine.State = 3;
         }
@@ -3375,7 +3375,7 @@ namespace MaggyHelper.Extensions
       this.dashStartedOnGround = this.onGround;
       this.launched = false;
       this.canCurveDash = true;
-      if ((double) Engine.TimeRate > 0.25)
+      if ((double) Engine.EffectiveTimeRate > 0.25)
         CelesteGame.Freeze(0.05f);
       this.dashCooldownTimer = 0.2f;
       this.dashRefillCooldownTimer = 0.1f;
@@ -5185,7 +5185,6 @@ namespace MaggyHelper.Extensions
       private readonly KirbySettings settings = new KirbySettings();
       private global::Celeste.Player player;
       private Sprite sprite;
-      private KirbyHealthDisplay hud;
 
       private bool syncToPlayer;
       private bool useKirbyExtSprite;

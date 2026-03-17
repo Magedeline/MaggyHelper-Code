@@ -72,6 +72,8 @@ public class AngyOshiro : Entity
 
     private SoundSource chargeSfx;
 
+    private TimeRateModifier timeRateModifier;
+
     private bool hasEnteredSfx;
 
     private const float minCameraOffsetX = -48f;
@@ -106,6 +108,7 @@ public class AngyOshiro : Entity
     public AngyOshiro(Vector2 position, bool fromCutscene)
     {
         orig_ctor(position, fromCutscene);
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
         state.SetStateName(0, "Chase");
         state.SetStateName(1, "ChargeUp");
         state.SetStateName(2, "Attack");
@@ -174,27 +177,23 @@ public class AngyOshiro : Entity
         yApproachSpeed = Calc.Approach(yApproachSpeed, 100f, 300f * Engine.DeltaTime);
         if (state.State != 3 && canControlTimeRate)
         {
+            float currentTimeRate = 1f;
             if (state.State == 2 && attackSpeed > 200f)
             {
                 Player entity = base.Scene.Tracker.GetEntity<Player>();
                 if (entity != null && !entity.Dead && base.CenterX < entity.CenterX + 4f)
                 {
-                    Engine.TimeRate = MathHelper.Lerp(Calc.ClampedMap(entity.CenterX - base.CenterX, 30f, 80f, 0.5f), 1f, Calc.ClampedMap(Math.Abs(entity.CenterY - base.CenterY), 32f, 48f));
-                }
-                else
-                {
-                    Engine.TimeRate = 1f;
+                    currentTimeRate = MathHelper.Lerp(Calc.ClampedMap(entity.CenterX - base.CenterX, 30f, 80f, 0.5f), 1f, Calc.ClampedMap(Math.Abs(entity.CenterY - base.CenterY), 32f, 48f));
                 }
             }
-            else
-            {
-                Engine.TimeRate = 1f;
-            }
-            Distort.GameRate = Calc.Approach(Distort.GameRate, Calc.Map(Engine.TimeRate, 0.5f, 1f), Engine.DeltaTime * 8f);
+
+            timeRateModifier.SetTimeRateMultiplier(currentTimeRate);
+            Distort.GameRate = Calc.Approach(Distort.GameRate, Calc.Map(currentTimeRate, 0.5f, 1f), Engine.DeltaTime * 8f);
             Distort.Anxiety = Calc.Approach(Distort.Anxiety, targetAnxiety, anxietySpeed * Engine.DeltaTime);
         }
         else
         {
+            timeRateModifier.ResetTimeRateMultiplier();
             Distort.GameRate = 1f;
             Distort.Anxiety = 0f;
         }
@@ -203,6 +202,7 @@ public class AngyOshiro : Entity
     public void StopControllingTime()
     {
         canControlTimeRate = false;
+        timeRateModifier.ResetTimeRateMultiplier();
     }
 
     public override void Render()
@@ -312,7 +312,7 @@ public class AngyOshiro : Entity
 
     private IEnumerator ChargeUpCoroutine()
     {
-        global:Celeste.Celeste.Freeze(0.05f);
+        global::Celeste.Celeste.Freeze(0.05f);
         Distort.Anxiety = 0.3f;
         Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
         lightningVisible = true;

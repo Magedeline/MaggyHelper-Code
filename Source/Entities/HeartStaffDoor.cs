@@ -30,7 +30,6 @@ namespace MaggyHelper.Entities
         private readonly string doorId;
 
         // Visual components
-        private MTexture doorTexture;
         private List<MTexture> staffIcons;
         private Particle[] particles;
         private float rainbowTimer;

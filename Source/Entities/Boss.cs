@@ -62,6 +62,7 @@ namespace MaggyHelper.Entities
         private float attackCooldown = 2f;
         private float gimmickCooldown = 0f;
         private Random random = new Random();
+        private TimeRateModifier timeRateModifier;
         
         // Boss-specific properties
         private int phaseTransitionHealth;
@@ -135,6 +136,8 @@ namespace MaggyHelper.Entities
             
             // Setup state machine
             setupStateMachine();
+
+            Add(timeRateModifier = new TimeRateModifier(1f, false));
             
             Depth = 10; // Render above most entities
         }
@@ -514,7 +517,7 @@ namespace MaggyHelper.Entities
         private void performTimeFreezeAbility()
         {
             // Temporarily slow down time for player
-            Engine.TimeRate = 0.3f;
+            timeRateModifier.SetTimeRateMultiplier(0.3f);
             sprite.Play("time_freeze");
             Audio.Play("event:/time_freeze_ability", Position);
         }
@@ -555,7 +558,7 @@ namespace MaggyHelper.Entities
             // Reset time rate if it was modified
             if (Gimmick == GimmickAbility.TimeFreeze)
             {
-                Engine.TimeRate = 1f;
+                timeRateModifier.ResetTimeRateMultiplier();
             }
         }
         

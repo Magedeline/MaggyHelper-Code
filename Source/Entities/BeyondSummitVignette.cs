@@ -18,7 +18,6 @@ public class BeyondSummitVignette : Scene
     private HiresSnow snow;
     private float fade = 1f;
     private float timer;
-    private bool started;
     private bool ready;
     private bool finalFade;
 

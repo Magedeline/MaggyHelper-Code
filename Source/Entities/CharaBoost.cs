@@ -65,6 +65,8 @@ public class CustomCharaBoost : Entity
 
     private SoundSource relocateSfx;
 
+    private readonly TimeRateModifier timeRateModifier;
+
     public FMOD.Studio.EventInstance Ch19FinalBoostSfx;
 
     public CustomCharaBoost(Vector2[] nodes, bool lockCamera, bool canSkip = false, bool finalCh19Boost = false, bool finalCh19GoldenBoost = false, bool finalCh19PPBoost = false, string finalCh19Dialog = null)
@@ -93,6 +95,7 @@ public class CustomCharaBoost : Entity
         {
             Add(new CameraLocker(Level.CameraLockModes.BoostSequence, 0f, 160f));
         }
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
         Add(relocateSfx = new SoundSource());
     }
 
@@ -231,7 +234,7 @@ public class CustomCharaBoost : Entity
         {
             Vector2 screenSpaceFocusPoint = new Vector2(Calc.Clamp(player.X - level.Camera.X, 120f, 200f), Calc.Clamp(player.Y - level.Camera.Y, 60f, 120f));
             Add(new Coroutine(level.ZoomTo(screenSpaceFocusPoint, 1.5f, 0.18f)));
-            Engine.TimeRate = 0.5f;
+            timeRateModifier.SetTimeRateMultiplier(0.5f);
         }
         else
         {
@@ -333,7 +336,7 @@ public class CustomCharaBoost : Entity
             level.Displacement.AddBurst(Center, 0.6f, 8f, 64f, 0.5f);
             level.ResetZoom();
             player.SummitLaunch(X);
-            Engine.TimeRate = 1f;
+            timeRateModifier.ResetTimeRateMultiplier();
             Finish();
         }
     }

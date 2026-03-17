@@ -9,7 +9,6 @@ namespace MaggyHelper.Entities
         public static ParticleType P_Glow;
 
         private Sprite sprite;
-        private Image outline;
         private Wiggler wiggler;
         private BloomPoint bloom;
         private VertexLight light;
