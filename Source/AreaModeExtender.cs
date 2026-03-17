@@ -109,6 +109,12 @@ public static class AreaModeExtender
             // Hook Session ctor to guarantee checkpoint starts always receive valid AreaStats.
             On.Celeste.Session.ctor_AreaKey_string_AreaStats += OnSessionCtor;
 
+            // Vanilla SaveData XML only supports AreaMode values 0-2.
+            // Clamp D/DX modes at save/load boundaries so runtime can use them
+            // without corrupting the underlying file-select save data.
+            On.Celeste.SaveData.AfterInitialize += OnSaveDataAfterInitialize;
+            On.Celeste.UserIO.SaveThread += OnSaveThread;
+
             Logger.Log(LogLevel.Info, "MaggyHelper", "AreaModeExtender loaded (A/B/C/D sides — DX-Side pending)");
         }
         catch (Exception ex)
@@ -130,6 +136,8 @@ public static class AreaModeExtender
         On.Celeste.HeartGem.Collect -= OnHeartGemCollect;
         On.Celeste.LevelExit.ctor -= OnLevelExitCtor;
         On.Celeste.Session.ctor_AreaKey_string_AreaStats -= OnSessionCtor;
+        On.Celeste.SaveData.AfterInitialize -= OnSaveDataAfterInitialize;
+        On.Celeste.UserIO.SaveThread -= OnSaveThread;
 
         Logger.Log(LogLevel.Info, "MaggyHelper", "AreaModeExtender unloaded");
     }
@@ -709,6 +717,57 @@ public static class AreaModeExtender
         }
     }
 
+    private static void OnSaveDataAfterInitialize(On.Celeste.SaveData.orig_AfterInitialize orig, SaveData self)
+    {
+        try
+        {
+            orig(self);
+
+            try
+            {
+                // SaveData.AfterInitialize also runs during brand-new slot creation.
+                // Avoid touching partially-constructed SaveData before vanilla has finished
+                // building its internal state, then clamp any extended modes afterwards.
+                SanitizeVanillaSaveTargets(self, temporary: false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Warn, "MaggyHelper",
+                    $"Post-initialize save sanitizer skipped: {ex.Message}");
+            }
+
+            try
+            {
+                EnsureMaggySaveAreaStats(self);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Warn, "MaggyHelper",
+                    $"Post-initialize Maggy AreaStats repair skipped: {ex.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log(LogLevel.Error, "MaggyHelper", $"Error in SaveData.AfterInitialize sanitizer: {ex}");
+            throw;
+        }
+    }
+
+    private static void OnSaveThread(On.Celeste.UserIO.orig_SaveThread orig)
+    {
+        SaveDataSanitizationSnapshot snapshot = null;
+
+        try
+        {
+            snapshot = SanitizeVanillaSaveTargets(SaveData.Instance, temporary: true);
+            orig();
+        }
+        finally
+        {
+            snapshot?.Restore();
+        }
+    }
+
     private static AreaStats EnsureSafeAreaStats(AreaKey area, AreaStats oldStats)
     {
         try
@@ -771,6 +830,157 @@ public static class AreaModeExtender
         }
 
         return null;
+    }
+
+    private static void EnsureMaggySaveAreaStats(SaveData save)
+    {
+        if (save?.Areas_Safe == null || AreaData.Areas == null || AreaData.Areas.Count == 0)
+            return;
+
+        int repaired = 0;
+
+        for (int areaId = 0; areaId < AreaData.Areas.Count; areaId++)
+        {
+            AreaData area = AreaData.Areas[areaId];
+            if (!IsOurMap(area))
+                continue;
+
+            if (areaId < 0 || areaId >= save.Areas_Safe.Count)
+                continue;
+
+            AreaStats stats = save.Areas_Safe[areaId];
+            if (stats == null)
+            {
+                stats = CreateFallbackAreaStats(new AreaKey(areaId, global::Celeste.AreaMode.Normal));
+                if (stats == null)
+                    continue;
+
+                save.Areas_Safe[areaId] = stats;
+                repaired++;
+            }
+
+            int requiredModes = Math.Max(area.Mode?.Length ?? 0, 3);
+            EnsureAreaModeStatsArray(stats, requiredModes);
+        }
+
+        if (repaired > 0)
+        {
+            Logger.Log(LogLevel.Info, "MaggyHelper",
+                $"Rebuilt {repaired} missing Maggy AreaStats entries after save load");
+        }
+    }
+
+    private static SaveDataSanitizationSnapshot SanitizeVanillaSaveTargets(SaveData save, bool temporary)
+    {
+        if (save == null)
+            return null;
+
+        SaveDataSanitizationSnapshot snapshot = temporary ? new SaveDataSanitizationSnapshot(save) : null;
+        int changes = 0;
+
+        if (TrySanitizeAreaKey(save.LastArea, out AreaKey sanitizedLastArea))
+        {
+            int originalMode = (int)save.LastArea.Mode;
+
+            if (temporary)
+                snapshot.LastArea = save.LastArea;
+
+            save.LastArea = sanitizedLastArea;
+            changes++;
+
+            Logger.Log(LogLevel.Warn, "MaggyHelper",
+                $"Clamped save LastArea from mode {originalMode} to {(int)sanitizedLastArea.Mode} for vanilla serialization");
+        }
+
+        Session currentSession = GetCurrentSession(save);
+        if (currentSession != null && TrySanitizeAreaKey(currentSession.Area, out AreaKey sanitizedSessionArea))
+        {
+            int originalMode = (int)currentSession.Area.Mode;
+
+            if (temporary)
+            {
+                snapshot.CurrentSession = currentSession;
+                snapshot.CurrentSessionArea = currentSession.Area;
+            }
+
+            SetSessionArea(currentSession, sanitizedSessionArea);
+            changes++;
+
+            Logger.Log(LogLevel.Warn, "MaggyHelper",
+                $"Clamped CurrentSession area from mode {originalMode} to {(int)sanitizedSessionArea.Mode} for vanilla serialization");
+        }
+
+        if (!temporary)
+            return null;
+
+        return changes > 0 ? snapshot : null;
+    }
+
+    private static Session GetCurrentSession(SaveData save)
+    {
+        if (save == null)
+            return null;
+
+        try
+        {
+            return save.CurrentSession_Safe ?? save.CurrentSession;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static void SetSessionArea(Session session, AreaKey sanitizedArea)
+    {
+        if (session == null)
+            return;
+
+        DynamicData dyn = DynamicData.For(session);
+
+        try { dyn.Set("area", sanitizedArea); } catch { }
+        try { dyn.Set("Area", sanitizedArea); } catch { }
+    }
+
+    private static bool TrySanitizeAreaKey(AreaKey key, out AreaKey sanitized)
+    {
+        sanitized = key;
+
+        int modeIndex = (int)key.Mode;
+        if (modeIndex >= MODE_NORMAL && modeIndex <= MODE_CSIDE)
+            return false;
+
+        int clampedMode = Math.Clamp(modeIndex, MODE_NORMAL, MODE_CSIDE);
+        sanitized = new AreaKey(key.ID, (global::Celeste.AreaMode)clampedMode);
+        return true;
+    }
+
+    private sealed class SaveDataSanitizationSnapshot
+    {
+        private readonly SaveData _save;
+
+        public SaveDataSanitizationSnapshot(SaveData save)
+        {
+            _save = save;
+        }
+
+        public AreaKey? LastArea { get; set; }
+
+        public Session CurrentSession { get; set; }
+
+        public AreaKey? CurrentSessionArea { get; set; }
+
+        public void Restore()
+        {
+            if (_save == null)
+                return;
+
+            if (LastArea.HasValue)
+                _save.LastArea = LastArea.Value;
+
+            if (CurrentSession != null && CurrentSessionArea.HasValue)
+                SetSessionArea(CurrentSession, CurrentSessionArea.Value);
+        }
     }
 
     private static void EnsureAreaModeStatsArray(AreaStats stats, int requiredModes)
