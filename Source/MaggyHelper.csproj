@@ -50,16 +50,16 @@
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
         <PackageReference Include="YamlDotNet" Version="16.2.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-        <PackageReference Include="System.Memory" Version="4.6.0" />
+        <PackageReference Include="System.Memory" Version="4.6.3" />
         
         <!-- Roslyn packages for Hot Code Reloading -->
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
         <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.8.0" />
 
         <!-- ML.NET for machine learning -->
-        <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+        <PackageReference Include="Microsoft.ML" Version="5.0.0" />
         <PackageReference Include="Microsoft.ML.FastTree" Version="3.0.1" />
-        <PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.21.1" />
+        <PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.23.0" />
         <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.17.3" />
     </ItemGroup>
 
