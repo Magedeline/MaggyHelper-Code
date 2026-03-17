@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "2h034q5YHMM=",
+  "dgSpecHash": "rDpA4BaqEOs=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper\\Source\\MaggyHelper.csproj",
+  "projectFilePath": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper-Code\\Source\\MaggyHelper.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Gabriel L\\.nuget\\packages\\google.protobuf\\3.19.6\\google.protobuf.3.19.6.nupkg.sha512",
     "C:\\Users\\Gabriel L\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.3.4\\microsoft.codeanalysis.analyzers.3.3.4.nupkg.sha512",

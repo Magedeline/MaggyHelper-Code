@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper\\Source\\MaggyHelper.csproj": {}
+    "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper-Code\\Source\\MaggyHelper.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper\\Source\\MaggyHelper.csproj": {
+    "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper-Code\\Source\\MaggyHelper.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper\\Source\\MaggyHelper.csproj",
+        "projectUniqueName": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper-Code\\Source\\MaggyHelper.csproj",
         "projectName": "MaggyHelper",
-        "projectPath": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper\\Source\\MaggyHelper.csproj",
+        "projectPath": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper-Code\\Source\\MaggyHelper.csproj",
         "packagesPath": "C:\\Users\\Gabriel L\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper\\Source\\obj3\\",
+        "outputPath": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper-Code\\Source\\obj3\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
