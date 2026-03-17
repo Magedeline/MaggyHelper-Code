@@ -60,7 +60,7 @@
         <PackageReference Include="Microsoft.ML" Version="3.0.1" />
         <PackageReference Include="Microsoft.ML.FastTree" Version="3.0.1" />
         <PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.21.1" />
-        <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.17.3" />
+        <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.3" />
     </ItemGroup>
 
     <ItemGroup>
