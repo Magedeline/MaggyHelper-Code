@@ -431,7 +431,7 @@ public class CustomNpc : Actor
             return colliding && this.OnGround();
         }
 
-        Random deterministicRandom = new Random(level.Session.DeathsInCurrentLevel * 37 + SaveData.Instance.Name.GetHashCode()); //For the jump time
+        Random deterministicRandom = new Pcg32Random(unchecked((uint)(level.Session.DeathsInCurrentLevel * 37 + SaveData.Instance.Name.GetHashCode()))); //For the jump time
 
         switch (Ai)
         {

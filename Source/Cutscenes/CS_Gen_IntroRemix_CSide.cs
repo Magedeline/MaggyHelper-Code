@@ -1,4 +1,5 @@
 using System.Collections;
+using MaggyHelper.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -405,7 +406,7 @@ public class CS_Gen_IntroRemix_CSide : Scene
     {
         if (staticNoise <= 0f) return;
 
-        var rng = new Random((int)(vhsTimer * 1500));
+        var rng = new Pcg32Random(unchecked((uint)(int)(vhsTimer * 1500f)));
         int dotCount = (int)(staticNoise * 500);  // More dots than B-Side
 
         for (int i = 0; i < dotCount; i++)
@@ -473,7 +474,7 @@ public class CS_Gen_IntroRemix_CSide : Scene
     private void RenderGlitchBlocks(Rectangle bounds)
     {
         // Random rectangular glitch blocks (data corruption effect)
-        var rng = new Random((int)(vhsTimer * 2000));
+        var rng = new Pcg32Random(unchecked((uint)(int)(vhsTimer * 2000f)));
         int blockCount = (int)(glitchIntensity * 10);
 
         for (int i = 0; i < blockCount; i++)

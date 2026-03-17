@@ -1,5 +1,6 @@
 using System.Collections;
 using FMOD.Studio;
+using MaggyHelper.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -322,7 +323,7 @@ public class CS_Gen_IntroRemix_BSide : Scene
         if (staticNoise <= 0f) return;
 
         // Draw random static noise pixels using rectangles
-        var rng = new Random((int)(vhsTimer * 1000));
+        var rng = new Pcg32Random(unchecked((uint)(int)(vhsTimer * 1000f)));
         int dotCount = (int)(staticNoise * 300);
 
         for (int i = 0; i < dotCount; i++)

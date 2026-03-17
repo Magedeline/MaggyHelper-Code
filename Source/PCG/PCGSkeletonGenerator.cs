@@ -77,7 +77,7 @@ namespace MaggyHelper.PCG
         public static PCGSkeleton Generate(int numRooms = 10, int roomW = 40, int roomH = 23,
                                            float branchProb = 0.3f, int seed = -1)
         {
-            var rng = seed >= 0 ? new Random(seed) : new Random();
+            var rng = seed >= 0 ? new Pcg32Random((uint)seed) : new Random();
 
             // Grid bookkeeping
             var occupied = new Dictionary<(int, int), int>(); // gridPos → roomId

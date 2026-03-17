@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using MaggyHelper.Cutscenes;
+using MaggyHelper.Utils;
 
 namespace MaggyHelper.Entities;
 
@@ -79,7 +80,7 @@ public class StarJumpCutsceneControlV2 : Entity
             this.Level.Session.Audio.Apply(false);
         }
 
-        this.Random = new Random(666);
+        this.Random = new Pcg32Random(666u);
         this.Add((Component)new BeforeRenderHook(new Action(this.BeforeRender)));
         
         // Initialize tracking

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using MaggyHelper.Utils;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -437,7 +438,7 @@ public class PlanetsStyleground : PopstarStyleground
     {
         // Draw placeholder circles for planets
         Vector2 roomOffset = new Vector2(room.Bounds.X * 8, room.Bounds.Y * 8);
-        Random rand = new Random(room.Name.GetHashCode());
+        Random rand = new Pcg32Random(unchecked((uint)room.Name.GetHashCode()));
         
         for (int i = 0; i < Math.Min(Count, 10); i++)
         {
@@ -459,7 +460,7 @@ public class StarfieldStyleground : PopstarStyleground
     public override void Render(Editor.PopstarRoom room)
     {
         Vector2 roomOffset = new Vector2(room.Bounds.X * 8, room.Bounds.Y * 8);
-        Random rand = new Random(room.Name.GetHashCode());
+        Random rand = new Pcg32Random(unchecked((uint)room.Name.GetHashCode()));
         
         for (int i = 0; i < 50; i++)
         {
@@ -482,7 +483,7 @@ public class StardustStyleground : PopstarStyleground
     {
         // Similar to starfield but with particles
         Vector2 roomOffset = new Vector2(room.Bounds.X * 8, room.Bounds.Y * 8);
-        Random rand = new Random(room.Name.GetHashCode() + 1);
+        Random rand = new Pcg32Random(unchecked((uint)(room.Name.GetHashCode() + 1)));
         
         for (int i = 0; i < 30; i++)
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Celeste;
+using MaggyHelper.Utils;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -93,7 +94,7 @@ namespace MaggyHelper.PCG
         public static (List<LevelData> Levels, PCGSkeleton Skeleton) GenerateFullLevel(
             PCGRoomConfig config, int numRooms = 8, int seed = -1, MapData trainingMapData = null)
         {
-            var rng = seed >= 0 ? new Random(seed) : new Random();
+            var rng = seed >= 0 ? new Pcg32Random((uint)seed) : new Random();
 
             // 1. Skeleton
             var skeleton = PCGSkeletonGenerator.Generate(

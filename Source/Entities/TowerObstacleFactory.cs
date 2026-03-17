@@ -7,6 +7,11 @@ namespace MaggyHelper.Entities
     [CustomEntity(ids: "MaggyHelper/TowerObstacleFactory")]
     public class TowerObstacleFactoryEntity : Entity
     {
+        private static Pcg32Random IndexedRandom(int index)
+        {
+            return new Pcg32Random(unchecked((uint)index));
+        }
+
         public enum BackgroundStyle
         {
             Default,
@@ -178,7 +183,7 @@ namespace MaggyHelper.Entities
                     -height
                 ),
                 ObstaclePattern.Scattered => center + new Vector2(
-                    (float)(new Random(index).NextDouble() * 2 - 1) * TowerRadius,
+                    (float)(IndexedRandom(index).NextDouble() * 2 - 1) * TowerRadius,
                     -height
                 ),
                 _ => center + new Vector2(0, -height)
@@ -207,7 +212,7 @@ namespace MaggyHelper.Entities
                     ? TowerObstacle.ObstacleType.LaserBeam 
                     : (index % 3 == 1 ? TowerObstacle.ObstacleType.Spinner : TowerObstacle.ObstacleType.FallingBlock),
                 ObstacleSetType.Expert => (TowerObstacle.ObstacleType)(index % 5),
-                ObstacleSetType.Random => (TowerObstacle.ObstacleType)(new Random(index).Next(0, 5)),
+                ObstacleSetType.Random => (TowerObstacle.ObstacleType)(IndexedRandom(index).Next(0, 5)),
                 _ => TowerObstacle.ObstacleType.Spikes
             };
         }
@@ -224,7 +229,7 @@ namespace MaggyHelper.Entities
                     ? TowerObstacle.MovementPattern.Circular 
                     : TowerObstacle.MovementPattern.Zigzag,
                 ObstacleSetType.Expert => (TowerObstacle.MovementPattern)(index % 4),
-                ObstacleSetType.Random => (TowerObstacle.MovementPattern)(new Random(index).Next(0, 4)),
+                ObstacleSetType.Random => (TowerObstacle.MovementPattern)(IndexedRandom(index).Next(0, 4)),
                 _ => TowerObstacle.MovementPattern.Static
             };
         }

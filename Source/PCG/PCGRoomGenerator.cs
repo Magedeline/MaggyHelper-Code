@@ -135,7 +135,7 @@ namespace MaggyHelper.PCG
 
             // --- Space erosion ---
             if (config.SpaceErodePercent > 0f)
-                ErodeForSpace(fgTiles, w, h, config.SpaceErodePercent);
+                ErodeForSpace(fgTiles, w, h, config.SpaceErodePercent, _rng);
 
             // --- Cleanup ---
             for (int pass = 0; pass < config.CleanupPasses; pass++)
@@ -339,9 +339,8 @@ namespace MaggyHelper.PCG
             }
         }
 
-        private static void ErodeForSpace(char[,] m, int w, int h, float erodePercent)
+        private static void ErodeForSpace(char[,] m, int w, int h, float erodePercent, Random rng)
         {
-            var rng = new Random();
             var solidTiles = new List<(int x, int y, float score)>();
 
             for (int y = 1; y < h - 1; y++)

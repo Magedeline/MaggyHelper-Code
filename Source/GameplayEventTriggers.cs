@@ -1,4 +1,5 @@
 using MaggyHelper.Entities;
+using MaggyHelper.Utils;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -766,7 +767,9 @@ namespace MaggyHelper
             triggered = true;
 
             Level level = SceneAs<Level>();
-            Random rng = seed > 0 ? new Random(seed) : new Random();
+            Pcg32Random rng = seed > 0
+                ? new Pcg32Random((uint)seed)
+                : new Pcg32Random(unchecked((ulong)DateTime.UtcNow.Ticks), unchecked((ulong)(uint)Environment.TickCount));
             level.Session.SetFlag("randomizer_seed_" + rng.Next(1000), true);
         }
     }
