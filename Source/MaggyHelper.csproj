@@ -8,19 +8,24 @@
         <Nullable>disable</Nullable>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 
-        <!-- Build to local bin first, then deploy to Code folder via post-build move
+        <!-- Build to local bin first, then deploy the full runtime payload to Code folder
              to avoid "user-mapped section" errors when the DLL is locked by the C# language server -->
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <ModOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Code\net8.0'))</ModOutputDir>
         <CommunalHelperAssembly>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..\Cache\CommunalHelper.CommunalHelper.dll'))</CommunalHelperAssembly>
     </PropertyGroup>
 
-    <!-- Deploy DLL to Code/net10.0 after build, using cmd move to bypass memory-mapped file locks -->
+    <!-- Deploy the build output to Code/net8.0 after build, preserving runtime subdirectories. -->
     <Target Name="DeployToModFolder" AfterTargets="Build">
+        <ItemGroup>
+            <ModDeployFiles Include="$(TargetDir)**\*"
+                            Exclude="$(TargetDir)apphost.exe;$(TargetDir)ref\**\*;$(TargetDir)refs\**\*" />
+        </ItemGroup>
         <Exec Command="cmd /c if exist &quot;$(ModOutputDir)\$(AssemblyName).dll&quot; move /Y &quot;$(ModOutputDir)\$(AssemblyName).dll&quot; &quot;$(ModOutputDir)\$(AssemblyName).dll.bak&quot;" IgnoreExitCode="true" />
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModOutputDir)" />
-        <Copy SourceFiles="$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(ModOutputDir)" Condition="Exists('$(TargetDir)$(AssemblyName).pdb')" />
+        <Copy SourceFiles="@(ModDeployFiles)"
+              DestinationFiles="@(ModDeployFiles->'$(ModOutputDir)\%(RecursiveDir)%(Filename)%(Extension)')"
+              SkipUnchangedFiles="true" />
         <Exec Command="cmd /c if exist &quot;$(ModOutputDir)\$(AssemblyName).dll.bak&quot; del &quot;$(ModOutputDir)\$(AssemblyName).dll.bak&quot;" IgnoreExitCode="true" />
     </Target>
 
