@@ -1,0 +1,9 @@
+# GitHub Spark configuration
+# This file enables GitHub Repositories (Spark) features in VS Code
+# For more info: https://github.com/github/vscode-github-repositories
+repositories:
+  - Maggy-Studio/MaggyHelper
+settings:
+  enablePullRequests: true
+  enableIssues: true
+  enableDiscussions: true

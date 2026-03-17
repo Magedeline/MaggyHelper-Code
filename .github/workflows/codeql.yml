@@ -1,0 +1,69 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ csharp, python ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Setup .NET 8.0
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download Celeste dependencies
+        if: matrix.language == 'csharp'
+        run: |
+          mkdir -p lib
+          curl -fL "https://maddie480.ovh/celeste/everest-deps.zip" -o everest-deps.zip || \
+            curl -fL "https://maddie480.ovh/celeste/everest-deps" -o everest-deps.zip
+          unzip -tq everest-deps.zip
+          unzip everest-deps.zip -d lib
+
+      - name: Restore dependencies
+        if: matrix.language == 'csharp'
+        run: dotnet restore Source/MaggyHelper.csproj
+
+      - name: Build C# project for analysis
+        if: matrix.language == 'csharp'
+        run: |
+          dotnet build Source/MaggyHelper.csproj \
+            -c Release \
+            -p:CelestePath=${{ github.workspace }}/lib \
+            /p:ReferencePath=${{ github.workspace }}/lib
+
+      - name: Analyze with CodeQL
+        uses: github/codeql-action/analyze@v3

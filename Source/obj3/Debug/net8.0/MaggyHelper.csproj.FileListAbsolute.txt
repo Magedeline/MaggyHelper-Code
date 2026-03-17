@@ -1,0 +1,45 @@
+D:\celeste\Mods\DesoloZantas\Source\bin\Debug\net8.0\MaggyHelper.deps.json
+D:\celeste\Mods\DesoloZantas\Source\bin\Debug\net8.0\MaggyHelper.runtimeconfig.json
+D:\celeste\Mods\DesoloZantas\Source\bin\Debug\net8.0\MaggyHelper.dll
+D:\celeste\Mods\DesoloZantas\Source\bin\Debug\net8.0\MaggyHelper.pdb
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.csproj.AssemblyReference.cache
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.GeneratedMSBuildEditorConfig.editorconfig
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.AssemblyInfoInputs.cache
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.AssemblyInfo.cs
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.csproj.CoreCompileInputs.cache
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.sourcelink.json
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.dll
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\refint\MaggyHelper.dll
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.pdb
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\MaggyHelper.genruntimeconfig.cache
+D:\celeste\Mods\DesoloZantas\Source\obj3\Debug\net8.0\ref\MaggyHelper.dll
+d:\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.deps.json
+d:\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.runtimeconfig.json
+d:\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.dll
+d:\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.pdb
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.csproj.AssemblyReference.cache
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.GeneratedMSBuildEditorConfig.editorconfig
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.AssemblyInfoInputs.cache
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.AssemblyInfo.cs
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.csproj.CoreCompileInputs.cache
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.sourcelink.json
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.dll
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\refint\MaggyHelper.dll
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.pdb
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.genruntimeconfig.cache
+d:\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\ref\MaggyHelper.dll
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.csproj.AssemblyReference.cache
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.AssemblyInfoInputs.cache
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.AssemblyInfo.cs
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.csproj.CoreCompileInputs.cache
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.sourcelink.json
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.dll
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\refint\MaggyHelper.dll
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.pdb
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.deps.json
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.runtimeconfig.json
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.dll
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\bin\Debug\net8.0\MaggyHelper.pdb
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\MaggyHelper.genruntimeconfig.cache
+C:\Users\Gabriel L\Desktop\celeste\Mods\MaggyHelper\Source\obj3\Debug\net8.0\ref\MaggyHelper.dll

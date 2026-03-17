@@ -1,0 +1,47 @@
+Team Ruleset (Small Team)
+
+This branch exists to define and iterate on collaboration rules for a small team.
+
+1) Branch and PR workflow
+- Create feature branches from main using: feature/<short-name>
+- Keep PRs small (target under ~400 changed lines when possible)
+- Use draft PRs early for visibility
+- Merge using squash commits to keep history clean
+
+2) Review policy
+- Require at least 1 reviewer approval before merge
+- Author must resolve all review conversations
+- No self-approval merges
+- Re-review required after significant code changes
+
+3) Quality gates
+- dotnet build must pass before merge
+- No new warnings in edited files unless explicitly justified
+- Add or update tests for behavior changes where feasible
+
+4) Commit conventions
+- Use short imperative commit messages
+- Prefix by area when useful, for example: Combat: fix boss phase reset
+- One logical change per commit
+
+5) Ownership and communication
+- Tag the most relevant teammate for domain review
+- Document risky changes in the PR description
+- Record follow-up tasks in issues, not in code comments alone
+
+6) Fast rollback safety
+- Avoid mixing refactors with behavior changes in one PR
+- Keep feature flags or toggles when introducing risky features
+- Include rollback notes for high-impact changes
+
+7) Cadence
+- Daily async updates in team channel: what changed, blockers, next step
+- Weekly 30-minute backlog and quality review
+
+8) Definition of done
+- Build passes
+- Review complete
+- Docs/changelog updated if needed
+- Map/content validation done for affected gameplay areas
+
+Maintainers can adapt this file as team size and process evolve.

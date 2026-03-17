@@ -1,0 +1,20 @@
+# CODEOWNERS
+
+* @Magedeline
+
+/Source/ @Magedeline
+/Code/ @Magedeline
+/*.cs @Magedeline
+/*.sln @Magedeline
+
+/.github/ @Magedeline
+
+/loenn-mcp/ @Magedeline
+/MapleStarters/ @Magedeline
+/Loenn/ @Magedeline
+
+/Maps/ @Magedeline
+/Dialog/ @Magedeline
+/Graphics/ @Magedeline
+/Mountain/ @Magedeline
+/Docs/ @Magedeline

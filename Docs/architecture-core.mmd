@@ -1,0 +1,72 @@
+graph TB
+    subgraph CORE["MaggyHelper Core - EverestModule"]
+        MOD["MaggyHelperModule\n(Entry Point)"]
+        SET["MaggyHelperSettings\n(User Preferences)"]
+        SES["MaggyHelperSession\n(Per-Run State)"]
+        SAV["MaggyHelperSaveData\n(Persistent Progress)"]
+        MOD --> SET
+        MOD --> SES
+        MOD --> SAV
+    end
+
+    subgraph HOOKS["Everest Hooks"]
+        H1["Player.ctor\n-> ApplyKirbySkin()"]
+        H2["Player.Update\n-> HandleKirbyAbilities()"]
+        H3["Level.OnLoadEntity\n-> Entity Factory"]
+    end
+    MOD --> H1
+    MOD --> H2
+    MOD --> H3
+
+    subgraph KIRBY["Kirby Player System"]
+        KSP["PlayerSpriteMode 100\n(kirby_player sprite bank)"]
+        KAA["KirbyAutoAnimator\n(Component)"]
+        KSE["KirbySettings\n(Health/Stamina/Movement)"]
+        KCA["Copy Ability System\n20 abilities: Fire, Ice,\nSword, Beam, etc."]
+        KFL["Float / Inhale\n(RemainingFloatPuffs,\nIsFloating, IsInhaling)"]
+        KNI["Knight Mode\n(2x damage, low-health\ntransform)"]
+        KSP --> KAA
+        KSE --> KCA
+        KSE --> KFL
+        KSE --> KNI
+    end
+
+    subgraph MADELINE["Madeline / Default Player"]
+        MAA["MadelineAutoAnimator\n(Portrait Sync)"]
+        CAA["CharaAutoAnimator\n(Glitch Effects)"]
+        PSM["PlayerSpriteMode\nDefault / Chara=100"]
+        PAT["PatchNPCMadeline\n(Custom Sounds)"]
+        MAA --> PSM
+        CAA --> PSM
+    end
+
+    subgraph CHARS["Character System"]
+        REG["CharacterAbilityRegistry\n(Static, 20+ Characters)"]
+        C_CEL["Celeste:\nmadeline, badeline"]
+        C_KIR["Kirby Series:\nkirby, meta_knight,\nking_dedede, bandana_dee"]
+        C_UT["Undertale:\nfrisk, chara,\nasriel, ralsei"]
+        C_EB["EarthBound:\nness"]
+        REG --> C_CEL
+        REG --> C_KIR
+        REG --> C_UT
+        REG --> C_EB
+    end
+
+    subgraph INV["Player Inventory Manager"]
+        INV_STD["Standard (1 Dash)"]
+        INV_2D["TwoDash (2 Dashes)\nHeart Power"]
+        INV_SOL["Solar (3 Dashes)\nTitan Tower"]
+        INV_LUN["Lunar (4 Dashes)\nTheEnd"]
+        INV_BH["BlackHole (5 Dashes)\nCorruption"]
+        INV_SS["SaveStar (10 Dashes)\nKirby Mode"]
+    end
+
+    H1 --> KSP
+    H2 --> KFL
+    H2 --> KCA
+    SES --> KCA
+    SES --> KFL
+    SAV --> KCA
+    INV_SS -->|"EnableKirbyMode()"| KIRBY
+    REG -->|"ActivateCharacter()"| KIRBY
+    REG -->|"ActivateCharacter()"| MADELINE

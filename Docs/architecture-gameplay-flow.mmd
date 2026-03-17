@@ -1,0 +1,49 @@
+flowchart LR
+    START(("Player Launches\nMod")) --> OW["Overworld\n(OverworldConnector)"]
+    OW --> LOBBY["SubMapLobby\n(Hub Area)"]
+
+    LOBBY --> |"Select Chapter"| CH["Chapter\n(A/B/C/D Side)"]
+    CH --> ROOM["Room / Sub-Stage"]
+
+    ROOM --> CHECK{"Character\nMode?"}
+
+    CHECK -->|"Default / Madeline"| MAD_FLOW
+    CHECK -->|"Kirby Mode"| KIR_FLOW
+    CHECK -->|"CharacterSwapTrigger"| SWAP["Swap Between\nKirby <-> Madeline\nIn-Map"]
+
+    subgraph MAD_FLOW["Madeline Gameplay"]
+        M_MOVE["Standard Dash\n(1-5 based on\nInventoryType)"]
+        M_ANIM["MadelineAutoAnimator\n(Dialog Portrait Sync)"]
+        M_NPC["NPC Interactions\n(PatchNPCMadeline)"]
+    end
+
+    subgraph KIR_FLOW["Kirby Gameplay"]
+        K_10D["10 Dashes\n(SaveStar Inventory)"]
+        K_FLOAT["Float / Hover\n(5 puffs, stamina drain)"]
+        K_INHALE["Inhale Enemies\n(64px range, 120 pull)"]
+        K_COPY["Copy Abilities\n(20 types)"]
+        K_KNIGHT["Knight Mode\n(2x damage)"]
+        K_10D --> K_FLOAT
+        K_FLOAT --> K_INHALE
+        K_INHALE --> K_COPY
+        K_COPY --> K_KNIGHT
+    end
+
+    ROOM --> ENEMY["Enemies\n(WaddleDee, WaddleDoo,\nGordo, Scarfy, etc.)"]
+    ROOM --> BOSS{"Boss\nEncounter?"}
+    BOSS -->|"MidBoss"| MIDB["3 Attack Patterns\n(Spread/Homing/Slam)"]
+    BOSS -->|"FullBoss"| FULLB["Multi-Phase\nP1: Circular -> P2: Spiral\nat 50% HP"]
+    BOSS -->|"MiniBoss"| MINIB["Patrol Guard\n(Checkpoint)"]
+
+    FULLB --> DEFEAT["boss_defeated\nflag set"]
+    MIDB --> DEFEAT
+    DEFEAT --> UNLOCK["Unlock Abilities\n/ Colors / Areas"]
+    UNLOCK --> OW
+
+    SWAP --> MAD_FLOW
+    SWAP --> KIR_FLOW
+
+    ROOM --> WARP["WarpStar\n(Travel Between\nSub-Stages)"]
+    WARP --> ROOM
+
+    ROOM --> DUAL["DualCharacterTrigger\n(Both Characters\nSimultaneous)"]

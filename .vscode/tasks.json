@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "dotnet build",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/Source/MaggyHelper.csproj"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "silent"
+      }
+    }
+  ]
+}

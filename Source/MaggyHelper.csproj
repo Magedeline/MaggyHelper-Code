@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MaggyHelper</AssemblyName>
+        <RootNamespace>Celeste.Mod.MaggyHelper</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+
+        <!-- Build to local bin first, then deploy to Code folder via post-build move
+             to avoid "user-mapped section" errors when the DLL is locked by the C# language server -->
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+        <ModOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Code\net8.0'))</ModOutputDir>
+    </PropertyGroup>
+
+    <!-- Deploy DLL to Code/net10.0 after build, using cmd move to bypass memory-mapped file locks -->
+    <Target Name="DeployToModFolder" AfterTargets="Build">
+        <Exec Command="cmd /c if exist &quot;$(ModOutputDir)\$(AssemblyName).dll&quot; move /Y &quot;$(ModOutputDir)\$(AssemblyName).dll&quot; &quot;$(ModOutputDir)\$(AssemblyName).dll.bak&quot;" IgnoreExitCode="true" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModOutputDir)" />
+        <Copy SourceFiles="$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(ModOutputDir)" Condition="Exists('$(TargetDir)$(AssemblyName).pdb')" />
+        <Exec Command="cmd /c if exist &quot;$(ModOutputDir)\$(AssemblyName).dll.bak&quot; del &quot;$(ModOutputDir)\$(AssemblyName).dll.bak&quot;" IgnoreExitCode="true" />
+    </Target>
+
+    <ItemGroup>
+        <Reference Include="Celeste">
+            <HintPath>..\..\..\Celeste.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="FNA">
+            <HintPath>..\..\..\FNA.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="MMHOOK_Celeste">
+            <HintPath>..\..\..\MMHOOK_Celeste.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="CommunalHelper">
+            <HintPath>..\..\Cache\CommunalHelper.CommunalHelper.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+        <PackageReference Include="MonoMod" Version="22.1.29.1" />
+        <PackageReference Include="MonoMod.RuntimeDetour" Version="22.1.29.1" />
+        <PackageReference Include="MonoMod.Utils" Version="22.1.29.1" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+        <PackageReference Include="YamlDotNet" Version="16.2.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="System.Memory" Version="4.6.0" />
+        
+        <!-- Roslyn packages for Hot Code Reloading -->
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.8.0" />
+
+        <!-- ML.NET for machine learning -->
+        <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+        <PackageReference Include="Microsoft.ML.FastTree" Version="3.0.1" />
+        <PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.21.1" />
+        <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.17.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Exclude decompiled Celeste.Player shim to prevent type conflicts -->
+        <Compile Remove="Source\Extensions\Player.cs" />
+        <Compile Remove="Extensions\Player.cs" />
+        <Compile Remove="**\Extensions\Player.cs" />
+        <!-- Exclude decompiled vanilla DreamBlock duplicate to prevent type conflicts with Celeste.dll -->
+        <Compile Remove="Source\Entities\DreamBlock.cs" />
+        <Compile Remove="Entities\DreamBlock.cs" />
+        <Compile Remove="**\Entities\DreamBlock.cs" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>portable</DebugType>
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DebugSymbols>false</DebugSymbols>
+        <DebugType>none</DebugType>
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+</Project>

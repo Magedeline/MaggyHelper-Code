@@ -1,0 +1,86 @@
+graph TB
+    subgraph OVERWORLD["Overworld"]
+        OC["OverworldConnector"]
+        MR1["Primary MountainRenderer\n(Always Active)"]
+        MR2["Secondary MountainRenderer\n(Unlocks at Area 2+)"]
+        M3D["Maggy3D Marker\n(Replaces Maddy3D)"]
+        OC --> MR1
+        OC --> MR2
+        OC --> M3D
+    end
+
+    subgraph ASIDE["A-Side Chapters - 21 Maps"]
+        A00["00: Prologue"]
+        A01["01: City"]
+        A02["02: Nightmare"]
+        A03["03: Stars"]
+        A04["04: Legend"]
+        A05["05: Restore"]
+        A06["06: Stronghold"]
+        A07["07: Hell"]
+        A08["08: Truth"]
+        A09["09: Summit"]
+        A10["10: Ruins"]
+        A11["11: Snow"]
+        A12["12: Water"]
+        A13["13: Fire"]
+        A14["14: Digital"]
+        A15["15: Castle"]
+        A16["16: Corruption"]
+        A17["17: Epilogue"]
+        A18["18: Heart"]
+        A19["19: Space"]
+        A20["20: TheEnd"]
+    end
+
+    subgraph ALTSIDES["Alt-Sides - AltSidesHelper"]
+        BS["B-Side (16 Maps)\nCh01-Ch18\nHarder Variants"]
+        CS["C-Side (16 Maps)\nCh01-Ch18\nEven Harder"]
+        DS["D-Side (16 Maps)\nCh01-Ch18\nExtreme Difficulty"]
+    end
+
+    subgraph SUBSTAGE["Sub-Map System - Collab Style"]
+        SML["SubMapLobby\n(Hub Entity)"]
+        SMM["SubMapManager\n(Area Controller)"]
+        WS["WarpStar\n(Kirby Transport)"]
+        CST["CharacterSwapTrigger"]
+        DCT["DualCharacterTrigger"]
+        PIT["PlayerInventoryTrigger"]
+        SML --> SMM
+        SMM --> WS
+        SMM --> CST
+        SMM --> DCT
+        SMM --> PIT
+    end
+
+    subgraph TRIGGERS["In-Map Triggers - 80+"]
+        KPT["KirbyPlayerTrigger\n(Toggle Kirby Mode)"]
+        KAT["KirbyAbilityTrigger\n(Grant/Revoke Abilities)"]
+        KMT["KirbyModeToggleTrigger"]
+        BAT["BossArenaTrigger"]
+        DMT["DamageTrigger"]
+        DLT["DialogTrigger"]
+        VFX["Visual Effect Triggers"]
+    end
+
+    OC -->|"Navigate Chapters"| ASIDE
+    A01 -->|".altsideshelper.meta.yaml"| BS
+    A01 -->|".altsideshelper.meta.yaml"| CS
+    A01 -->|".altsideshelper.meta.yaml"| DS
+
+    SML -->|"Sub-Areas Within\nEach Chapter"| ASIDE
+    KPT -->|"Activate In Room"| KMT
+    PIT -->|"SaveStar -> Kirby\nStandard -> Madeline"| CST
+
+    subgraph BOSSES["Boss Encounters"]
+        BB["BossCharacter (Abstract)"]
+        FB["FullBoss\n(Multi-Phase)"]
+        MB["MidBoss\n(3 Patterns)"]
+        MiB["MiniBoss\n(Guard/Patrol)"]
+        BB --> FB
+        BB --> MB
+        BB --> MiB
+    end
+
+    BAT --> BOSSES
+    BOSSES -->|"boss_defeated flag"| SMM
