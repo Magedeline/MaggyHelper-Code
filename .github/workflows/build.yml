@@ -23,10 +23,18 @@ jobs:
     - name: Checkout LFS objects
       run: git lfs checkout
     
-    - name: Setup .NET 10.0
+    - name: Setup .NET 8.0
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: '8.0.x'
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/global.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
     
     - name: Download Celeste dependencies
       run: |
@@ -43,20 +51,19 @@ jobs:
       run: |
         dotnet build Source/MaggyHelper.csproj \
           -c Release \
+          --no-restore \
           -p:CelestePath=${{ github.workspace }}/lib \
           /p:ReferencePath=${{ github.workspace }}/lib
-      continue-on-error: true
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: MaggyHelper
         path: |
-          Code/net8.0/*.dll
+          Code/net8.0/**
           everest.yaml
           Dialog/
           Graphics/
           Loenn/
           Maps/
-          Audio/
         if-no-files-found: warn
