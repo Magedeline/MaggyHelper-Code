@@ -5,6 +5,7 @@ using MaggyHelper.Entities;
 using MaggyHelper.NPCs;
 using Microsoft.Xna.Framework;
 using Monocle;
+using BirdNPC = MaggyHelper.Entities.BirdNPC;
 
 namespace MaggyHelper.Cutscenes
 {

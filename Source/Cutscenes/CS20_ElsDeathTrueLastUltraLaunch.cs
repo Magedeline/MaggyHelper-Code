@@ -9,6 +9,7 @@ using MaggyHelper.Entities.SoulBoosts;
 // Kirby Heaven Ascend Manager for the final ascension
 using Microsoft.Xna.Framework;
 using Monocle;
+using BirdNPC = MaggyHelper.Entities.BirdNPC;
 
 #pragma warning disable CS0618 // Engine.TimeRate is obsolete but needed for vanilla behavior
 

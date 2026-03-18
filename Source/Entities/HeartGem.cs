@@ -296,7 +296,7 @@ this.endCutscene();
             if (this.IsFake) {
            level.StartCutscene(this.SkipFakeHeartCutscene, true, false, true);
            // Remove all birds from the scene to prevent interference with the fake heart cutscene (birdgoners)
-           foreach (BirdNpcGoner existingBird in level.Entities.FindAll<BirdNpcGoner>()) {
+           foreach (BirdNPC existingBird in level.Entities.FindAll<BirdNPC>()) {
                existingBird.RemoveSelf();
            }
             } else {
@@ -435,7 +435,7 @@ Glitch.Value = 0.75f;
              this.poem.Offset = new Vector2((float)(panAmount * 8), 0f) * Ease.CubeInOut(p);
        yield return null;
 }
-      this.bird = new BirdNpcGoner(birdFrom, BirdNpcGoner.Modes.None);
+      this.bird = new BirdNPC(birdFrom, BirdNPC.Modes.None);
        this.bird.Sprite.Play("fly", false, false);
      this.bird.Sprite.UseRawDeltaTime = true;
             this.bird.Facing = Facings.Right;
@@ -672,7 +672,7 @@ Level level = Scene as Level;
  private BloomPoint bloom;
       private VertexLight light;
     private Poem poem;
-      private BirdNpcGoner bird;
+      private BirdNPC bird;
   private float timer;
         private bool collected;
  private bool autoPulse = true;

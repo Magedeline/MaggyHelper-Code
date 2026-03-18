@@ -264,6 +264,7 @@ public static class ChapterProgressionManager
             case "unlock19":
                 UnlockChapter(Ch19Sid);
                 save.UnlockedChapter19 = true;
+                save.BossRushUnlocked = true;
                 save.PendingUnlockChapter19OnRestart = false;
                 Engine.Commands?.Log("[MaggyHelper] Unlocked Chapter 19 immediately.");
                 break;
@@ -271,6 +272,7 @@ public static class ChapterProgressionManager
             case "unlock20":
                 UnlockChapter(Ch20Sid);
                 save.VoidMoonUnlocked = true;
+                save.FinalDlcContentUnlocked = true;
                 save.PendingUnlockChapter20OnRestart = false;
                 Engine.Commands?.Log("[MaggyHelper] Unlocked Chapter 20 immediately.");
                 break;

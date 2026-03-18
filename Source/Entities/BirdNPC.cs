@@ -1,761 +1,610 @@
+using System;
+using System.Collections;
+using System.Runtime.CompilerServices;
 using MaggyHelper.Cutscenes;
+using Microsoft.Xna.Framework;
+using Monocle;
 
-namespace MaggyHelper.Entities
-{
-    [CustomEntity(ids: "MaggyHelper/BirdNPCMod")]
-    [Tracked(true)]
+namespace MaggyHelper.Entities;
+
+    [CustomEntity(ids: "MaggyHelper/BirdNPC")]
+    [Monocle.Tracked]
     [HotReloadable]
-    public class BirdNpcGoner : Actor
+
+public class BirdNPC : Actor
+{
+    public enum Modes
     {
-        public static ParticleType PFeather;
-        public static string FlownFlag = "bird_fly_away_";
-        public Facings Facing = Facings.Left;
-        public Sprite Sprite;
-        public Vector2 StartPosition;
-        public VertexLight Light;
-        public bool AutoFly;
-        public EntityID EntityId;
-        public bool FlyAwayUp = true;
-        public float WaitForLightningPostDelay;
-        public bool DisableFlapSfx;
-        public Coroutine TutorialRoutine;
-        public Modes Mode;
-        public BirdGonerTutorialGui Gui;
-        public Level Level;
-        public Vector2[] Nodes;
-        public StaticMover StaticMover;
-        public bool OnlyOnce;
-        public bool OnlyIfPlayerLeft;
-        public BirdTypes BirdType;
-        private readonly TimeRateModifier timeRateModifier;
-        /// <summary>Set to true by Bridge when the last tile falls, starting the freeze + land + dash tutorial sequence.</summary>
-        public bool BridgeEndTriggered;
+        ClimbingTutorial,
+        DashingTutorial,
+        DreamJumpTutorial,
+        SuperWallJumpTutorial,
+        HyperJumpTutorial,
+        FlyAway,
+        None,
+        Sleeping,
+        MoveToNodes,
+        WaitForLightningOff
+    }
 
-        static BirdNpcGoner()
+    public static ParticleType P_Feather;
+
+    private static string FlownFlag = "bird_fly_away_";
+
+    static BirdNPC()
+    {
+        P_Feather = new ParticleType
         {
-            // Initialize feather particle type
-            PFeather = new ParticleType
-            {
-                Source = GFX.Game["particles/feather"],
-                Color = Color.White,
-                Color2 = Color.Gray,
-                ColorMode = ParticleType.ColorModes.Choose,
-                FadeMode = ParticleType.FadeModes.Late,
-                LifeMin = 0.8f,
-                LifeMax = 1.2f,
-                Size = 1f,
-                SizeRange = 0.5f,
-                SpeedMin = 10f,
-                SpeedMax = 20f,
-                Direction = (float)Math.PI / 2f,
-                DirectionRange = (float)Math.PI / 4f,
-                Acceleration = new Vector2(0f, 10f),
-                RotationMode = ParticleType.RotationModes.SameAsDirection
-            };
-        }
+            Source = GFX.Game["particles/feather"],
+            Color = Color.White,
+            Color2 = Color.Gray,
+            ColorMode = ParticleType.ColorModes.Choose,
+            FadeMode = ParticleType.FadeModes.Late,
+            LifeMin = 0.8f,
+            LifeMax = 1.2f,
+            Size = 1f,
+            SizeRange = 0.5f,
+            SpeedMin = 10f,
+            SpeedMax = 20f,
+            Direction = (float)Math.PI / 2f,
+            DirectionRange = (float)Math.PI / 4f,
+            Acceleration = new Vector2(0f, 10f),
+            RotationMode = ParticleType.RotationModes.SameAsDirection
+        };
+    }
 
-        public BirdNpcGoner(Vector2 position, Modes mode, BirdTypes birdType = BirdTypes.Default) : base(position)
+    public Facings Facing = Facings.Left;
+
+    public Sprite Sprite;
+
+    public Vector2 StartPosition;
+
+    public VertexLight Light;
+
+    public bool AutoFly;
+
+    public EntityID EntityID;
+
+    public bool FlyAwayUp = true;
+
+    public float WaitForLightningPostDelay;
+
+    public bool DisableFlapSfx;
+
+    private Coroutine tutorialRoutine;
+
+    private Modes mode;
+
+    private BirdTutorialGui gui;
+
+    private Level level;
+
+    private Vector2[] nodes;
+
+    private StaticMover staticMover;
+
+    private bool onlyOnce;
+
+    private bool onlyIfPlayerLeft;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public BirdNPC(Vector2 position, Modes mode)
+        : base(position)
+    {
+        Add(Sprite = GFX.SpriteBank.Create("bird"));
+        Sprite.Scale.X = (float)Facing;
+        Sprite.UseRawDeltaTime = true;
+        Sprite.OnFrameChange = [MethodImpl(MethodImplOptions.NoInlining)] (string spr) =>
         {
-            BirdType = birdType;
-            string spriteName = GetSpriteNameForBirdType(birdType);
-            Add(Sprite = GFX.SpriteBank.Create(spriteName));
-            Sprite.Scale.X = (float)Facing;
-            Sprite.UseRawDeltaTime = true;
-            Sprite.OnFrameChange = OnSpriteFrameChange;
-            Add(Light = new VertexLight(new Vector2(0f, -8f), Color.White, 1f, 8, 32));
-            Add(timeRateModifier = new TimeRateModifier(1f, false));
-            StartPosition = Position;
-            setMode(mode);
-        }
-
-        private static string GetSpriteNameForBirdType(BirdTypes birdType)
-        {
-            return birdType switch
-            {
-                BirdTypes.Clover => "birdgoner_clover",
-                BirdTypes.Cody => "birdgoner_cody",
-                BirdTypes.Emily => "birdgoner_emily",
-                BirdTypes.Odin => "birdgoner_odin",
-                BirdTypes.Robin => "birdgoner_robin",
-                BirdTypes.Sabel => "birdgoner_sabel",
-                _ => "bird"
-            };
-        }
-
-        private void setMode(Modes mode)
-        {
-            Mode = mode;
-
-            switch (mode)
-            {
-                case Modes.ClimbingTutorial:
-                    Add(new Coroutine(ClimbingTutorial()));
-                    break;
-
-                case Modes.DashingTutorial:
-                    Add(new Coroutine(GetDashingTutorial()));
-                    break;
-
-                case Modes.DreamJumpTutorial:
-                    // Add logic for DreamJumpTutorial if required
-                    break;
-
-                case Modes.SuperWallJumpTutorial:
-                    // Add logic for SuperWallJumpTutorial if required
-                    break;
-
-                case Modes.HyperJumpTutorial:
-                    // Add logic for HyperJumpTutorial if required
-                    break;
-
-                case Modes.KirbyPlayerTutorial:
-                    Add(new Coroutine(KirbyPlayerTutorial()));
-                    break;
-
-                case Modes.FlyAway:
-                    if (AutoFly) Add(new Coroutine(startleAndFlyAway()));
-                    break;
-
-                case Modes.Sleeping:
-                    this.Sprite.Play("sleep");
-                    break;
-
-                case Modes.MoveToNodes:
-                    Add(new Coroutine(moveToNodesRoutine()));
-                    break;
-
-                case Modes.WaitForLightningOff:
-                    Add(new Coroutine(waitForLightningOffRoutine()));
-                    break;
-
-                case Modes.BridgeEndDash:
-                    Add(new Coroutine(BridgeEndDashRoutine()));
-                    break;
-
-                case Modes.None:
-                default:
-                    break;
-            }
-        }
-
-        private IEnumerator waitForLightningOffRoutine()
-        {
-            while (Level.Session.BloomBaseAdd > 0.1f) yield return null;
-
-            yield return WaitForLightningPostDelay;
-        }
-
-        private IEnumerator moveToNodesRoutine()
-        {
-            if (Nodes == null || Nodes.Length == 0) yield break;
-
-            foreach (var target in Nodes)
-            {
-                while (Vector2.Distance(Position, target) > 1f)
-                {
-                    var direction = (target - Position).SafeNormalize();
-                    Position += direction * 60f * Engine.DeltaTime;
-
-                    Facing = direction.X > 0 ? Facings.Right : Facings.Left;
-
-                    yield return null;
-                }
-
-                Position = target;
-                yield return 0.2f;
-            }
-        }
-
-        private IEnumerator startleAndFlyAway()
-        {
-            if (Level.Session.GetFlag(FlownFlag + Level.Session.Level)) yield break;
-
-            Level.Session.SetFlag(FlownFlag + Level.Session.Level);
-            this.Sprite.Play("fly");
-            Light.Visible = false;
-
-            if (!DisableFlapSfx) Audio.Play("event:/game/general/bird_startle", Position);
-
-            var flyDirection = FlyAwayUp ? new Vector2(0f, -1f) : new Vector2((float)Facing, -0.5f);
-            flyDirection.Normalize();
-
-            for (var i = 0; i < 6; i++)
-            {
-                Level.Particles.Emit(PFeather, 1, Position + new Vector2(0f, -6f), Vector2.One * 4f);
-                yield return 0.05f;
-            }
-
-            while (true)
-            {
-                Position += flyDirection * 60f * Engine.DeltaTime;
-                if (Position.Y < Level.Camera.Top - 16f || Position.X < Level.Camera.Left - 16f ||
-                    Position.X > Level.Camera.Right + 16f)
-                    break;
-
-                yield return null;
-            }
-
-            RemoveSelf();
-        }
-
-        public BirdNpcGoner(EntityData data, Vector2 offset)
-            : this(data.Position + offset, data.Enum(nameof(Mode), Modes.None), data.Enum(nameof(BirdType), BirdTypes.Default))
-        {
-            EntityId = new EntityID(data.Level.Name, data.ID);
-            Nodes = data.NodesOffset(offset);
-            OnlyOnce = data.Bool(nameof(OnlyOnce));
-            OnlyIfPlayerLeft = data.Bool(nameof(OnlyIfPlayerLeft));
-            AutoFly = data.Bool(nameof(AutoFly), false);
-            FlyAwayUp = data.Bool(nameof(FlyAwayUp), true);
-            WaitForLightningPostDelay = data.Float(nameof(WaitForLightningPostDelay), 0f);
-            DisableFlapSfx = data.Bool(nameof(DisableFlapSfx), false);
-        }
-
-        private void OnSpriteFrameChange(string spr)
-        {
-            if (Level != null && X > Level.Camera.Left + 64 && X < Level.Camera.Right - 64 &&
-                (spr == "peck" || spr == "peckRare") && Sprite.CurrentAnimationFrame == 6)
+            if (level != null && base.X > level.Camera.Left + 64f && base.X < level.Camera.Right - 64f && (spr.Equals("peck") || spr.Equals("peckRare")) && Sprite.CurrentAnimationFrame == 6)
             {
                 Audio.Play("event:/game/general/bird_peck", Position);
             }
-            if (Level != null && Level.Session.Area.ID == 10 && !DisableFlapSfx)
+            if (level != null && level.Session.Area.ID == 10 && !DisableFlapSfx)
             {
                 FlapSfxCheck(Sprite);
             }
-        }
+        };
+        Add(Light = new VertexLight(new Vector2(0f, -8f), Color.White, 1f, 8, 32));
+        StartPosition = Position;
+        SetMode(mode);
+    }
 
-        public override void Added(Scene scene)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public BirdNPC(EntityData data, Vector2 offset)
+        : this(data.Position + offset, data.Enum("mode", Modes.None))
+    {
+        EntityID = new EntityID(data.Level.Name, data.ID);
+        nodes = data.NodesOffset(offset);
+        onlyOnce = data.Bool("onlyOnce");
+        onlyIfPlayerLeft = data.Bool("onlyIfPlayerLeft");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public void SetMode(Modes mode)
+    {
+        this.mode = mode;
+        if (tutorialRoutine != null)
         {
-            base.Added(scene);
-            Level = scene as Level;
-            if (Mode == Modes.ClimbingTutorial && Level.Session.GetLevelFlag("2"))
-            {
-                RemoveSelf();
-            }
-            else if (Mode == Modes.DashingTutorial && Level.Session.GetFlag("dash_tutorial_complete"))
-            {
-                RemoveSelf();
-            }
-            else if (Mode == Modes.KirbyPlayerTutorial && Level.Session.GetFlag("kirby_tutorial_complete"))
-            {
-                RemoveSelf();
-            }
-            else if (Mode == Modes.FlyAway && Level.Session.GetFlag(FlownFlag + Level.Session.Level))
-            {
-                RemoveSelf();
-            }
-            // BridgeEndDash bird should never be auto-removed; it waits for the bridge signal.
+            tutorialRoutine.RemoveSelf();
         }
-
-        public override void Awake(Scene scene)
+        switch (mode)
         {
-            base.Awake(scene);
-            if (Mode == Modes.SuperWallJumpTutorial)
-            {
-                var player = scene.Tracker.GetEntity<global::Celeste.Player>();
-                if (player != null && player.Y < Y + 32)
-                {
-                    RemoveSelf();
-                }
-            }
-            if (OnlyIfPlayerLeft)
-            {
-                var player = Level.Tracker.GetEntity<global::Celeste.Player>();
-                if (player != null && player.X > X)
-                {
-                    RemoveSelf();
-                }
-            }
-        }
-
-        public override bool IsRiding(Solid solid)
-        {
-            return Scene.CollideCheck(new Rectangle((int)X - 4, (int)Y, 8, 2), solid);
-        }
-
-        public override void Update()
-        {
-            Sprite.Scale.X = (float)Facing;
-            base.Update();
-        }
-
-        public IEnumerator ClimbingTutorial()
-        {
-            var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-            while (Math.Abs(player.X - X) > 120)
-            {
-                yield return null;
-            }
-            var tutorial1 = new BirdGonerTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_climb"), new object[]
-            {
-                Dialog.Clean("tutorial_hold"),
-                BirdGonerTutorialGui.ButtonPrompt.Grab
-            });
-            var tutorial2 = new BirdGonerTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_climb"), new object[]
-            {
-                BirdGonerTutorialGui.ButtonPrompt.Grab,
-                "+",
-                new Vector2(0f, -1f)
-            });
-            bool first = true;
-            bool willEnd;
-            do
-            {
-                yield return showTutorial(tutorial1, first);
-                first = false;
-                while (player.StateMachine.State != 1 && player.Y > Y)
-                {
-                    yield return null;
-                }
-                if (player.Y > Y)
-                {
-                    Audio.Play("event:/ui/game/tutorial_note_flip_back");
-                    yield return hideTutorial();
-                }
-                while (player.Scene != null && (!player.OnGround() || player.StateMachine.State == 1))
-                {
-                    yield return null;
-                }
-                willEnd = player.Y <= Y + 4;
-                if (!willEnd)
-                {
-                    Audio.Play("event:/ui/game/tutorial_note_flip_front");
-                }
-                yield return hideTutorial();
-            } while (!willEnd);
-            yield return startleAndFlyAway();
-        }
-
-        public IEnumerator GetDashingTutorial()
-        {
-            var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-            if (player == null) yield break;
-
-            // Wait for player to get close
-            while (Math.Abs(player.X - X) > 120)
-            {
-                yield return null;
-            }
-
-            // Create dash tutorial GUI
-            var dashTutorial = new BirdGonerTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_dash"), new object[]
-            {
-                BirdGonerTutorialGui.ButtonPrompt.Dash,
-                "+",
-                new Vector2(1f, 0f)
-            });
-
-            bool tutorialComplete = false;
-            bool first = true;
-
-            while (!tutorialComplete)
-            {
-                yield return showTutorial(dashTutorial, first);
-                first = false;
-
-                // Wait for player to dash (state 2 is dashing, state 5 is red dash)
-                while (player.Scene != null && player.StateMachine.State != 2 && player.StateMachine.State != 5)
-                {
-                    yield return null;
-                }
-
-                if (player.Scene == null) yield break;
-
-                // Player dashed! Mark tutorial as complete
-                tutorialComplete = true;
-                Audio.Play("event:/ui/game/tutorial_note_flip_back");
-            }
-
-            yield return hideTutorial();
-
-            // Small delay before flying away
-            yield return 0.5f;
-
-            // Set flag before flying away (must be before RemoveSelf stops this coroutine)
-            Level.Session.SetFlag("dash_tutorial_complete");
-            Level.Session.SetFlag(FlownFlag + Level.Session.Level);
-            var savedSession = Level.Session;
-
-            // Inline fly-away so we can trigger the vignette AFTER the bird exits
-            this.Sprite.Play("fly");
-            Light.Visible = false;
-            if (!DisableFlapSfx) Audio.Play("event:/game/general/bird_startle", Position);
-
-            for (var fi = 0; fi < 6; fi++)
-            {
-                Level.Particles.Emit(PFeather, 1, Position + new Vector2(0f, -6f), Vector2.One * 4f);
-                yield return 0.05f;
-            }
-
-            var flyDir = FlyAwayUp ? new Vector2(0f, -1f) : new Vector2((float)Facing, -0.5f);
-            flyDir.Normalize();
-
-            while (true)
-            {
-                Position += flyDir * 60f * Engine.DeltaTime;
-                if (Position.Y < Level.Camera.Top - 16f || Position.X < Level.Camera.Left - 16f ||
-                    Position.X > Level.Camera.Right + 16f)
-                    break;
-                yield return null;
-            }
-
-            // Transition to the Bridge Ending Vignette before removing self
-            yield return 0.3f;
-            Engine.Scene = new Cs00BridgeEndingVignette(savedSession);
-            RemoveSelf();
-        }
-
-        /// <summary>
-        /// Bridge-end sequence: freeze time, fly in from above, show dash tutorial,
-        /// unfreeze on player dash, fly away, then start the ending vignette.
-        /// Place this bird in the map at the desired landing position with Mode = BridgeEndDash.
-        /// </summary>
-        public IEnumerator BridgeEndDashRoutine()
-        {
-            var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-            if (player == null) yield break;
-
-            // Hide until the bridge signals us
-            Sprite.Visible = false;
-            while (!BridgeEndTriggered) yield return null;
-
-            // --- Freeze time (near-zero so the screen looks paused but inputs still register) ---
-            timeRateModifier.SetTimeRateMultiplier(0.001f);
-
-            // Start the bird above the screen and fly down to the landing position
-            var landingPos = Position;
-            Position = new Vector2(landingPos.X, Level.Camera.Top - 48f);
-            Sprite.Visible = true;
-            Sprite.UseRawDeltaTime = true;
-            Sprite.Play("flyup");
-
-            // Fly down over ~1.5 raw seconds
-            const float flyDuration = 1.5f;
-            for (float t = 0f; t < flyDuration; t += Engine.RawDeltaTime)
-            {
-                Position = Vector2.Lerp(
-                    new Vector2(landingPos.X, Level.Camera.Top - 48f),
-                    landingPos,
-                    Ease.SineInOut(t / flyDuration));
-                yield return null;
-            }
-            Position = landingPos;
-
-            // Land
-            Sprite.Play("idle");
-            // Small raw-time pause so landing settles
-            for (float t = 0f; t < 0.4f; t += Engine.RawDeltaTime) yield return null;
-
-            // --- Show dash tutorial prompt with instruction text ---
-            var dashTutorial = new BirdGonerTutorialGui(this, new Vector2(0f, -16f),
-                Dialog.Clean("tutorial_dash"), new object[]
-                {
-                    Dialog.Clean("tutorial_dash_instructions") ?? "Dash towards me to unfreeze time!",
-                    BirdGonerTutorialGui.ButtonPrompt.Dash,
-                    "+",
-                    new Vector2(1f, 0f)
-                });
-            Gui = dashTutorial;
-            Level.Add(Gui);
-            Gui.Open = true;
-
-            // Wait for the player to dash (state 2 = normal dash, state 5 = red/super dash)
-            // Input.Dash.Pressed is checked too because DeltaTime=~0 can slow state transitions
-            while (player.Scene != null
-                   && player.StateMachine.State != 2
-                   && player.StateMachine.State != 5
-                   && !Input.Dash.Pressed)
-            {
-                yield return null;
-            }
-
-            // --- Unfreeze time ---
-            timeRateModifier.ResetTimeRateMultiplier();
-            
-            // Also unfreeze the bridge's time modifier if it exists
-            var bridge = Scene.Tracker.GetEntity<Bridge>();
-            if (bridge != null)
-            {
-                bridge.UnfreezeTime();
-            }
-
-            // Hide tutorial
-            if (Gui != null)
-            {
-                Gui.Open = false;
-                for (float t = 0f; t < 0.15f; t += Engine.RawDeltaTime) yield return null;
-                Gui.RemoveSelf();
-                Gui = null;
-            }
-
-            // Brief pause before flying away
-            yield return 0.4f;
-
-            // Store session before RemoveSelf stops the coroutine
-            Level.Session.SetFlag("dash_tutorial_complete");
-            Level.Session.SetFlag(FlownFlag + Level.Session.Level);
-            Level.Session.SetFlag("bridge_end_dash_triggered");
-            var savedSession = Level.Session;
-
-            // Fly straight up and out
-            Sprite.Play("fly");
-            Light.Visible = false;
-            if (!DisableFlapSfx)
-                Audio.Play("event:/game/general/bird_startle", Position);
-
-            for (var fi = 0; fi < 6; fi++)
-            {
-                Level.Particles.Emit(PFeather, 1, Position + new Vector2(0f, -6f), Vector2.One * 4f);
-                yield return 0.05f;
-            }
-
-            while (true)
-            {
-                Position += new Vector2(0f, -1f) * 60f * Engine.DeltaTime;
-                if (Position.Y < Level.Camera.Top - 16f) break;
-                yield return null;
-            }
-
-            // Transition to the bridge ending vignette, which will then lead to CS00_EndingMod
-            yield return 0.3f;
-            Engine.Scene = new Cs00BridgeEndingVignette(savedSession);
-            RemoveSelf();
-        }
-
-        private void add(BirdGonerTutorialGui components)
-        {
-            Gui = components;
-            Level.Add(Gui);
-        }
-
-        private IEnumerator hideTutorial()
-        {
-            if (Gui != null)
-            {
-                Gui.Open = false;
-                yield return 0.15f;
-                Gui.RemoveSelf();
-                Gui = null;
-            }
-
-            yield break;
-        }
-
-        private IEnumerator showTutorial(BirdGonerTutorialGui tutorial, bool first)
-        {
-            if (first)
-            {
-                Gui = tutorial;
-                Level.Add(Gui);
-                Gui.Open = true;
-                yield return null;
-            }
-            else
-            {
-                if (Gui != null) Gui.Open = true;
-                yield return null;
-            }
-        }
-
-        // Methods used by cutscenes
-        public IEnumerator Startle(string sfx = null, float duration = 0.5f, Vector2? targetOffset = null)
-        {
-            Sprite.Play("fly");
-
-            if (!string.IsNullOrEmpty(sfx))
-            {
-                Audio.Play(sfx, Position);
-            }
-            else if (!DisableFlapSfx)
-            {
-                Audio.Play("event:/game/general/bird_startle", Position);
-            }
-
-            Vector2 startPos = Position;
-            Vector2 offset = targetOffset ?? new Vector2(0f, -16f);
-
-            for (float t = 0f; t < 1f; t += Engine.DeltaTime / duration)
-            {
-                Position = startPos + offset * Ease.CubeOut(t);
-                yield return null;
-            }
-
-            Sprite.Play("idle");
-        }
-
-        public IEnumerator FlyAway(float delay = 0f)
-        {
-            if (delay > 0f)
-            {
-                yield return delay;
-            }
-
-            yield return startleAndFlyAway();
-        }
-
-        public IEnumerator FlyTo(Vector2 target, float duration = 1f, bool playSound = true)
-        {
-            Sprite.Play("fly");
-
-            if (playSound && !DisableFlapSfx)
-            {
-                Audio.Play("event:/game/general/bird_startle", Position);
-            }
-
-            Vector2 startPos = Position;
-
-            // Set facing direction
-            if (target.X > Position.X)
-            {
+            case Modes.ClimbingTutorial:
+                Add(tutorialRoutine = new Coroutine(ClimbingTutorial()));
+                break;
+            case Modes.DashingTutorial:
+                Add(tutorialRoutine = new Coroutine(DashingTutorial()));
+                break;
+            case Modes.DreamJumpTutorial:
+                Add(tutorialRoutine = new Coroutine(DreamJumpTutorial()));
+                break;
+            case Modes.SuperWallJumpTutorial:
+                Add(tutorialRoutine = new Coroutine(SuperWallJumpTutorial()));
+                break;
+            case Modes.HyperJumpTutorial:
+                Add(tutorialRoutine = new Coroutine(HyperJumpTutorial()));
+                break;
+            case Modes.FlyAway:
+                Add(tutorialRoutine = new Coroutine(WaitRoutine()));
+                break;
+            case Modes.Sleeping:
+                Sprite.Play("sleep");
                 Facing = Facings.Right;
-            }
-            else if (target.X < Position.X)
-            {
-                Facing = Facings.Left;
-            }
-
-            for (float t = 0f; t < 1f; t += Engine.DeltaTime / duration)
-            {
-                Position = Vector2.Lerp(startPos, target, Ease.SineInOut(t));
-
-                // Add some bobbing motion
-                float bobAmount = (float)Math.Sin(t * Math.PI * 4f) * 4f;
-                Position += new Vector2(0f, bobAmount);
-
-                yield return null;
-            }
-
-            Position = target;
-            Sprite.Play("idle");
+                break;
+            case Modes.MoveToNodes:
+                Add(tutorialRoutine = new Coroutine(MoveToNodesRoutine()));
+                break;
+            case Modes.WaitForLightningOff:
+                Add(tutorialRoutine = new Coroutine(WaitForLightningOffRoutine()));
+                break;
         }
+    }
 
-        public IEnumerator Caw()
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public override void Added(Scene scene)
+    {
+        base.Added(scene);
+        level = scene as Level;
+        if (mode == Modes.ClimbingTutorial && level.Session.GetLevelFlag("2"))
         {
-            Audio.Play("event:/game/general/bird_caw", Position);
-            Sprite.Play("peck");
-
-            while (Sprite.Animating)
-            {
-                yield return null;
-            }
-
-            Sprite.Play("idle");
+            RemoveSelf();
         }
-
-        public IEnumerator KirbyPlayerTutorial()
+        else if (mode == Modes.FlyAway && level.Session.GetFlag(FlownFlag + level.Session.Level))
         {
-            var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-            if (player == null) yield break;
+            RemoveSelf();
+        }
+    }
 
-            // Wait for player to get close
-            while (Math.Abs(player.X - X) > 120)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public override void Awake(Scene scene)
+    {
+        base.Awake(scene);
+        if (mode == Modes.SuperWallJumpTutorial)
+        {
+            Player entity = scene.Tracker.GetEntity<Player>();
+            if (entity != null && entity.Y < base.Y + 32f)
+            {
+                RemoveSelf();
+            }
+        }
+        if (onlyIfPlayerLeft)
+        {
+            Player entity2 = level.Tracker.GetEntity<Player>();
+            if (entity2 != null && entity2.X > base.X)
+            {
+                RemoveSelf();
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public override bool IsRiding(Solid solid)
+    {
+        return base.Scene.CollideCheck(new Rectangle((int)base.X - 4, (int)base.Y, 8, 2), solid);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public override void Update()
+    {
+        Sprite.Scale.X = (float)Facing;
+        base.Update();
+    }
+
+    public IEnumerator Caw()
+    {
+        Sprite.Play("croak");
+        while (Sprite.CurrentAnimationFrame < 9)
+        {
+            yield return null;
+        }
+        Audio.Play("event:/game/general/bird_squawk", Position);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public IEnumerator ShowTutorial(BirdTutorialGui gui, bool caw = false)
+    {
+        if (caw)
+        {
+            yield return Caw();
+        }
+        this.gui = gui;
+        gui.Open = true;
+        Scene.Add(gui);
+        while (gui.Scale < 1f)
+        {
+            yield return null;
+        }
+    }
+
+    public IEnumerator HideTutorial()
+    {
+        if (gui != null)
+        {
+            gui.Open = false;
+            while (gui.Scale > 0f)
             {
                 yield return null;
             }
+            Scene.Remove(gui);
+            gui = null;
+        }
+    }
 
-            // Tutorial step 1: Teach Kirby inhale (Grab key)
-            var inhaleTutorial = new BirdGonerTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_kirby_inhale"), new object[]
-            {
-                BirdGonerTutorialGui.ButtonPrompt.Grab
-            });
+    public IEnumerator StartleAndFlyAway()
+    {
+        Depth = -1000000;
+        level.Session.SetFlag(FlownFlag + level.Session.Level);
+        yield return Startle("event:/game/general/bird_startle");
+        yield return FlyAway();
+    }
 
-            bool first = true;
-            yield return showTutorial(inhaleTutorial, first);
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public IEnumerator FlyAway(float upwardsMultiplier = 1f)
+    {
+        if (staticMover != null)
+        {
+            staticMover.RemoveSelf();
+            staticMover = null;
+        }
+        Sprite.Play("fly");
+        Facing = (Facings)(0 - Facing);
+        Vector2 speed = new Vector2((int)Facing * 20, -40f * upwardsMultiplier);
+        while (Y > (float)level.Bounds.Top)
+        {
+            speed += new Vector2((int)Facing * 140, -120f * upwardsMultiplier) * Engine.DeltaTime;
+            Position += speed * Engine.DeltaTime;
+            yield return null;
+        }
+        RemoveSelf();
+    }
+
+    private IEnumerator ClimbingTutorial()
+    {
+        yield return 0.25f;
+        Player p = Scene.Tracker.GetEntity<Player>();
+        while (Math.Abs(p.X - X) > 120f)
+        {
+            yield return null;
+        }
+        BirdTutorialGui tut1 = new BirdTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_climb"), Dialog.Clean("tutorial_hold"), BirdTutorialGui.ButtonPrompt.Grab);
+        BirdTutorialGui tut2 = new BirdTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_climb"), BirdTutorialGui.ButtonPrompt.Grab, "+", new Vector2(0f, -1f));
+        bool first = true;
+        bool willEnd;
+        do
+        {
+            yield return ShowTutorial(tut1, first);
             first = false;
-
-            // Wait for player to press Grab to inhale
-            while (player.Scene != null && !Input.Grab.Pressed)
+            while (p.StateMachine.State != 1 && p.Y > Y)
             {
                 yield return null;
             }
-
-            if (player.Scene == null) yield break;
-
-            Audio.Play("event:/ui/game/tutorial_note_flip_back");
-            yield return hideTutorial();
-            yield return 0.4f;
-
-            // Tutorial step 2: Teach Kirby power use (Dash key)
-            var powerTutorial = new BirdGonerTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_kirby_power"), new object[]
+            if (p.Y > Y)
             {
-                BirdGonerTutorialGui.ButtonPrompt.Dash
-            });
-
-            yield return showTutorial(powerTutorial, true);
-
-            // Wait for player to press Dash to use power
-            while (player.Scene != null && !Input.Dash.Pressed)
+                Audio.Play("event:/ui/game/tutorial_note_flip_back");
+                yield return HideTutorial();
+                yield return ShowTutorial(tut2);
+            }
+            while (p.Scene != null && (!p.OnGround() || p.StateMachine.State == 1))
             {
                 yield return null;
             }
-
-            if (player.Scene == null) yield break;
-
-            Audio.Play("event:/ui/game/tutorial_note_flip_back");
-            yield return hideTutorial();
-            yield return 0.3f;
-
-            // Mark tutorial complete so it doesn't show again
-            Level.Session.SetFlag("kirby_tutorial_complete");
-
-            yield return startleAndFlyAway();
-        }
-
-        public static void FlapSfxCheck(Sprite sprite)
-        {
-            if (sprite.Entity?.Scene is Level level)
+            willEnd = p.Y <= Y + 4f;
+            if (!willEnd)
             {
-                var camera = level.Camera;
-                var renderPosition = sprite.RenderPosition;
-                if (renderPosition.X < camera.X - 32 || renderPosition.Y < camera.Y - 32 ||
-                    renderPosition.X > camera.X + 320 + 32 || renderPosition.Y > camera.Y + 180 + 32)
-                {
-                    return;
-                }
+                Audio.Play("event:/ui/game/tutorial_note_flip_front");
             }
-            var currentAnimationId = sprite.CurrentAnimationID;
-            var currentAnimationFrame = sprite.CurrentAnimationFrame;
-            if ((currentAnimationId == "hover" && currentAnimationFrame == 0) ||
-                (currentAnimationId == "hoverStressed" && currentAnimationFrame == 0) ||
-                (currentAnimationId == "fly" && currentAnimationFrame == 0) ||
-                (currentAnimationId == "flyupIdle" && currentAnimationFrame == 0))
+            yield return HideTutorial();
+        }
+        while (!willEnd);
+        yield return StartleAndFlyAway();
+    }
+
+    private IEnumerator DashingTutorial()
+    {
+        Y = level.Bounds.Top;
+        X += 32f;
+        yield return 1f;
+        Player player = Scene.Tracker.GetEntity<Player>();
+        Bridge bridge = Scene.Entities.FindFirst<Bridge>();
+        while ((player == null || !(player.X > StartPosition.X - 92f) || !(player.Y > StartPosition.Y - 20f) || !(player.Y < StartPosition.Y - 10f)) && (!SaveData.Instance.Assists.Invincible || player == null || !(player.X > StartPosition.X - 60f) || !(player.Y > StartPosition.Y) || !(player.Y < StartPosition.Y + 34f)))
+        {
+            yield return null;
+        }
+        Scene.Add(new CS00_EndingMod(player, this, bridge));
+    }
+
+    private IEnumerator DreamJumpTutorial()
+    {
+        yield return ShowTutorial(new BirdTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("tutorial_dreamjump"), new Vector2(1f, 0f), "+", BirdTutorialGui.ButtonPrompt.Jump), caw: true);
+        while (true)
+        {
+            Player entity = Scene.Tracker.GetEntity<Player>();
+            if (entity != null && (entity.X > X || (Position - entity.Position).Length() < 32f))
             {
-                Audio.Play("event:/new_content/game/10_farewell/bird_wingflap", sprite.RenderPosition);
+                break;
+            }
+            yield return null;
+        }
+        yield return HideTutorial();
+        while (true)
+        {
+            Player entity2 = Scene.Tracker.GetEntity<Player>();
+            if (entity2 != null && (Position - entity2.Position).Length() < 24f)
+            {
+                break;
+            }
+            yield return null;
+        }
+        yield return StartleAndFlyAway();
+    }
+
+    private IEnumerator SuperWallJumpTutorial()
+    {
+        Facing = Facings.Right;
+        yield return 0.25f;
+        bool caw = true;
+        BirdTutorialGui tut1 = new BirdTutorialGui(this, new Vector2(0f, -16f), GFX.Gui["hyperjump/tutorial00"], Dialog.Clean("TUTORIAL_DASH"), new Vector2(0f, -1f));
+        BirdTutorialGui tut2 = new BirdTutorialGui(this, new Vector2(0f, -16f), GFX.Gui["hyperjump/tutorial01"], Dialog.Clean("TUTORIAL_DREAMJUMP"));
+        Player entity;
+        do
+        {
+            yield return ShowTutorial(tut1, caw);
+            Sprite.Play("idleRarePeck");
+            yield return 2f;
+            gui = tut2;
+            gui.Open = true;
+            gui.Scale = 1f;
+            Scene.Add(gui);
+            yield return null;
+            tut1.Open = false;
+            tut1.Scale = 0f;
+            Scene.Remove(tut1);
+            yield return 2f;
+            yield return HideTutorial();
+            yield return 2f;
+            caw = false;
+            entity = Scene.Tracker.GetEntity<Player>();
+        }
+        while (entity == null || !(entity.Y <= Y) || !(entity.X > X + 144f));
+        yield return StartleAndFlyAway();
+    }
+
+    private IEnumerator HyperJumpTutorial()
+    {
+        Facing = Facings.Left;
+        BirdTutorialGui tut = new BirdTutorialGui(this, new Vector2(0f, -16f), Dialog.Clean("TUTORIAL_DREAMJUMP"), new Vector2(1f, 1f), "+", BirdTutorialGui.ButtonPrompt.Dash, GFX.Gui["tinyarrow"], BirdTutorialGui.ButtonPrompt.Jump);
+        yield return 0.3f;
+        yield return ShowTutorial(tut, caw: true);
+    }
+
+    private IEnumerator WaitRoutine()
+    {
+        while (!AutoFly)
+        {
+            Player entity = Scene.Tracker.GetEntity<Player>();
+            if (entity != null && Math.Abs(entity.X - X) < 120f)
+            {
+                break;
+            }
+            yield return null;
+        }
+        yield return Caw();
+        while (!AutoFly)
+        {
+            Player entity2 = Scene.Tracker.GetEntity<Player>();
+            if (entity2 != null && (entity2.Center - Position).Length() < 32f)
+            {
+                break;
+            }
+            yield return null;
+        }
+        yield return StartleAndFlyAway();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public IEnumerator Startle(string startleSound, float duration = 0.8f, Vector2? multiplier = null)
+    {
+        if (!multiplier.HasValue)
+        {
+            multiplier = new Vector2(1f, 1f);
+        }
+        if (!string.IsNullOrWhiteSpace(startleSound))
+        {
+            Audio.Play(startleSound, Position);
+        }
+        Dust.Burst(Position, -MathF.PI / 2f, 8, null);
+        Sprite.Play("jump");
+        Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeOut, duration, start: true);
+        tween.OnUpdate = [MethodImpl(MethodImplOptions.NoInlining)] (Tween t) =>
+        {
+            if (t.Eased < 0.5f && Scene.OnInterval(0.05f) && P_Feather != null)
+            {
+                level.Particles.Emit(P_Feather, 2, Position + Vector2.UnitY * -6f, Vector2.One * 4f);
+            }
+            Vector2 vector = Vector2.Lerp(new Vector2(100f, -100f) * multiplier.Value, new Vector2(20f, -20f) * multiplier.Value, t.Eased);
+            vector.X *= 0 - Facing;
+            Position += vector * Engine.DeltaTime;
+        };
+        Add(tween);
+        while (tween.Active)
+        {
+            yield return null;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public IEnumerator FlyTo(Vector2 target, float durationMult = 1f, bool relocateSfx = true)
+    {
+        Sprite.Play("fly");
+        if (relocateSfx)
+        {
+            Add(new SoundSource().Play("event:/new_content/game/10_farewell/bird_relocate"));
+        }
+        int num = Math.Sign(target.X - X);
+        if (num != 0)
+        {
+            Facing = (Facings)num;
+        }
+        Vector2 position = Position;
+        Vector2 vector = target;
+        SimpleCurve curve = new SimpleCurve(position, vector, position + (vector - position) * 0.75f - Vector2.UnitY * 30f);
+        float duration = (vector - position).Length() / 100f * durationMult;
+        for (float p = 0f; p < 0.95f; p += Engine.DeltaTime / duration)
+        {
+            Position = curve.GetPoint(Ease.SineInOut(p)).Floor();
+            Sprite.Rate = 1f - p * 0.5f;
+            yield return null;
+        }
+        Dust.Burst(Position, -MathF.PI / 2f, 8, null);
+        Position = target;
+        Facing = Facings.Left;
+        Sprite.Rate = 1f;
+        Sprite.Play("idle");
+    }
+
+    private IEnumerator MoveToNodesRoutine()
+    {
+        int index = 0;
+        while (true)
+        {
+            Player entity = Scene.Tracker.GetEntity<Player>();
+            if (entity == null || !((entity.Center - Position).Length() < 80f))
+            {
+                yield return null;
+                continue;
+            }
+            Depth = -1000000;
+            yield return Startle("event:/new_content/game/10_farewell/bird_startle", 0.2f);
+            if (index < nodes.Length)
+            {
+                yield return FlyTo(nodes[index], 0.6f);
+                index++;
+                continue;
+            }
+            Tag = Tags.Persistent;
+            Add(new SoundSource().Play("event:/new_content/game/10_farewell/bird_relocate"));
+            if (onlyOnce)
+            {
+                level.Session.DoNotLoad.Add(EntityID);
+            }
+            Sprite.Play("fly");
+            Facing = Facings.Right;
+            Vector2 speed = new Vector2((int)Facing * 20, -40f);
+            while (Y > (float)(level.Bounds.Top - 200))
+            {
+                speed += new Vector2((int)Facing * 140, -60f) * Engine.DeltaTime;
+                Position += speed * Engine.DeltaTime;
+                yield return null;
+            }
+            RemoveSelf();
+        }
+    }
+
+    private IEnumerator WaitForLightningOffRoutine()
+    {
+        Sprite.Play("hoverStressed");
+        while (Scene.Entities.FindFirst<Lightning>() != null)
+        {
+            yield return null;
+        }
+        if (WaitForLightningPostDelay > 0f)
+        {
+            yield return WaitForLightningPostDelay;
+        }
+        if (!FlyAwayUp)
+        {
+            Sprite.Play("fly");
+            Vector2 speed = new Vector2((int)Facing * 20, -10f);
+            while (Y > (float)level.Bounds.Top)
+            {
+                speed += new Vector2((int)Facing * 140, -10f) * Engine.DeltaTime;
+                Position += speed * Engine.DeltaTime;
+                yield return null;
             }
         }
-
-        public enum Modes
+        else
         {
-            ClimbingTutorial,
-            DashingTutorial,
-            DreamJumpTutorial,
-            SuperWallJumpTutorial,
-            HyperJumpTutorial,
-            KirbyPlayerTutorial,
-            FlyAway,
-            None,
-            Sleeping,
-            MoveToNodes,
-            WaitForLightningOff,
-            /// <summary>
-            /// Placed at the end of the bridge. Waits invisible until Bridge signals it,
-            /// then freezes time, flies in, prompts a dash to unfreeze, and starts the ending vignette.
-            /// </summary>
-            BridgeEndDash
+            Sprite.Play("flyup");
+            Vector2 speed = new Vector2(0f, -32f);
+            while (Y > (float)level.Bounds.Top)
+            {
+                speed += new Vector2(0f, -100f) * Engine.DeltaTime;
+                Position += speed * Engine.DeltaTime;
+                yield return null;
+            }
         }
+        RemoveSelf();
+    }
 
-        public enum BirdTypes
+    public override void SceneEnd(Scene scene)
+    {
+        Engine.TimeRate = 1f;
+        base.SceneEnd(scene);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public override void DebugRender(Camera camera)
+    {
+        base.DebugRender(camera);
+        if (mode == Modes.DashingTutorial)
         {
-            Default,
-            Clover,
-            Cody,
-            Emily,
-            Odin,
-            Robin,
-            Sabel
+            float x = StartPosition.X - 92f;
+            float x2 = level.Bounds.Right;
+            float y = StartPosition.Y - 20f;
+            float y2 = StartPosition.Y - 10f;
+            Draw.Line(new Vector2(x, y), new Vector2(x, y2), Color.Aqua);
+            Draw.Line(new Vector2(x, y), new Vector2(x2, y), Color.Aqua);
+            Draw.Line(new Vector2(x2, y), new Vector2(x2, y2), Color.Aqua);
+            Draw.Line(new Vector2(x, y2), new Vector2(x2, y2), Color.Aqua);
+            float x3 = StartPosition.X - 60f;
+            float x4 = level.Bounds.Right;
+            float y3 = StartPosition.Y;
+            float y4 = StartPosition.Y + 34f;
+            Draw.Line(new Vector2(x3, y3), new Vector2(x3, y4), Color.Aqua);
+            Draw.Line(new Vector2(x3, y3), new Vector2(x4, y3), Color.Aqua);
+            Draw.Line(new Vector2(x4, y3), new Vector2(x4, y4), Color.Aqua);
+            Draw.Line(new Vector2(x3, y4), new Vector2(x4, y4), Color.Aqua);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void FlapSfxCheck(Sprite sprite)
+    {
+        if (sprite.Entity != null && sprite.Entity.Scene != null)
+        {
+            Camera camera = (sprite.Entity.Scene as Level).Camera;
+            Vector2 renderPosition = sprite.RenderPosition;
+            if (renderPosition.X < camera.X - 32f || renderPosition.Y < camera.Y - 32f || renderPosition.X > camera.X + 320f + 32f || renderPosition.Y > camera.Y + 180f + 32f)
+            {
+                return;
+            }
+        }
+        string currentAnimationID = sprite.CurrentAnimationID;
+        int currentAnimationFrame = sprite.CurrentAnimationFrame;
+        if ((currentAnimationID == "hover" && currentAnimationFrame == 0) || (currentAnimationID == "hoverStressed" && currentAnimationFrame == 0) || (currentAnimationID == "fly" && currentAnimationFrame == 0))
+        {
+            Audio.Play("event:/new_content/game/10_farewell/bird_wingflap", sprite.RenderPosition);
         }
     }
 }
-
-
-

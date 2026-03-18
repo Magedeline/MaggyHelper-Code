@@ -510,16 +510,27 @@ public static class AreaModeExtender
 
         var chapterDef = AreaMapData.FindByAnySID(area.SID);
         if (chapterDef != null && !chapterDef.HasDSide && !chapterDef.HasDXSide)
+        {
+            Logger.Log(LogLevel.Verbose, "MaggyHelper",
+                $"ExtendAreaModes: skipping '{area.SID}' (chapter has no D/DX sides)");
             return;
+        }
 
         // Only extend chapters that have alt-sides (not prologue, epilogue, etc.)
         string sid = area.SID ?? "";
         string chapterKey = ExtractChapterKey(sid);
         if (string.IsNullOrEmpty(chapterKey))
+        {
+            Logger.Log(LogLevel.Verbose, "MaggyHelper",
+                $"ExtendAreaModes: could not extract chapter key from '{area.SID}'");
             return;
+        }
 
         bool hasDSide  = chapterDef == null || chapterDef.HasDSide;
         bool hasDXSide = chapterDef == null || chapterDef.HasDXSide;
+
+        Logger.Log(LogLevel.Verbose, "MaggyHelper",
+            $"ExtendAreaModes: '{area.SID}' - chapterDefFound={chapterDef != null}, hasDSide={hasDSide}, hasDXSide={hasDXSide}");
 
         var oldModes = area.Mode;
 
@@ -564,11 +575,13 @@ public static class AreaModeExtender
             {
                 var key = new AreaKey(area.ID, (global::Celeste.AreaMode)mi);
                 newModes[mi].MapData = new MapData(key);
+                Logger.Log(LogLevel.Verbose, "MaggyHelper",
+                    $"ExtendAreaModes: loaded MapData for '{area.SID}' mode {mi} (path: {newModes[mi].Path})");
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Warn, "MaggyHelper",
-                    $"Could not load MapData for '{area.SID}' mode {mi}: {ex.Message}");
+                Logger.Log(LogLevel.Error, "MaggyHelper",
+                    $"ExtendAreaModes: failed to load MapData for '{area.SID}' mode {mi} (path: {newModes[mi].Path}): {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 // Leave MapData null — mode will be hidden via a null guard below.
                 // Clear the slot so HasMode() returns false and the Everest
                 // iterator skips it rather than crashing on .MapData access.

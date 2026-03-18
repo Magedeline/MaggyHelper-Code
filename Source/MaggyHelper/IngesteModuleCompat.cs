@@ -26,7 +26,7 @@ public static class IngesteModule
     /// <summary>
     /// Get the module instance (alias for MaggyHelperModule.Instance).
     /// </summary>
-    public static MaggyHelperModule Instance => MaggyHelperModule.Instance;
+    public static global::MaggyHelper.MaggyHelperModule Instance => MaggyHelperModule.Instance;
     
     /// <summary>
     /// Get the sprite bank for this module.

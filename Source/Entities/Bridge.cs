@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Microsoft.Xna.Framework;
+using Monocle;
 
 namespace MaggyHelper.Entities;
 
@@ -6,13 +9,9 @@ namespace MaggyHelper.Entities;
     [Monocle.Tracked]
     [HotReloadable]
 
+
 public class Bridge : Entity
 {
-    /// <summary>Room name within the prologue map where this bridge lives.</summary>
-
-    /// <summary>Area SID for the chapter that owns this bridge.</summary>
-    private const string PrologueSid = "00_Prologue";
-
     private List<BridgeTile> tiles;
 
     private Level level;
@@ -37,9 +36,7 @@ public class Bridge : Entity
 
     private SoundSource collapseSfx;
 
-    private TimeRateModifier timeRateModifier;
-
-    public TimeRateModifier TimeRateModifier => timeRateModifier;
+    public object TimeRateModifier { get; internal set; }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public Bridge(Vector2 position, int width, float gapStartX, float gapEndX)
@@ -60,7 +57,6 @@ public class Bridge : Entity
         tileSizes.Add(new Rectangle(80, 0, 16, 52));
         tileSizes.Add(new Rectangle(96, 0, 8, 52));
         Add(collapseSfx = new SoundSource());
-        Add(timeRateModifier = new TimeRateModifier(1f, false));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -99,7 +95,7 @@ public class Bridge : Entity
     public override void Update()
     {
         base.Update();
-        global::Celeste.Player entity = level.Tracker.GetEntity<global::Celeste.Player>();
+        Player entity = level.Tracker.GetEntity<Player>();
         if (entity == null || entity.Dead)
         {
             collapseSfx.Stop();
@@ -108,11 +104,8 @@ public class Bridge : Entity
         {
             if (entity != null && entity.X >= base.X + 112f)
             {
-                // Only override the music track when inside the correct prologue room.
-                {
-                    Audio.SetMusic("event:/desolozantas/music/lvl0/bridge");
-                }
-                collapseSfx.Play("event:/desolozantas/game/00_prologue/bridge_rumble_loop");
+                Audio.SetMusic("event:/desolozantas/music/lvl0/bridge", true, true);
+                collapseSfx.Play("event:/desolozantas/game/00_prologue/bridge_rumble_loop", null, 0f);
                 canCollapse = true;
                 canEndCollapseA = true;
                 canEndCollapseB = true;
@@ -172,15 +165,6 @@ public class Bridge : Entity
         {
             ending = true;
             StopCollapseLoop();
-
-            // Signal any BridgeEndDash bird in the scene regardless of room/SID.
-            var bird = level.Tracker.GetEntity<BirdNpcGoner>();
-            if (bird != null && bird.Mode == BirdNpcGoner.Modes.BridgeEndDash)
-            {
-                // Freeze time for the bird entrance sequence
-                timeRateModifier.SetTimeRateMultiplier(0.001f);
-                bird.BridgeEndTriggered = true;
-            }
         }
     }
 
@@ -188,13 +172,4 @@ public class Bridge : Entity
     {
         collapseSfx.Stop();
     }
-
-    public void UnfreezeTime()
-    {
-        timeRateModifier.ResetTimeRateMultiplier();
-    }
 }
-
-
-
-

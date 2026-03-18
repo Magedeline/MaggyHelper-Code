@@ -1,6 +1,6 @@
 local birdNpcMod = {}
 
-birdNpcMod.name = "MaggyHelper/BirdNPCMod"
+birdNpcMod.name = "MaggyHelper/BirdNPC"
 birdNpcMod.depth = -1000000
 birdNpcMod.nodeLineRenderType = "line"
 birdNpcMod.justification = {0.5, 1.0}

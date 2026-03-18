@@ -104,7 +104,7 @@ namespace MaggyHelper.Entities
             }
             
             // cache feather particle type once we have a level reference
-            featherType = BirdNpcGoner.PFeather;
+            featherType = BirdNPC.P_Feather;
 
             // quick-exit if non-crashing bird already missed
             if (!crashes && levelCache.Session != null && levelCache.Session.GetFlag("MissTheBird"))

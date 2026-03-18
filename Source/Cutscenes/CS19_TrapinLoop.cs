@@ -1,6 +1,7 @@
 using MaggyHelper.Entities;
 using MaggyHelper.NPCs;
 using FMOD.Studio;
+using BirdNPC = MaggyHelper.Entities.BirdNPC;
 
 namespace MaggyHelper.Cutscenes
 {

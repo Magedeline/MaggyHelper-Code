@@ -103,6 +103,10 @@ namespace MaggyHelper.Cutscenes
         private EventInstance? creationMusic;
         private EventInstance? droneMusic;
 
+        // Vessel part cycler state (Deltarune-style Left/Right navigation)
+        private bool vesselCyclerActive = false;
+        private int vesselCyclerCount = 0;
+
         private static readonly string[][] TextInputPaletteRows =
         {
             new[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" },
@@ -240,60 +244,58 @@ namespace MaggyHelper.Cutscenes
         {
             currentPhase = CreationPhase.LegSelection;
             IngesteLogger.Info("[VesselCreation] Phase: Leg Selection");
-            
+
+            // Fade the vessel in before the prompt — Deltarune shows the vessel throughout selection
+            yield return fadeVesselIn();
+
             yield return showText("VESSEL_CREATION_LEG_CHOICE");
-            
-            // Play heart change sound for each selection phase
             Audio.Play(HEART_CHANGE_EVENT);
-            
-            yield return showChoiceMenu(buildIndexedLabels("Legs", gonerLegTextures.Length), (choice, idx) =>
-            {
-                selectedLeg = choice;
-                selectedLegIndex = idx;
-                IngesteLogger.Debug($"[VesselCreation] Legs selected: {selectedLeg} (index {selectedLegIndex})");
-            });
-            
-            yield return 1f;
+
+            // Left/Right cycler with live vessel preview (Deltarune-style)
+            yield return showVesselPartCycleSelector(
+                gonerLegTextures.Length > 0 ? gonerLegTextures.Length : 1,
+                () => selectedLegIndex,
+                idx => { selectedLegIndex = idx; selectedLeg = $"Legs {idx}"; }
+            );
+
+            IngesteLogger.Debug($"[VesselCreation] Legs selected: {selectedLeg} (index {selectedLegIndex})");
+            yield return 0.5f;
         }
 
         private IEnumerator torsoSelectionPhase()
         {
             currentPhase = CreationPhase.TorsoSelection;
             IngesteLogger.Info("[VesselCreation] Phase: Torso Selection");
-            
+
             yield return showText("VESSEL_CREATION_TORSO_CHOICE");
-            
-            // Play heart change sound for each selection phase
             Audio.Play(HEART_CHANGE_EVENT);
-            
-            yield return showChoiceMenu(buildIndexedLabels("Body", gonerBodyTextures.Length), (choice, idx) =>
-            {
-                selectedTorso = choice;
-                selectedBodyIndex = idx;
-                IngesteLogger.Debug($"[VesselCreation] Body selected: {selectedTorso} (index {selectedBodyIndex})");
-            });
-            
-            yield return 1f;
+
+            yield return showVesselPartCycleSelector(
+                gonerBodyTextures.Length > 0 ? gonerBodyTextures.Length : 1,
+                () => selectedBodyIndex,
+                idx => { selectedBodyIndex = idx; selectedTorso = $"Body {idx}"; }
+            );
+
+            IngesteLogger.Debug($"[VesselCreation] Body selected: {selectedTorso} (index {selectedBodyIndex})");
+            yield return 0.5f;
         }
 
         private IEnumerator headSelectionPhase()
         {
             currentPhase = CreationPhase.HeadSelection;
             IngesteLogger.Info("[VesselCreation] Phase: Head Selection");
-            
+
             yield return showText("VESSEL_CREATION_HEAD_CHOICE");
-            
-            // Play heart change sound for each selection phase
             Audio.Play(HEART_CHANGE_EVENT);
-            
-            yield return showChoiceMenu(buildIndexedLabels("Head", gonerHeadTextures.Length), (choice, idx) =>
-            {
-                selectedHead = choice;
-                selectedHeadIndex = idx;
-                IngesteLogger.Debug($"[VesselCreation] Head selected: {selectedHead} (index {selectedHeadIndex})");
-            });
-            
-            yield return 1f;
+
+            yield return showVesselPartCycleSelector(
+                gonerHeadTextures.Length > 0 ? gonerHeadTextures.Length : 1,
+                () => selectedHeadIndex,
+                idx => { selectedHeadIndex = idx; selectedHead = $"Head {idx}"; }
+            );
+
+            IngesteLogger.Debug($"[VesselCreation] Head selected: {selectedHead} (index {selectedHeadIndex})");
+            yield return 0.5f;
         }
 
         private IEnumerator vesselNamingPhase()
@@ -413,27 +415,7 @@ namespace MaggyHelper.Cutscenes
                 yield return null;
             }
             
-            yield return 0.5f;
-            
-            // Show choice for fate
-            string[] fateChoices = { "Accept the vessel's fate", "Try to save the vessel", "Question the process" };
-            string selectedFate = "";
-            yield return showChoiceMenu(fateChoices, (choice) => 
-            {
-                selectedFate = choice;
-                IngesteLogger.Info($"[VesselCreation] Fate choice selected: '{selectedFate}'");
-            });
-            
-            // Show response based on choice
-            string fateResponseKey = selectedFate switch
-            {
-                var s when s.Contains("Accept") => "VESSEL_CREATION_FATE_ACCEPT",
-                var s when s.Contains("save") => "VESSEL_CREATION_FATE_SAVE",
-                var s when s.Contains("Question") => "VESSEL_CREATION_FATE_QUESTION",
-                _ => "VESSEL_CREATION_FATE_DEFAULT"
-            };
-            
-            yield return showText(fateResponseKey);
+            // No player choice — the vessel is simply discarded, faithful to Deltarune
             yield return 2f;
         }
 
@@ -527,6 +509,60 @@ namespace MaggyHelper.Cutscenes
             {
                 yield return true;
             }
+        }
+
+        /// <summary>Smoothly fades the vessel sprite in over the given duration.</summary>
+        private IEnumerator fadeVesselIn(float duration = 1.5f)
+        {
+            float t = 0f;
+            while (t < duration)
+            {
+                t += Engine.DeltaTime;
+                vesselAlpha   = Math.Min(1f, t / duration);
+                soulBlurAlpha = Math.Min(0.7f, (t / duration) * 0.7f);
+                yield return null;
+            }
+            vesselAlpha   = 1f;
+            soulBlurAlpha = 0.7f;
+        }
+
+        /// <summary>
+        /// Deltarune-style Left/Right vessel-part cycler with live sprite preview.
+        /// <paramref name="getIndex"/> and <paramref name="setIndex"/> read/write the current
+        /// index so the vessel renders in real-time while the player browses.
+        /// </summary>
+        private IEnumerator showVesselPartCycleSelector(int count, Func<int> getIndex, Action<int> setIndex)
+        {
+            if (count <= 0) yield break;
+            setIndex(Math.Clamp(getIndex(), 0, count - 1));
+            vesselCyclerActive = true;
+            vesselCyclerCount  = count;
+
+            yield return 0.1f; // short debounce before accepting input
+
+            while (true)
+            {
+                if (Input.MenuLeft.Pressed || Input.MenuLeft.Repeating)
+                {
+                    setIndex((getIndex() - 1 + count) % count);
+                    Audio.Play(HEART_CHANGE_EVENT);
+                }
+                else if (Input.MenuRight.Pressed || Input.MenuRight.Repeating)
+                {
+                    setIndex((getIndex() + 1) % count);
+                    Audio.Play(HEART_CHANGE_EVENT);
+                }
+
+                if (Input.MenuConfirm.Pressed)
+                {
+                    Audio.Play(CHOICE_SELECT_EVENT);
+                    break;
+                }
+
+                yield return null;
+            }
+
+            vesselCyclerActive = false;
         }
 
         // Convenience overload – callers that don't need the index
@@ -1112,12 +1148,18 @@ namespace MaggyHelper.Cutscenes
                 renderTextInput();
             }
             
-            // Render vessel graphics during display phases
-            if (vesselAlpha > 0f && (currentPhase == CreationPhase.VesselDisplay || currentPhase == CreationPhase.VesselDiscard))
+            // Render vessel graphics from leg selection onward (live preview + display phases)
+            if (vesselAlpha > 0f && currentPhase != CreationPhase.Introduction && currentPhase != CreationPhase.Transition)
             {
                 renderVesselGraphics();
             }
-            
+
+            // Render vessel part cycler UI when active (Deltarune-style Left/Right browsing)
+            if (vesselCyclerActive)
+            {
+                renderVesselCycler();
+            }
+
             // Render choice menu if active
             if (currentChoices.Count > 0 && choiceEase > 0f)
             {
@@ -1224,6 +1266,29 @@ namespace MaggyHelper.Cutscenes
                 ActiveFont.Draw(currentChoices[i], position, new Vector2(0.5f, 0.5f), Vector2.One * 0.8f, color);
             }
             
+            Draw.SpriteBatch.End();
+        }
+
+        /// <summary>Renders the Deltarune-style Left/Right vessel part cycler HUD.</summary>
+        private void renderVesselCycler()
+        {
+            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, null, RasterizerState.CullNone, null, Engine.ScreenMatrix);
+
+            string label = currentPhase switch
+            {
+                CreationPhase.LegSelection   => $"< Legs {selectedLegIndex + 1} / {vesselCyclerCount} >",
+                CreationPhase.TorsoSelection => $"< Body {selectedBodyIndex + 1} / {vesselCyclerCount} >",
+                CreationPhase.HeadSelection  => $"< Head {selectedHeadIndex + 1} / {vesselCyclerCount} >",
+                _                            => string.Empty
+            };
+
+            if (!string.IsNullOrEmpty(label))
+            {
+                Vector2 center = new Vector2(Engine.Width / 2f, vesselPosition.Y + 145f);
+                ActiveFont.DrawOutline(label, center, new Vector2(0.5f, 0.5f), Vector2.One * 0.65f, Color.White, 2f, Color.Black);
+                ActiveFont.DrawOutline("Left / Right  •  Confirm to select", center + new Vector2(0f, 42f), new Vector2(0.5f, 0.5f), Vector2.One * 0.4f, Color.Gray, 2f, Color.Black);
+            }
+
             Draw.SpriteBatch.End();
         }
 

@@ -6,6 +6,7 @@
 
 #nullable disable
 using MaggyHelper.Entities;
+using BirdNPC = MaggyHelper.Entities.BirdNPC;
 
 namespace MaggyHelper.Cutscenes
 {

@@ -6,6 +6,7 @@
 
 #nullable disable
 using MaggyHelper.Entities;
+using BirdNPC = MaggyHelper.Entities.BirdNPC;
 using NPC19_Gravestone = MaggyHelper.NPCs.NPC19_Gravestone;
 
 namespace MaggyHelper.Cutscenes

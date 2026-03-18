@@ -8,7 +8,7 @@ internal class FlingBirdMod : Entity
     public static readonly Vector2 FLING_SPEED = new(380f, -100f);
     
     // Static particle type - share with BirdNpc
-    public static ParticleType P_Feather => BirdNpcGoner.PFeather;
+    public static ParticleType P_Feather => BirdNPC.P_Feather;
     
     private readonly EntityData entityData;
     private readonly SoundSource moveSfx;
@@ -50,7 +50,7 @@ internal class FlingBirdMod : Entity
         sprite.Play("hover");
         sprite.Scale.X = -1f;
         sprite.Position = spriteOffset;
-        sprite.OnFrameChange = spr => BirdNpcGoner.FlapSfxCheck(sprite);
+        sprite.OnFrameChange = spr => BirdNPC.FlapSfxCheck(sprite);
         Collider = new Circle(16f);
         Add(new PlayerCollider(OnPlayer));
         Add(moveSfx = new SoundSource());

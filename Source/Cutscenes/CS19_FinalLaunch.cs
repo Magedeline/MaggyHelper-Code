@@ -3,6 +3,7 @@ using MaggyHelper.Entities;
 using FMOD.Studio;
 using AscendManager = Celeste.AscendManager;
 using Strawberry = Celeste.Strawberry;
+using BirdNPC = MaggyHelper.Entities.BirdNPC;
 
 namespace MaggyHelper.Cutscenes;
 
@@ -10,7 +11,7 @@ public class CS19_FinalLaunch : CutsceneEntity
 {
     private global::Celeste.Player player;
     private CustomCharaBoost boost;
-    private BirdNpcGoner bird;
+    private BirdNPC bird;
     private float fadeToWhite;
     private Vector2 birdScreenPosition;
     private AscendManagerBeyond.Streaks streaks;
@@ -215,7 +216,7 @@ public class CS19_FinalLaunch : CutsceneEntity
     private IEnumerator BirdRoutine(float delay)
     {
         yield return delay;
-        Level.Add(bird = new BirdNpcGoner(Vector2.Zero, BirdNpcGoner.Modes.None));
+        Level.Add(bird = new BirdNPC(Vector2.Zero, BirdNPC.Modes.None));
         bird.Sprite.Play("flyupIdle");
         Vector2 vector = new Vector2(320f, 180f) / 2f;
         Vector2 topCenter = new Vector2(vector.X, 0f);

@@ -19,9 +19,10 @@ global using MaggyHelper.Extensions; // KirbyMode, KirbyHealthDisplay, etc.
 global using MaggyHelper.Extensions.Core; // Core extension helpers
 // Explicit type aliases to resolve ambiguity between MaggyHelper custom types and Celeste vanilla types
 global using KirbyModeExt = MaggyHelper.Extensions.KirbyMode;
-global using MaggyHelperModule = MaggyHelper.MaggyHelper.MaggyHelperModule;
+global using MaggyHelperModule = MaggyHelper.MaggyHelperModule;
 global using IngesteModule = MaggyHelper.MaggyHelper.IngesteModule;
 global using IngesteLogger = MaggyHelper.MaggyHelper.IngesteLogger;
+global using MaggyHelperModuleSettings = MaggyHelper.MaggyHelper.MaggyHelperModuleSettings;
 global using MaggyHelperModuleSaveData = MaggyHelper.MaggyHelper.MaggyHelperModuleSaveData;
 global using MaggyHelperModuleSession = MaggyHelper.MaggyHelper.MaggyHelperModuleSession;
 global using MaggySaveDataMigration = MaggyHelper.MaggyHelper.MaggySaveDataMigration;

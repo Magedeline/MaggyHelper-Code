@@ -4,6 +4,7 @@ using FMOD.Studio;
 using Facings = Celeste.Facings;
 using FlingBirdIntroMod = MaggyHelper.Entities.FlingBirdIntro;
 using FlingBirdIntro = MaggyHelper.Entities.FlingBirdIntro;
+using BirdNPC = MaggyHelper.Entities.BirdNPC;
 
 namespace MaggyHelper.Cutscenes
 {

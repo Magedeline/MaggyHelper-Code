@@ -104,7 +104,7 @@ namespace MaggyHelper.Entities
             // Play flap sound effect
             if (!disableFlapSfx && level != null && IsOnScreen())
             {
-                BirdNpcGoner.FlapSfxCheck(Sprite);
+                BirdNPC.FlapSfxCheck(Sprite);
             }
         }
 

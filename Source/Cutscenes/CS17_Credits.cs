@@ -230,7 +230,7 @@ namespace MaggyHelper.Cutscenes
             this.autoUpdateCamera = false;
             yield return CutsceneEntity.CameraTo(new Vector2(this.Level.Bounds.Left + 64, this.Level.Bounds.Top), 2f);
             yield return 5f;
-            BirdNPC bird = new BirdNPC(oshiro.Position + new Vector2(280f, -160f), BirdNPC.Modes.None);
+            Entities.BirdNPC bird = new Entities.BirdNPC(oshiro.Position + new Vector2(280f, -160f), Entities.BirdNPC.Modes.None);
             bird.Depth = 10010;
             bird.Light.Visible = false;
             this.Scene.Add(bird);
@@ -366,7 +366,7 @@ namespace MaggyHelper.Cutscenes
             yield return this.NextLevel("credits-city");
             yield return this.SetupLevel();
             yield return this.SpawnChara();
-            BirdNPC first = this.Scene.Entities.FindFirst<BirdNPC>();
+            Entities.BirdNPC first = this.Scene.Entities.FindFirst<Entities.BirdNPC>();
             if (first != null)
                 first.Facing = Facings.Right;
             this.badelineWalkApproach = 1f;
@@ -849,7 +849,7 @@ namespace MaggyHelper.Cutscenes
             yield return 0.5f;
             this.player.Sprite.Play("lookUp", false, false);
             yield return 2f;
-            BirdNPC first = this.Scene.Entities.FindFirst<BirdNPC>();
+            Entities.BirdNPC first = this.Scene.Entities.FindFirst<Entities.BirdNPC>();
             if (first != null)
                 first.AutoFly = true;
             yield return 0.1f;

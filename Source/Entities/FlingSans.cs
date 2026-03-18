@@ -35,7 +35,7 @@ public class FlingSans : Entity
         sprite.Play("hover");
         sprite.Scale.X = -1f;
         sprite.Position = spriteOffset;
-        sprite.OnFrameChange = spr => BirdNpcGoner.FlapSfxCheck(sprite);
+        sprite.OnFrameChange = spr => BirdNPC.FlapSfxCheck(sprite);
         Collider = new Circle(16f);
         Add(new PlayerCollider(OnPlayer));
         Add(moveSfx = new SoundSource());

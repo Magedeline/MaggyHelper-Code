@@ -575,8 +575,8 @@ public static class AreaMapData
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Warn, "MaggyHelper",
-                    $"ApplyModes: could not load MapData for {area.SID} mode {mi}: {ex.Message}");
+                Logger.Log(LogLevel.Error, "MaggyHelper",
+                    $"ApplyModes: could not load MapData for {area.SID} mode {mi} (path: {area.Mode[mi].Path}): {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 // Null out the slot so HasMode() returns false and no session will be constructed.
                 area.Mode[mi] = null;
             }
@@ -701,11 +701,15 @@ public static class AreaMapData
         bool hasAltSides = chapter.HasBSide || chapter.HasCSide || chapter.HasDSide || chapter.HasDXSide;
         if (hasAltSides)
         {
+            Logger.Log(LogLevel.Verbose, "MaggyHelper",
+                $"ApplyHardcodedRuntimeData: '{area.SID}' has alt-sides (B={chapter.HasBSide}, C={chapter.HasCSide}, D={chapter.HasDSide}, DX={chapter.HasDXSide})");
             EnsureModeArray(area);
             ApplyModes(area, chapter);
         }
         else
         {
+            Logger.Log(LogLevel.Verbose, "MaggyHelper",
+                $"ApplyHardcodedRuntimeData: '{area.SID}' is A-Side only");
             EnsureASideMode(area, chapter);
         }
     }

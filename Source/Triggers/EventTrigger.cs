@@ -135,7 +135,7 @@ public class IngesteEventTrigger : Trigger
                 break;
                 
             case "ch0_ending":
-                TriggerOnce(level, "ch0_ending_trigger", () => new Cs00EndingMod(player));
+                TriggerOnce(level, "ch0_ending_trigger", () => new CS00_EndingMod(player));
                 break;
 
             // ==================== Chapter 1 ====================

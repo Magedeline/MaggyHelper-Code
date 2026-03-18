@@ -156,7 +156,7 @@ namespace MaggyHelper.Cutscenes
                 // Transition to CS00_EndingMod for final ending sequence
                 var level = new Level();
                 level.Session = session;
-                level.Add(new Cs00EndingMod(level.Tracker.GetEntity<global::Celeste.Player>()));
+                level.Add(new CS00_EndingMod(level.Tracker.GetEntity<global::Celeste.Player>()));
                 Engine.Scene = level;
             });
             fadeWipe.OnUpdate = delegate (float f)

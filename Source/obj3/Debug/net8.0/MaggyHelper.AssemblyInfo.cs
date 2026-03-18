@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MaggyHelper")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7cbc9301a4792049159db794ce72cebe5edf5d69")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a06a3f913e602c917bf4eef463b676e2f466a21")]
 [assembly: System.Reflection.AssemblyProductAttribute("MaggyHelper")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MaggyHelper")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

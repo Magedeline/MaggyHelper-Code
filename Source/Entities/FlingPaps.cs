@@ -34,7 +34,7 @@ public class FlingPaps : Entity
         sprite.Play("hover");
         sprite.Scale.X = -1f;
         sprite.Position = spriteOffset;
-        sprite.OnFrameChange = spr => BirdNpcGoner.FlapSfxCheck(sprite);
+        sprite.OnFrameChange = spr => BirdNPC.FlapSfxCheck(sprite);
         Collider = new Circle(16f);
         Add(new PlayerCollider(OnPlayer));
         Add(moveSfx = new SoundSource());
@@ -73,12 +73,12 @@ public class FlingPaps : Entity
             return;
         foreach (Component component in this.Components)
             component.EntityAwake();
-        var all = Scene.Entities.FindAll<FlingSans>();
+        var all = Scene.Entities.FindAll<FlingPaps>();
         for (var index = all.Count - 1; index >= 0; --index)
         {
-            var flingSans = all[index];
-            var flingSansEntityData = typeof(FlingSans).GetField(nameof(entityData), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(flingSans) as EntityData;
-            if (flingSansEntityData?.Level.Name == entityData.Level.Name)
+            var flingPaps = all[index];
+            var flingPapsEntityData = typeof(FlingPaps).GetField(nameof(entityData), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(flingPaps) as EntityData;
+            if (flingPapsEntityData?.Level.Name == entityData.Level.Name)
                 continue;
             all.RemoveAt(index);
         }
