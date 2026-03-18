@@ -1105,6 +1105,12 @@ namespace MaggyHelper.Cutscenes
             
             // Now call base render for HUD and other components
             base.Render();
+
+            // Render text input behind vessel graphics so the image appears on top
+            if (textInputActive || textInputEase > 0f)
+            {
+                renderTextInput();
+            }
             
             // Render vessel graphics during display phases
             if (vesselAlpha > 0f && (currentPhase == CreationPhase.VesselDisplay || currentPhase == CreationPhase.VesselDiscard))
@@ -1116,11 +1122,6 @@ namespace MaggyHelper.Cutscenes
             if (currentChoices.Count > 0 && choiceEase > 0f)
             {
                 renderChoiceMenu();
-            }
-
-            if (textInputActive || textInputEase > 0f)
-            {
-                renderTextInput();
             }
             
             // Render fade overlay if transitioning
@@ -1239,7 +1240,6 @@ namespace MaggyHelper.Cutscenes
             Vector2 panelTopLeft = panelCenter - new Vector2(panelWidth / 2f, panelHeight / 2f);
             Rectangle panelRect = new Rectangle((int)panelTopLeft.X, (int)panelTopLeft.Y, (int)panelWidth, (int)panelHeight);
             Draw.Rect(panelRect, Color.Black * overlayAlpha);
-            Draw.HollowRect(panelRect, Color.White * textInputEase);
 
             ActiveFont.DrawOutline(textInputPrompt, panelCenter + new Vector2(0f, -150f), new Vector2(0.5f, 0.5f), Vector2.One * 0.8f, Color.White * textInputEase, 2f, Color.Black);
 
@@ -1250,7 +1250,6 @@ namespace MaggyHelper.Cutscenes
                 (int)TEXT_INPUT_BOX_HEIGHT);
 
             Draw.Rect(inputRect, Color.Black * 0.95f * textInputEase);
-            Draw.HollowRect(inputRect, (textInputPaletteActive ? Color.Gray : Color.White) * textInputEase);
 
             renderTextInputValue(inputRect);
             renderTextInputPalette(panelCenter + new Vector2(0f, 75f));
