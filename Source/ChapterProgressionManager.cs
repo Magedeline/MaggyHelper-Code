@@ -105,16 +105,18 @@ public static class ChapterProgressionManager
         if (save == null)
             return;
 
+        ApplyProgressionUnlocks(save);
+
         if (save.PendingUnlockChapter16OnRestart)
         {
-            UnlockChapter(save, Ch16Sid);
+            UnlockChapter(Ch16Sid);
             save.PendingUnlockChapter16OnRestart = false;
             Logger.Log(LogLevel.Info, "MaggyHelper", "Processed pending unlock: Chapter 16");
         }
 
         if (save.PendingUnlockChapter19OnRestart)
         {
-            UnlockChapter(save, Ch19Sid);
+            UnlockChapter(Ch19Sid);
             save.UnlockedChapter19 = true;
             save.PendingUnlockChapter19OnRestart = false;
             Logger.Log(LogLevel.Info, "MaggyHelper", "Processed pending unlock: Chapter 19");
@@ -122,23 +124,35 @@ public static class ChapterProgressionManager
 
         if (save.PendingUnlockChapter20OnRestart)
         {
-            UnlockChapter(save, Ch20Sid);
+            UnlockChapter(Ch20Sid);
             save.VoidMoonUnlocked = true;
             save.PendingUnlockChapter20OnRestart = false;
             Logger.Log(LogLevel.Info, "MaggyHelper", "Processed pending unlock: Chapter 20");
         }
     }
 
-    private static void UnlockChapter(MaggyHelperModuleSaveData save, string sid)
+    private static void ApplyProgressionUnlocks(MaggyHelperModuleSaveData save)
     {
-        save.UnlockChapter(sid);
-        AreaMapData.RefreshChapterIcon(sid);
+        if (save.BossRushUnlocked && !MaggySaveFacade.IsChapterUnlocked(Ch19Sid))
+        {
+            UnlockChapter(Ch19Sid);
+            save.UnlockedChapter19 = true;
+            save.PendingUnlockChapter19OnRestart = false;
+            Logger.Log(LogLevel.Info, "MaggyHelper", "Boss rush progression unlocked Chapter 19.");
+        }
 
-        var area = AreaData.Get(sid);
-        if (area == null || SaveData.Instance == null)
-            return;
+        if (save.FinalDlcContentUnlocked && !MaggySaveFacade.IsChapterUnlocked(Ch20Sid))
+        {
+            UnlockChapter(Ch20Sid);
+            save.VoidMoonUnlocked = true;
+            save.PendingUnlockChapter20OnRestart = false;
+            Logger.Log(LogLevel.Info, "MaggyHelper", "Final DLC progression unlocked Chapter 20.");
+        }
+    }
 
-        SaveData.Instance.UnlockedAreas = Math.Max(SaveData.Instance.UnlockedAreas, area.ID + 1);
+    private static void UnlockChapter(string sid)
+    {
+        MaggySaveFacade.UnlockChapter(sid);
     }
 
     public static bool IsChapterLockedForUI(string sid)
@@ -148,10 +162,10 @@ public static class ChapterProgressionManager
 
     private static void EnforceChapterSelectLock()
     {
-        if (_forcingSelection || SaveData.Instance == null || MaggyHelperModule.SaveData == null)
+        if (_forcingSelection || !MaggySaveFacade.IsLoaded)
             return;
 
-        int selectedArea = SaveData.Instance.LastArea_Safe.ID;
+        int selectedArea = MaggySaveFacade.SelectedAreaId;
         if (selectedArea < 0 || selectedArea >= AreaData.Areas.Count)
             return;
 
@@ -166,7 +180,7 @@ public static class ChapterProgressionManager
         _forcingSelection = true;
         try
         {
-            SaveData.Instance.LastArea = new AreaKey(fallbackArea, global::Celeste.AreaMode.Normal);
+            MaggySaveFacade.TrySelectArea(fallbackArea);
         }
         finally
         {
@@ -176,18 +190,21 @@ public static class ChapterProgressionManager
 
     private static bool IsLockedChapterSID(string sid)
     {
-        var save = MaggyHelperModule.SaveData;
-        if (save == null)
+        if (!MaggySaveFacade.HasModSave)
             return false;
 
+        var save = MaggyHelperModule.SaveData;
+
         if (sid.Equals(Ch16Sid, StringComparison.OrdinalIgnoreCase))
-            return !save.IsChapterUnlocked(Ch16Sid);
+            return !MaggySaveFacade.IsChapterUnlocked(Ch16Sid);
 
         if (sid.Equals(Ch19Sid, StringComparison.OrdinalIgnoreCase))
-            return !save.IsChapterUnlocked(Ch19Sid);
+            return !MaggySaveFacade.IsChapterUnlocked(Ch19Sid)
+                && save?.BossRushUnlocked != true;
 
         if (sid.Equals(Ch20Sid, StringComparison.OrdinalIgnoreCase))
-            return !save.IsChapterUnlocked(Ch20Sid);
+            return !MaggySaveFacade.IsChapterUnlocked(Ch20Sid)
+                && save?.FinalDlcContentUnlocked != true;
 
         return false;
     }
@@ -206,7 +223,7 @@ public static class ChapterProgressionManager
             return i;
         }
 
-        return SaveData.Instance?.LastArea_Safe.ID ?? -1;
+        return MaggySaveFacade.SelectedAreaId;
     }
 
     [Command("maggy_chapter_test", "Test late chapter unlock flow. Usage: maggy_chapter_test [status|queue16|queue19|queue20|unlock16|unlock19|unlock20|apply]")]
@@ -239,20 +256,20 @@ public static class ChapterProgressionManager
                 break;
 
             case "unlock16":
-                UnlockChapter(save, Ch16Sid);
+                UnlockChapter(Ch16Sid);
                 save.PendingUnlockChapter16OnRestart = false;
                 Engine.Commands?.Log("[MaggyHelper] Unlocked Chapter 16 immediately.");
                 break;
 
             case "unlock19":
-                UnlockChapter(save, Ch19Sid);
+                UnlockChapter(Ch19Sid);
                 save.UnlockedChapter19 = true;
                 save.PendingUnlockChapter19OnRestart = false;
                 Engine.Commands?.Log("[MaggyHelper] Unlocked Chapter 19 immediately.");
                 break;
 
             case "unlock20":
-                UnlockChapter(save, Ch20Sid);
+                UnlockChapter(Ch20Sid);
                 save.VoidMoonUnlocked = true;
                 save.PendingUnlockChapter20OnRestart = false;
                 Engine.Commands?.Log("[MaggyHelper] Unlocked Chapter 20 immediately.");
@@ -269,9 +286,9 @@ public static class ChapterProgressionManager
                 break;
         }
 
-        bool unlocked16 = save.IsChapterUnlocked(Ch16Sid);
-        bool unlocked19 = save.IsChapterUnlocked(Ch19Sid);
-        bool unlocked20 = save.IsChapterUnlocked(Ch20Sid);
+        bool unlocked16 = MaggySaveFacade.IsChapterUnlocked(Ch16Sid);
+        bool unlocked19 = MaggySaveFacade.IsChapterUnlocked(Ch19Sid);
+        bool unlocked20 = MaggySaveFacade.IsChapterUnlocked(Ch20Sid);
 
         Engine.Commands?.Log(
             $"[MaggyHelper] status: unlocked16={unlocked16}, unlocked19={unlocked19}, unlocked20={unlocked20}, " +
@@ -314,14 +331,12 @@ public static class ChapterProgressionManager
         {
             if (ad?.SID == null || !AreaModeExtender.IsOurMap(ad)) continue;
 
-            var areaStats = vanillaSave.Areas_Safe[ad.ID];
-            if (areaStats == null) continue;
+            if (AreaModeExtender.TryGetSaveAreaStats(ad.ID) == null) continue;
 
             // Mark A, B, C-Side hearts collected so IsSideUnlocked returns true for D-Side
-            for (int m = 0; m < Math.Min(3, areaStats.Modes.Length); m++)
+            for (int m = 0; m < Math.Min(3, AreaModeExtender.GetSaveAreaModeCount(ad.ID)); m++)
             {
-                if (areaStats.Modes[m] != null)
-                    areaStats.Modes[m].HeartGem = true;
+                AreaModeExtender.SetSaveAreaModeHeartGem(ad.ID, m, true);
             }
 
             if (unlockDX)

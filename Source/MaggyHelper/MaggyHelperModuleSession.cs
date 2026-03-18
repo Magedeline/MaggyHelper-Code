@@ -18,6 +18,11 @@ public class MaggyHelperModuleSession : EverestModuleSession
     /// Current Kirby power state as string (for serialization).
     /// </summary>
     public string CurrentKirbyPower { get; set; } = "None";
+
+    /// <summary>
+    /// Currently active character for this session.
+    /// </summary>
+    public string ActiveCharacterId { get; set; } = "madeline";
     
     /// <summary>
     /// Kirby's current health.
@@ -157,6 +162,21 @@ public class MaggyHelperModuleSession : EverestModuleSession
     /// Custom session strings.
     /// </summary>
     public Dictionary<string, string> CustomStrings { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Whether the current chapter entry used a saved respawn state.
+    /// </summary>
+    public bool UsedSavedChapterRespawn { get; set; } = false;
+
+    /// <summary>
+    /// Whether a save point/checkpoint has been registered for this session.
+    /// </summary>
+    public bool HasRegisteredChapterSavePoint { get; set; } = false;
+
+    /// <summary>
+    /// Last save point checkpoint identifier for this session.
+    /// </summary>
+    public string LastCheckpointId { get; set; } = string.Empty;
     
     #endregion
 
@@ -169,6 +189,7 @@ public class MaggyHelperModuleSession : EverestModuleSession
     {
         IsKirbyModeActive = false;
         CurrentKirbyPower = "None";
+        ActiveCharacterId = "madeline";
         KirbyHealth = MaggyHelperModule.Settings?.KirbyMaxHealth ?? 6;
         KirbyStamina = MaggyHelperModule.Settings?.KirbyMaxStaminaFloat ?? 100f;
         IsKnightModeActive = false;

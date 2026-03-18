@@ -74,6 +74,8 @@
         <Compile Remove="Source\Extensions\Player.cs" />
         <Compile Remove="Extensions\Player.cs" />
         <Compile Remove="**\Extensions\Player.cs" />
+        <!-- Exclude copied Everest/Celeste save patch sources from the normal mod build.
+             They depend on Everest's patch pipeline and shadow runtime types from Celeste.dll. -->
         <!-- Exclude decompiled vanilla DreamBlock duplicate to prevent type conflicts with Celeste.dll -->
         <Compile Remove="Source\Entities\DreamBlock.cs" />
         <Compile Remove="Entities\DreamBlock.cs" />

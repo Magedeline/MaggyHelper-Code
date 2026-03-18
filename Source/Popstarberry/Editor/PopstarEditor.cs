@@ -124,7 +124,6 @@ public class PopstarEditor : Scene
     #region Rendering
     
     private static readonly Color BackgroundColor = Calc.HexToColor("060607");
-    private bool fadeIn = false;
     
     public static bool FancyRender { get; set; } = true;
     
@@ -134,7 +133,6 @@ public class PopstarEditor : Scene
     
     internal static Session PlaytestSession;
     internal static MapData PlaytestMapData;
-    private static bool generatePlaytestMapData = false;
     
     #endregion
 
@@ -224,10 +222,7 @@ public class PopstarEditor : Scene
         
         var wipe = new FadeWipe(Engine.Scene, false, () =>
         {
-            var editor = new PopstarEditor(map)
-            {
-                fadeIn = true
-            };
+            var editor = new PopstarEditor(map);
             Engine.Scene = editor;
         })
         {
@@ -482,13 +477,11 @@ public class PopstarEditor : Scene
         Audio.SetAmbience(null);
         
         SaveData.InitializeDebugMode();
-        
-        generatePlaytestMapData = true;
+
         PlaytestMapData = new MapData(Map.From);
         Map.GenerateMapData(PlaytestMapData);
         PlaytestSession = new Session(Map.From);
         LevelEnter.Go(PlaytestSession, true);
-        generatePlaytestMapData = false;
     }
     
     private void ExportMap()

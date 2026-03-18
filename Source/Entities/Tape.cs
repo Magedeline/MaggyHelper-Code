@@ -357,6 +357,10 @@ public class DesoloZantasTape : Entity
         if (!string.IsNullOrEmpty(_cSideToUnlock))
             IngesteModule.SaveData.UnlockedCSideIDs.Add(_cSideToUnlock);
 
+        MaggyProgressionManager.RecordCassette(level);
+        if (level.Session.RespawnPoint.HasValue)
+            MaggyProgressionManager.RecordCheckpoint(level, level.Session.RespawnPoint.Value, _cSideToUnlock);
+
         cbm?.StopBlocks();
         Depth = -1000000;
         level.Shake();

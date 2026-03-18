@@ -217,6 +217,7 @@ namespace MaggyHelper
             Level level = SceneAs<Level>();
             level.Session.SetFlag("checkpoint_" + checkpointId, true);
             level.Session.RespawnPoint = player.Position;
+            MaggyProgressionManager.RecordCheckpoint(level, player.Position, checkpointId);
             Audio.Play("event:/game/general/seed_touch", Position);
         }
     }
@@ -679,6 +680,7 @@ namespace MaggyHelper
             Level level = SceneAs<Level>();
             level.Session.SetFlag("character_kirby", targetCharacter == "kirby");
             level.Session.SetFlag("character_madeline", targetCharacter == "madeline");
+            MaggyProgressionManager.RecordPreferredCharacter(level, targetCharacter);
             Audio.Play("event:/game/general/cassette_bubblereturn", Position);
             (Scene as Level)?.Flash(Color.White * 0.4f);
         }
@@ -800,6 +802,7 @@ namespace MaggyHelper
             Level level = SceneAs<Level>();
             level.Session.RespawnPoint = player.Position;
             level.Session.SetFlag("savestate_" + saveId, true);
+            MaggyProgressionManager.RecordCheckpoint(level, player.Position, saveId);
             Audio.Play("event:/game/general/seed_touch", Position);
         }
     }

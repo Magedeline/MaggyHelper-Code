@@ -1,7 +1,10 @@
+﻿#pragma warning disable CS0436 // Local patch types intentionally shadow imported Celeste runtime types.
+
 using System.Collections;
 using Celeste.Mod.Meta;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 
 namespace MaggyHelper;
@@ -15,6 +18,8 @@ namespace MaggyHelper;
 /// </summary>
 public static class AreaModeExtender
 {
+    private static readonly Type RuntimeAreaStatsType = typeof(Session).Assembly.GetType("Celeste.AreaStats", throwOnError: false);
+    private static readonly HashSet<string> EarlyMapMetaSkipLog = new(StringComparer.OrdinalIgnoreCase);
     // Extended mode indices (matching Celeste's AreaMode enum values cast to int)
     public const int MODE_NORMAL = 0;
     public const int MODE_BSIDE = 1;
@@ -53,6 +58,8 @@ public static class AreaModeExtender
     };
 
     private static bool _hooked = false;
+    private static On.Celeste.Session.hook_ctor_AreaKey_string_AreaStats _sessionCtorHook;
+    private static Hook _mapMetaApplyHook;
 
     /// <summary>Gets the side folder name for a mode index.</summary>
     public static string GetSideFolder(int modeIndex)
@@ -96,6 +103,10 @@ public static class AreaModeExtender
             // Hook into AreaData loading to extend mode arrays
             On.Celeste.AreaData.Load += OnAreaDataLoad;
 
+            // Everest applies map meta before our post-load mode extension runs.
+            // Skip any Maggy mode metadata targeting slots that do not exist yet.
+            InstallMapMetaApplyHook();
+
             // Hook into OuiChapterPanel to show D/DX side tabs
             On.Celeste.OuiChapterPanel.Reset += OnChapterPanelReset;
             On.Celeste.OuiChapterPanel.UpdateStats += OnChapterPanelUpdateStats;
@@ -107,7 +118,8 @@ public static class AreaModeExtender
             On.Celeste.LevelExit.ctor += OnLevelExitCtor;
 
             // Hook Session ctor to guarantee checkpoint starts always receive valid AreaStats.
-            On.Celeste.Session.ctor_AreaKey_string_AreaStats += OnSessionCtor;
+            _sessionCtorHook ??= (orig, self, area, checkpoint, oldStats) => OnSessionCtor(orig, self, area, checkpoint, oldStats);
+            On.Celeste.Session.ctor_AreaKey_string_AreaStats += _sessionCtorHook;
 
             // Vanilla SaveData XML only supports AreaMode values 0-2.
             // Clamp D/DX modes at save/load boundaries so runtime can use them
@@ -135,14 +147,87 @@ public static class AreaModeExtender
         On.Celeste.OuiChapterPanel.UpdateStats -= OnChapterPanelUpdateStats;
         On.Celeste.HeartGem.Collect -= OnHeartGemCollect;
         On.Celeste.LevelExit.ctor -= OnLevelExitCtor;
-        On.Celeste.Session.ctor_AreaKey_string_AreaStats -= OnSessionCtor;
+        if (_sessionCtorHook != null)
+            On.Celeste.Session.ctor_AreaKey_string_AreaStats -= _sessionCtorHook;
         On.Celeste.SaveData.AfterInitialize -= OnSaveDataAfterInitialize;
         On.Celeste.UserIO.SaveThread -= OnSaveThread;
+        _mapMetaApplyHook?.Dispose();
+        _mapMetaApplyHook = null;
+        EarlyMapMetaSkipLog.Clear();
 
         Logger.Log(LogLevel.Info, "MaggyHelper", "AreaModeExtender unloaded");
     }
 
     // ── AreaData Extension ───────────────────────────────────────────────
+
+    private delegate void orig_MapMetaModeProperties_ApplyTo(MapMetaModeProperties self, AreaData area, AreaMode mode);
+
+    private static void InstallMapMetaApplyHook()
+    {
+        if (_mapMetaApplyHook != null)
+            return;
+
+        MethodInfo target = typeof(MapMetaModeProperties).GetMethod(
+            "ApplyTo",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+            binder: null,
+            types: new[] { typeof(AreaData), typeof(AreaMode) },
+            modifiers: null);
+
+        MethodInfo detour = typeof(AreaModeExtender).GetMethod(
+            nameof(Hook_MapMetaModeProperties_ApplyTo),
+            BindingFlags.Static | BindingFlags.NonPublic);
+
+        if (target == null || detour == null)
+        {
+            Logger.Log(LogLevel.Warn, "MaggyHelper",
+                "Failed to locate MapMetaModeProperties.ApplyTo detour target; early mode metadata guard disabled.");
+            return;
+        }
+
+        _mapMetaApplyHook = new Hook(target, detour);
+    }
+
+    private static void Hook_MapMetaModeProperties_ApplyTo(orig_MapMetaModeProperties_ApplyTo orig,
+        MapMetaModeProperties self, AreaData area, AreaMode mode)
+    {
+        if (area != null && IsOurMap(area))
+        {
+            int modeIndex = (int) mode;
+            int availableModes = area.Mode?.Length ?? 0;
+
+            if (modeIndex >= availableModes)
+            {
+                string key = $"{area.SID}|{modeIndex}|{availableModes}";
+                if (EarlyMapMetaSkipLog.Add(key))
+                {
+                    Logger.Log(LogLevel.Warn, "MaggyHelper",
+                        $"Skipping early MapMeta apply for '{area.SID}' mode {modeIndex}; Mode[] length is still {availableModes} during AreaData.Load.");
+                }
+
+                return;
+            }
+
+            try
+            {
+                orig(self, area, mode);
+                return;
+            }
+            catch (IndexOutOfRangeException) when (availableModes < TOTAL_MODES)
+            {
+                string key = $"{area.SID}|orig-throw|{modeIndex}|{availableModes}";
+                if (EarlyMapMetaSkipLog.Add(key))
+                {
+                    Logger.Log(LogLevel.Warn, "MaggyHelper",
+                        $"Skipping early MapMeta apply for '{area.SID}' mode {modeIndex} after Everest hit IndexOutOfRangeException with Mode[] length {availableModes}.");
+                }
+
+                return;
+            }
+        }
+
+        orig(self, area, mode);
+    }
 
     /// <summary>
     /// After Celeste loads all area data, extend our chapters' Mode arrays 
@@ -278,36 +363,93 @@ public static class AreaModeExtender
 
         var dyn = DynamicData.For(target);
 
-        // Try common int-based parent members.
-        TrySetMember(dyn, "Parent", parentId);
-        TrySetMember(dyn, "parent", parentId);
-        TrySetMember(dyn, "ParentID", parentId);
-        TrySetMember(dyn, "ParentId", parentId);
-        TrySetMember(dyn, "parentID", parentId);
-        TrySetMember(dyn, "parentId", parentId);
-
         // Try common string SID-based parent members.
         if (!string.IsNullOrEmpty(parentSid))
         {
-            TrySetMember(dyn, "ParentSID", parentSid);
-            TrySetMember(dyn, "ParentSid", parentSid);
-            TrySetMember(dyn, "parentSID", parentSid);
-            TrySetMember(dyn, "parentSid", parentSid);
-            TrySetMember(dyn, "Parent", parentSid);
-            TrySetMember(dyn, "parent", parentSid);
+            TrySetMember(target, dyn, "ParentSID", parentSid);
+            TrySetMember(target, dyn, "ParentSid", parentSid);
+            TrySetMember(target, dyn, "parentSID", parentSid);
+            TrySetMember(target, dyn, "parentSid", parentSid);
+            TrySetMember(target, dyn, "Parent", parentSid);
+            TrySetMember(target, dyn, "parent", parentSid);
         }
+
+        // Try common int-based parent members.
+        TrySetMember(target, dyn, "ParentID", parentId);
+        TrySetMember(target, dyn, "ParentId", parentId);
+        TrySetMember(target, dyn, "parentID", parentId);
+        TrySetMember(target, dyn, "parentId", parentId);
+        TrySetMember(target, dyn, "Parent", parentId);
+        TrySetMember(target, dyn, "parent", parentId);
     }
 
-    private static bool TrySetMember(DynamicData dyn, string name, object value)
+    private static bool TrySetMember(object target, DynamicData dyn, string name, object value)
     {
+        if (!TryResolveWritableMember(target.GetType(), name, value?.GetType(), out string resolvedName))
+            return false;
+
         try
         {
-            dyn.Set(name, value);
+            dyn.Set(resolvedName, value);
             return true;
         }
         catch
         {
             return false;
+        }
+    }
+
+    private static bool TryResolveWritableMember(Type targetType, string name, Type valueType, out string resolvedName)
+    {
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+        resolvedName = name;
+
+        var property = targetType.GetProperty(name, flags);
+        if (property != null && property.CanWrite && IsValueCompatible(property.PropertyType, valueType))
+        {
+            resolvedName = property.Name;
+            return true;
+        }
+
+        var field = targetType.GetField(name, flags);
+        if (field != null && IsValueCompatible(field.FieldType, valueType))
+        {
+            resolvedName = field.Name;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsValueCompatible(Type targetType, Type valueType)
+    {
+        if (valueType == null)
+            return !targetType.IsValueType || Nullable.GetUnderlyingType(targetType) != null;
+
+        Type effectiveTargetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+        if (effectiveTargetType.IsAssignableFrom(valueType))
+            return true;
+
+        if (effectiveTargetType.IsEnum)
+            return IsValueCompatible(Enum.GetUnderlyingType(effectiveTargetType), valueType);
+
+        return effectiveTargetType == typeof(int) && valueType == typeof(int)
+            || effectiveTargetType == typeof(string) && valueType == typeof(string);
+    }
+
+    private static T TryGetMember<T>(DynamicData dyn, string name, T fallback = default)
+    {
+        if (dyn == null)
+            return fallback;
+
+        try
+        {
+            return dyn.Get<T>(name);
+        }
+        catch
+        {
+            return fallback;
         }
     }
 
@@ -673,11 +815,11 @@ public static class AreaModeExtender
     /// pass null or undersized AreaStats, which crashes vanilla Session ctor when indexing mode stats.
     /// </summary>
     private static void OnSessionCtor(On.Celeste.Session.orig_ctor_AreaKey_string_AreaStats orig, Session self,
-        AreaKey area, string checkpoint, AreaStats oldStats)
+        AreaKey area, string checkpoint, object oldStats)
     {
         try
         {
-            AreaStats safeStats = EnsureSafeAreaStats(area, oldStats);
+            object safeStats = EnsureSafeAreaStats(area, oldStats);
 
             // Never pass a null AreaStats to Session ctor.
             if (safeStats == null)
@@ -687,12 +829,13 @@ public static class AreaModeExtender
             safeStats ??= oldStats;
 
             int modeIndex = (int)area.Mode;
-            int modesLength = safeStats?.Modes?.Length ?? -1;
-            bool selectedModeNull = modeIndex < 0 || modeIndex >= modesLength || safeStats?.Modes?[modeIndex] == null;
+            Array modes = GetModesArray(safeStats);
+            int modesLength = modes?.Length ?? -1;
+            bool selectedModeNull = modeIndex < 0 || modeIndex >= modesLength || modes?.GetValue(modeIndex) == null;
             Logger.Log(LogLevel.Verbose, "MaggyHelper",
                 $"SessionCtor sanitize: sid={area.SID} mode={modeIndex} checkpoint={(checkpoint ?? "<none>")} statsNull={safeStats == null} modesLen={modesLength} selectedModeNull={selectedModeNull}");
 
-            orig(self, area, checkpoint, safeStats);
+            InvokeSessionCtor(orig, self, area, checkpoint, safeStats);
         }
         catch (Exception ex)
         {
@@ -706,7 +849,7 @@ public static class AreaModeExtender
                 if (fallback != null)
                 {
                     Logger.Log(LogLevel.Warn, "MaggyHelper", "Attempting Session creation with fallback AreaStats");
-                    orig(self, area, checkpoint, fallback);
+                    InvokeSessionCtor(orig, self, area, checkpoint, fallback);
                     return;
                 }
             }
@@ -717,14 +860,43 @@ public static class AreaModeExtender
         }
     }
 
+    private static void InvokeSessionCtor(On.Celeste.Session.orig_ctor_AreaKey_string_AreaStats orig, Session self,
+        AreaKey area, string checkpoint, object stats)
+    {
+        orig.DynamicInvoke(self, area, checkpoint, stats);
+    }
+
     private static void OnSaveDataAfterInitialize(On.Celeste.SaveData.orig_AfterInitialize orig, SaveData self)
     {
+        string stage = "before-first-orig";
         try
         {
-            orig(self);
+            try
+            {
+                Logger.Log(LogLevel.Info, "MaggyHelper", "SaveData.AfterInitialize wrapper entering first orig(self) call.");
+                orig(self);
+                Logger.Log(LogLevel.Info, "MaggyHelper", "SaveData.AfterInitialize wrapper completed first orig(self) call.");
+            }
+            catch (Exception ex) when (TryRecoverAfterInitialize(self, ex))
+            {
+                stage = "retry-orig";
+                Logger.Log(LogLevel.Warn, "MaggyHelper",
+                    $"SaveData.AfterInitialize wrapper retrying orig(self) after {ex.GetType().Name}.");
+                try
+                {
+                    orig(self);
+                    Logger.Log(LogLevel.Info, "MaggyHelper", "SaveData.AfterInitialize wrapper completed retry orig(self) call.");
+                }
+                catch (Exception retryEx) when (TryFallbackAfterInitialize(self, retryEx))
+                {
+                    Logger.Log(LogLevel.Warn, "MaggyHelper",
+                        $"SaveData.AfterInitialize wrapper suppressed second failure after fallback repair: {retryEx.GetType().Name}.");
+                }
+            }
 
             try
             {
+                stage = "post-sanitize";
                 // SaveData.AfterInitialize also runs during brand-new slot creation.
                 // Avoid touching partially-constructed SaveData before vanilla has finished
                 // building its internal state, then clamp any extended modes afterwards.
@@ -738,7 +910,8 @@ public static class AreaModeExtender
 
             try
             {
-                EnsureMaggySaveAreaStats(self);
+                stage = "post-ensure-extended-save-areas";
+                EnsureExtendedSaveAreaStats(self);
             }
             catch (Exception ex)
             {
@@ -748,8 +921,204 @@ public static class AreaModeExtender
         }
         catch (Exception ex)
         {
-            Logger.Log(LogLevel.Error, "MaggyHelper", $"Error in SaveData.AfterInitialize sanitizer: {ex}");
+            Logger.Log(LogLevel.Error, "MaggyHelper", $"Error in SaveData.AfterInitialize sanitizer during wrapper stage '{stage}': {ex}");
             throw;
+        }
+    }
+
+    private static bool TryFallbackAfterInitialize(SaveData save, Exception exception)
+    {
+        if (save == null)
+            return false;
+
+        if (exception is not NullReferenceException && exception is not IndexOutOfRangeException)
+            return false;
+
+        try
+        {
+            int repaired = 0;
+            DynamicData saveDyn = DynamicData.For(save);
+
+            repaired += EnsureSaveDataStructure(save);
+            repaired += EnsureExtendedSaveAreaStats(save);
+
+            if (TryGetMember<string>(saveDyn, "Name") == null && TrySetMember(save, saveDyn, "Name", string.Empty))
+                repaired++;
+            if (TryGetMember<string>(saveDyn, "TheoSisterName") == null && TrySetMember(save, saveDyn, "TheoSisterName", string.Empty))
+                repaired++;
+
+            if (TryGetMember<IList>(saveDyn, "Areas_Unsafe") == null
+                && TrySetMember(save, saveDyn, "Areas_Unsafe", new List<AreaStats>()))
+            {
+                repaired++;
+            }
+
+            if (TryGetMember<IList>(saveDyn, "LevelSets") == null
+                && TrySetMember(save, saveDyn, "LevelSets", new List<object>()))
+            {
+                repaired++;
+            }
+
+            if (TryGetMember<IList>(saveDyn, "LevelSetRecycleBin") == null
+                && TrySetMember(save, saveDyn, "LevelSetRecycleBin", new List<object>()))
+            {
+                repaired++;
+            }
+
+            AreaKey defaultKey = AreaKey.Default;
+            if (TrySetMember(save, saveDyn, "LastArea", defaultKey))
+                repaired++;
+            if (TrySetMember(save, saveDyn, "LastArea_Safe", defaultKey))
+                repaired++;
+            if (TrySetMember(save, saveDyn, "LastArea_Unsafe", defaultKey))
+                repaired++;
+
+            if (TrySetMember(save, saveDyn, "CurrentSession", null))
+                repaired++;
+            if (TrySetMember(save, saveDyn, "CurrentSession_Safe", null))
+                repaired++;
+            if (TrySetMember(save, saveDyn, "CurrentSession_Unsafe", null))
+                repaired++;
+
+            TrySetMember(save, saveDyn, "_cached_Areas_Safe", null);
+            TrySetMember(save, saveDyn, "_cached_LevelSetStats", null);
+            TrySetMember(save, saveDyn, "_cached_LevelSetStats_LevelSet", null);
+
+            try
+            {
+                SanitizeVanillaSaveTargets(save, temporary: false);
+            }
+            catch
+            {
+            }
+
+            Logger.Log(LogLevel.Warn, "MaggyHelper",
+                $"Forced minimal SaveData fallback after repeated {exception.GetType().Name}; repaired {repaired} field(s) and skipped the failing vanilla tail.");
+            return true;
+        }
+        catch (Exception fallbackEx)
+        {
+            Logger.Log(LogLevel.Error, "MaggyHelper",
+                $"SaveData.AfterInitialize fallback failed: {fallbackEx}");
+            return false;
+        }
+    }
+
+    private static bool TryRecoverAfterInitialize(SaveData save, Exception exception)
+    {
+        if (save == null)
+            return false;
+
+        if (exception is not NullReferenceException && exception is not IndexOutOfRangeException)
+            return false;
+
+        int repaired;
+        try
+        {
+            repaired = EnsureSaveDataStructure(save);
+            repaired += EnsureExtendedSaveAreaStats(save);
+        }
+        catch (Exception repairException)
+        {
+            Logger.Log(LogLevel.Warn, "MaggyHelper",
+                $"SaveData.AfterInitialize recovery failed before retry: {repairException.Message}");
+            return false;
+        }
+
+        if (repaired <= 0)
+            return false;
+
+        Logger.Log(LogLevel.Warn, "MaggyHelper",
+            $"SaveData.AfterInitialize hit {exception.GetType().Name}; repaired {repaired} AreaStats entr{(repaired == 1 ? "y" : "ies")} and retrying once.");
+        return true;
+    }
+
+    private static int EnsureSaveDataStructure(SaveData save)
+    {
+        if (save == null)
+            return 0;
+
+        int repaired = 0;
+        DynamicData saveDyn = DynamicData.For(save);
+
+        repaired += EnsureLevelSetCollection(TryGetMember<IList>(saveDyn, "LevelSets"));
+        repaired += EnsureLevelSetCollection(TryGetMember<IList>(saveDyn, "LevelSetRecycleBin"));
+
+        if (repaired > 0)
+        {
+            Logger.Log(LogLevel.Info, "MaggyHelper",
+                $"Repaired {repaired} save structure entr{(repaired == 1 ? "y" : "ies")} before save load retry");
+        }
+
+        return repaired;
+    }
+
+    private static int EnsureLevelSetCollection(IList levelSets)
+    {
+        if (levelSets == null)
+            return 0;
+
+        int repaired = 0;
+
+        for (int i = levelSets.Count - 1; i >= 0; i--)
+        {
+            object levelSet = levelSets[i];
+            if (levelSet == null)
+            {
+                levelSets.RemoveAt(i);
+                repaired++;
+                continue;
+            }
+
+            DynamicData levelSetDyn = DynamicData.For(levelSet);
+
+            if (TryGetMember<string>(levelSetDyn, "Name") == null
+                && TrySetMember(levelSet, levelSetDyn, "Name", string.Empty))
+            {
+                repaired++;
+            }
+
+            repaired += EnsureCollectionMember(levelSet, levelSetDyn, "Areas");
+            repaired += EnsureCollectionMember(levelSet, levelSetDyn, "Poem");
+        }
+
+        return repaired;
+    }
+
+    private static int EnsureCollectionMember(object target, DynamicData dyn, string memberName)
+    {
+        if (target == null || dyn == null)
+            return 0;
+
+        if (TryGetMember<IList>(dyn, memberName) != null)
+            return 0;
+
+        if (!TryCreateMemberInstance(target.GetType(), memberName, out object instance))
+            return 0;
+
+        return TrySetMember(target, dyn, memberName, instance) ? 1 : 0;
+    }
+
+    private static bool TryCreateMemberInstance(Type targetType, string memberName, out object instance)
+    {
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+        instance = null;
+
+        Type memberType = targetType.GetProperty(memberName, flags)?.PropertyType
+            ?? targetType.GetField(memberName, flags)?.FieldType;
+
+        if (memberType == null)
+            return false;
+
+        try
+        {
+            instance = Activator.CreateInstance(memberType);
+            return instance != null;
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -768,11 +1137,11 @@ public static class AreaModeExtender
         }
     }
 
-    private static AreaStats EnsureSafeAreaStats(AreaKey area, AreaStats oldStats)
+    private static object EnsureSafeAreaStats(AreaKey area, object oldStats)
     {
         try
         {
-            AreaStats safeStats = oldStats;
+            object safeStats = oldStats;
 
             // Prefer game-provided stats; checkpoint flow can provide null depending on panel state.
             if (safeStats == null)
@@ -802,9 +1171,11 @@ public static class AreaModeExtender
         }
     }
 
-    private static AreaStats CreateFallbackAreaStats(AreaKey area)
+    private static object CreateFallbackAreaStats(AreaKey area, string sid = null)
     {
-        Type areaStatsType = typeof(AreaStats);
+        Type areaStatsType = RuntimeAreaStatsType;
+        if (areaStatsType == null)
+            return null;
 
         // Try common constructor signatures first.
         foreach (var args in new object[][]
@@ -819,8 +1190,9 @@ public static class AreaModeExtender
                     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
                     binder: null,
                     args: args,
-                    culture: null) is AreaStats created)
+                    culture: null) is object created)
                 {
+                    EnsureAreaStatsIdentity(created, area.ID, sid);
                     return created;
                 }
             }
@@ -832,42 +1204,181 @@ public static class AreaModeExtender
         return null;
     }
 
-    private static void EnsureMaggySaveAreaStats(SaveData save)
+    private static int EnsureStoredAreaStatsList(IList storedAreas, string levelSetName)
     {
-        if (save?.Areas_Safe == null || AreaData.Areas == null || AreaData.Areas.Count == 0)
-            return;
+        if (storedAreas == null)
+            return 0;
+
+        List<int> rootAreaIds = GetRootAreaIdsForLevelSet(levelSetName);
+        int repaired = 0;
+
+        while (storedAreas.Count < rootAreaIds.Count)
+        {
+            storedAreas.Add(null);
+            repaired++;
+        }
+
+        for (int i = storedAreas.Count - 1; i >= rootAreaIds.Count; i--)
+        {
+            if (storedAreas[i] == null)
+            {
+                storedAreas.RemoveAt(i);
+                repaired++;
+            }
+        }
+
+        for (int i = 0; i < rootAreaIds.Count; i++)
+        {
+            int areaId = rootAreaIds[i];
+            AreaData areaData = AreaData.Areas[areaId];
+            string sid = areaData?.SID;
+
+            object stats = storedAreas[i];
+            if (stats == null)
+            {
+                stats = CreateFallbackAreaStats(new AreaKey(areaId, global::Celeste.AreaMode.Normal), sid);
+                if (stats == null)
+                    continue;
+
+                storedAreas[i] = stats;
+                repaired++;
+            }
+
+            repaired += EnsureAreaStatsIdentity(stats, areaId, sid);
+
+            int existingModes = GetModesArray(stats)?.Length ?? 0;
+            int requiredModes = Math.Max(areaData?.Mode?.Length ?? 0, 3);
+            EnsureAreaModeStatsArray(stats, requiredModes);
+            if (existingModes < requiredModes)
+                repaired++;
+        }
+
+        return repaired;
+    }
+
+    private static int EnsureAreaStatsIdentity(object stats, int areaId, string sid)
+    {
+        if (stats == null)
+            return 0;
 
         int repaired = 0;
+        DynamicData dyn = DynamicData.For(stats);
+
+        int currentId = TryGetMember(dyn, "ID_Safe", int.MinValue);
+        if (currentId == int.MinValue)
+            currentId = TryGetMember(dyn, "ID_Unsafe", int.MinValue);
+        if (currentId == int.MinValue)
+            currentId = TryGetMember(dyn, "ID", int.MinValue);
+
+        if (currentId < 0 || currentId >= AreaData.Areas.Count)
+        {
+            if (TrySetMember(stats, dyn, "ID_Safe", areaId)
+                || TrySetMember(stats, dyn, "ID_Unsafe", areaId)
+                || TrySetMember(stats, dyn, "ID", areaId))
+            {
+                repaired++;
+            }
+        }
+
+        string currentSid = TryGetMember<string>(dyn, "SID");
+        if (string.IsNullOrEmpty(currentSid) && !string.IsNullOrEmpty(sid))
+        {
+            if (TrySetMember(stats, dyn, "SID", sid))
+                repaired++;
+        }
+
+        return repaired;
+    }
+
+    private static List<int> GetRootAreaIdsForLevelSet(string levelSetName)
+    {
+        List<int> ids = new();
+        if (AreaData.Areas == null)
+            return ids;
 
         for (int areaId = 0; areaId < AreaData.Areas.Count; areaId++)
         {
             AreaData area = AreaData.Areas[areaId];
-            if (!IsOurMap(area))
+            if (area == null)
                 continue;
 
-            if (areaId < 0 || areaId >= save.Areas_Safe.Count)
+            if (!string.Equals(GetLevelSetName(area), levelSetName, StringComparison.Ordinal))
                 continue;
 
-            AreaStats stats = save.Areas_Safe[areaId];
-            if (stats == null)
+            if (!string.IsNullOrEmpty(GetParentSid(area)))
+                continue;
+
+            ids.Add(areaId);
+        }
+
+        return ids;
+    }
+
+    private static string GetLevelSetName(AreaData area)
+    {
+        if (area == null)
+            return null;
+
+        string levelSet = TryGetMember<string>(DynamicData.For(area), "LevelSet");
+        if (!string.IsNullOrEmpty(levelSet))
+            return levelSet;
+
+        string sid = area.SID;
+        int slash = sid?.LastIndexOf('/') ?? -1;
+        return slash > 0 ? sid[..slash] : "Celeste";
+    }
+
+    private static string GetParentSid(AreaData area)
+    {
+        if (area == null)
+            return null;
+
+        DynamicData areaDyn = DynamicData.For(area);
+        object meta = TryGetMember<object>(areaDyn, "Meta");
+        if (meta == null)
+            return null;
+
+        DynamicData metaDyn = DynamicData.For(meta);
+        return TryGetMember<string>(metaDyn, "ParentSID")
+            ?? TryGetMember<string>(metaDyn, "ParentSid")
+            ?? TryGetMember<string>(metaDyn, "Parent");
+    }
+
+    private static int EnsureExtendedSaveAreaStats(SaveData save)
+    {
+        if (save?.Areas_Safe == null || AreaData.Areas == null || AreaData.Areas.Count == 0)
+            return 0;
+
+        int repaired = 0;
+
+        DynamicData saveDyn = DynamicData.For(save);
+        repaired += EnsureStoredAreaStatsList(TryGetMember<IList>(saveDyn, "Areas_Unsafe"), "Celeste");
+
+        IList levelSets = TryGetMember<IList>(saveDyn, "LevelSets");
+        if (levelSets != null)
+        {
+            for (int i = 0; i < levelSets.Count; i++)
             {
-                stats = CreateFallbackAreaStats(new AreaKey(areaId, global::Celeste.AreaMode.Normal));
-                if (stats == null)
+                object levelSet = levelSets[i];
+                if (levelSet == null)
                     continue;
 
-                save.Areas_Safe[areaId] = stats;
-                repaired++;
-            }
+                DynamicData levelSetDyn = DynamicData.For(levelSet);
+                string name = TryGetMember<string>(levelSetDyn, "Name");
+                if (string.IsNullOrEmpty(name))
+                    continue;
 
-            int requiredModes = Math.Max(area.Mode?.Length ?? 0, 3);
-            EnsureAreaModeStatsArray(stats, requiredModes);
+                repaired += EnsureStoredAreaStatsList(TryGetMember<IList>(levelSetDyn, "Areas"), name);
+            }
         }
 
         if (repaired > 0)
         {
             Logger.Log(LogLevel.Info, "MaggyHelper",
-                $"Rebuilt {repaired} missing Maggy AreaStats entries after save load");
+                $"Repaired {repaired} stored AreaStats entry/entries before save load retry");
         }
+
+        return repaired;
     }
 
     private static SaveDataSanitizationSnapshot SanitizeVanillaSaveTargets(SaveData save, bool temporary)
@@ -983,36 +1494,65 @@ public static class AreaModeExtender
         }
     }
 
-    private static void EnsureAreaModeStatsArray(AreaStats stats, int requiredModes)
+    private static Array GetModesArray(object stats)
+    {
+        if (stats == null)
+            return null;
+
+        DynamicData dyn = DynamicData.For(stats);
+        return TryGetMember<Array>(dyn, "Modes") ?? TryGetMember<Array>(dyn, "modes");
+    }
+
+    private static Type GetModesArrayType(object stats)
+    {
+        if (stats == null)
+            return null;
+
+        const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        return stats.GetType().GetProperty("Modes", flags)?.PropertyType
+            ?? stats.GetType().GetProperty("modes", flags)?.PropertyType
+            ?? stats.GetType().GetField("Modes", flags)?.FieldType
+            ?? stats.GetType().GetField("modes", flags)?.FieldType;
+    }
+
+    private static void EnsureAreaModeStatsArray(object stats, int requiredModes)
     {
         var dyn = new DynamicData(stats);
-        var modes = stats.Modes;
+        Array modes = GetModesArray(stats);
+        Type arrayType = GetModesArrayType(stats);
+        Type modeType = arrayType?.GetElementType();
+
+        if (modeType == null)
+            return;
 
         if (modes == null)
         {
-            modes = new AreaModeStats[requiredModes];
-            dyn.Set("Modes", modes);
-            dyn.Set("modes", modes);
+            modes = Array.CreateInstance(modeType, requiredModes);
+            TrySetMember(stats, dyn, "Modes", modes);
+            TrySetMember(stats, dyn, "modes", modes);
         }
         else if (modes.Length < requiredModes)
         {
-            var resized = new AreaModeStats[requiredModes];
+            Array resized = Array.CreateInstance(modeType, requiredModes);
             Array.Copy(modes, resized, modes.Length);
             modes = resized;
-            dyn.Set("Modes", modes);
-            dyn.Set("modes", modes);
+            TrySetMember(stats, dyn, "Modes", modes);
+            TrySetMember(stats, dyn, "modes", modes);
         }
 
         for (int i = 0; i < requiredModes; i++)
         {
-            if (modes[i] == null)
-                modes[i] = new AreaModeStats();
+            if (modes.GetValue(i) == null)
+            {
+                object modeValue = Activator.CreateInstance(modeType, nonPublic: true);
+                modes.SetValue(modeValue, i);
+            }
 
-            EnsureAreaModeStatsSafety(modes[i]);
+            EnsureAreaModeStatsSafety(modes.GetValue(i));
         }
     }
 
-    private static void EnsureAreaModeStatsSafety(AreaModeStats modeStats)
+    private static void EnsureAreaModeStatsSafety(object modeStats)
     {
         if (modeStats == null)
             return;
@@ -1020,8 +1560,9 @@ public static class AreaModeExtender
         // Some external hooks expect reference members inside AreaModeStats to exist.
         // Initialize any null reference-type fields/properties with safe defaults.
         const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        Type modeStatsType = modeStats.GetType();
 
-        foreach (var field in typeof(AreaModeStats).GetFields(flags))
+        foreach (var field in modeStatsType.GetFields(flags))
         {
             if (field.FieldType.IsValueType || field.FieldType == typeof(string))
                 continue;
@@ -1036,7 +1577,7 @@ public static class AreaModeExtender
             }
         }
 
-        foreach (var prop in typeof(AreaModeStats).GetProperties(flags))
+        foreach (var prop in modeStatsType.GetProperties(flags))
         {
             if (!prop.CanRead || !prop.CanWrite)
                 continue;
@@ -1132,6 +1673,73 @@ public static class AreaModeExtender
     /// D-Side: after completing C-Side + postcard shown
     /// DX-Side: after completing D-Side + postcard shown
     /// </summary>
+    internal static object TryGetSaveAreaStats(int areaId)
+    {
+        var saveData = SaveData.Instance;
+        if (saveData?.Areas_Safe == null || areaId < 0 || areaId >= saveData.Areas_Safe.Count)
+            return null;
+
+        return saveData.Areas_Safe[areaId];
+    }
+
+    internal static object TryGetSaveAreaStats(AreaKey area)
+    {
+        return TryGetSaveAreaStats(area.ID);
+    }
+
+    internal static int GetSaveAreaModeCount(int areaId)
+    {
+        Array modes = GetModesArray(TryGetSaveAreaStats(areaId));
+        return modes?.Length ?? 0;
+    }
+
+    internal static bool GetSaveAreaModeHeartGem(int areaId, int modeIndex)
+    {
+        return GetSaveAreaModeBool(areaId, modeIndex, "HeartGem");
+    }
+
+    internal static bool GetSaveAreaModeCompleted(int areaId, int modeIndex)
+    {
+        return GetSaveAreaModeBool(areaId, modeIndex, "Completed");
+    }
+
+    internal static bool SetSaveAreaModeHeartGem(int areaId, int modeIndex, bool value)
+    {
+        return SetSaveAreaModeBool(areaId, modeIndex, "HeartGem", value);
+    }
+
+    private static bool GetSaveAreaModeBool(int areaId, int modeIndex, string memberName)
+    {
+        object modeStats = GetSaveAreaModeStats(areaId, modeIndex);
+        if (modeStats == null)
+            return false;
+
+        DynamicData dyn = DynamicData.For(modeStats);
+        return TryGetMember(dyn, memberName, false);
+    }
+
+    private static bool SetSaveAreaModeBool(int areaId, int modeIndex, string memberName, bool value)
+    {
+        object modeStats = GetSaveAreaModeStats(areaId, modeIndex);
+        if (modeStats == null)
+            return false;
+
+        DynamicData dyn = DynamicData.For(modeStats);
+        return TrySetMember(modeStats, dyn, memberName, value);
+    }
+
+    private static object GetSaveAreaModeStats(int areaId, int modeIndex)
+    {
+        if (modeIndex < 0)
+            return null;
+
+        Array modes = GetModesArray(TryGetSaveAreaStats(areaId));
+        if (modes == null || modeIndex >= modes.Length)
+            return null;
+
+        return modes.GetValue(modeIndex);
+    }
+
     public static bool IsSideUnlocked(AreaKey area, int modeIndex)
     {
         if (modeIndex == MODE_NORMAL) return true;
@@ -1142,18 +1750,17 @@ public static class AreaModeExtender
         // Cheat mode bypasses all side unlock requirements
         if (saveData.CheatMode) return true;
 
-        var areaStats = saveData.Areas_Safe[area.ID];
-        if (areaStats == null) return false;
+        if (TryGetSaveAreaStats(area) == null) return false;
 
         // Each side requires the previous side to be completed
         int previousMode = modeIndex - 1;
         if (previousMode < 0) return true;
 
         // Check if the previous mode's area stats indicate completion
-        if (previousMode < areaStats.Modes.Length)
+        if (previousMode < GetSaveAreaModeCount(area.ID))
         {
-            return areaStats.Modes[previousMode]?.HeartGem == true
-                || areaStats.Modes[previousMode]?.Completed == true;
+            return GetSaveAreaModeHeartGem(area.ID, previousMode)
+                || GetSaveAreaModeCompleted(area.ID, previousMode);
         }
 
         // For extended modes beyond vanilla tracking, check our custom save data

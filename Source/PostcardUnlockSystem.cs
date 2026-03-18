@@ -12,6 +12,8 @@ namespace MaggyHelper;
 /// </summary>
 public static class PostcardUnlockSystem
 {
+    private const string DefaultPostcardTexture = "Maggy/postcard";
+
     // ── Postcard Configuration Per Side ──────────────────────────────────
 
     /// <summary>
@@ -60,6 +62,17 @@ public static class PostcardUnlockSystem
         UnlockMusic = "event:/desolozantas/music/menu/complete_cside_summit"
     };
 
+    /// <summary>Postcard config for the 100% ultra completion postcard.</summary>
+    public static readonly PostcardConfig UltraVariantConfig = new()
+    {
+        DialogKey = "POSTCARD_ULTRA_VARIANT_UNLOCK",
+        TexturePath = "postcards/ultra_variant_unlock",
+        SfxIn = "event:/desolozantas/final_content/ui/postcard_desolo_variants_in",
+        SfxOut = "event:/desolozantas/final_content/ui/postcard_desolo_variants_out",
+        TintColor = new Color(255, 160, 220),
+        UnlockMusic = "event:/desolozantas/music/menu/complete_cside_summit"
+    };
+
     // ── Postcard Display ─────────────────────────────────────────────────
 
     /// <summary>
@@ -105,17 +118,7 @@ public static class PostcardUnlockSystem
         var postcard = new PostcardMaggy(dialogText, config.SfxIn, config.SfxOut);
 
         // Try to load custom postcard texture
-        try
-        {
-            if (GFX.Gui.Has(config.TexturePath))
-            {
-                postcard.Postcard = GFX.Gui[config.TexturePath];
-            }
-        }
-        catch
-        {
-            // Fall back to default postcard texture
-        }
+        TryApplyPostcardTexture(postcard, config.TexturePath, DefaultPostcardTexture);
 
         scene.Add(postcard);
 
@@ -133,6 +136,48 @@ public static class PostcardUnlockSystem
 
         Logger.Log(LogLevel.Info, "MaggyHelper",
             $"Postcard shown for completing mode {completedMode}, unlocking mode {completedMode + 1}");
+    }
+
+    /// <summary>
+    /// Displays the ultra completion postcard when the save reaches 100%.
+    /// </summary>
+    public static IEnumerator ShowUltraCompletionPostcard(Scene scene)
+    {
+        var config = UltraVariantConfig;
+        string dialogText = Dialog.Get(config.DialogKey);
+        if (string.IsNullOrEmpty(dialogText))
+        {
+            dialogText = "Ultra variant unlocked! 100% completion reached.";
+        }
+
+        var postcard = new PostcardMaggy(dialogText, config.SfxIn, config.SfxOut);
+
+        TryApplyPostcardTexture(postcard, config.TexturePath, DefaultPostcardTexture);
+
+        scene.Add(postcard);
+
+        if (!string.IsNullOrEmpty(config.UnlockMusic))
+            Audio.SetMusic(config.UnlockMusic);
+
+        yield return postcard.DisplayRoutine();
+    }
+
+    private static void TryApplyPostcardTexture(PostcardMaggy postcard, params string[] texturePaths)
+    {
+        try
+        {
+            foreach (string texturePath in texturePaths)
+            {
+                if (!string.IsNullOrWhiteSpace(texturePath) && GFX.Gui.Has(texturePath))
+                {
+                    postcard.Postcard = GFX.Gui[texturePath];
+                    return;
+                }
+            }
+        }
+        catch
+        {
+        }
     }
 
     /// <summary>

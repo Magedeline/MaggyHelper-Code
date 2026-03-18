@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -367,7 +368,7 @@ public class CodeCompiler : IDisposable
     private void AddModReferences(List<MetadataReference> references, HashSet<string> loadedPaths)
     {
         // Add this mod's assembly
-        AddAssemblyReference(references, loadedPaths, typeof(MaggyHelperModule).Assembly);
+        AddAssemblyReference(references, loadedPaths, typeof(MaggyHelperModule).Assembly, preferLooseModCopy: true);
         
         // Add MonoMod for runtime detour
         AddAssemblyReference(references, loadedPaths, typeof(MonoMod.RuntimeDetour.Hook).Assembly);
@@ -383,11 +384,11 @@ public class CodeCompiler : IDisposable
         }
     }
     
-    private void AddAssemblyReference(List<MetadataReference> references, HashSet<string> loadedPaths, Assembly assembly)
+    private void AddAssemblyReference(List<MetadataReference> references, HashSet<string> loadedPaths, Assembly assembly, bool preferLooseModCopy = false)
     {
         try
         {
-            string location = assembly?.Location;
+            string location = ResolveAssemblyReferencePath(assembly, preferLooseModCopy);
             if (!string.IsNullOrEmpty(location) && File.Exists(location) && loadedPaths.Add(location))
             {
                 references.Add(GetOrCreateReference(location));
@@ -398,12 +399,54 @@ public class CodeCompiler : IDisposable
             Logger.Log(LogLevel.Warn, "HotReload", $"Failed to add assembly reference: {ex.Message}");
         }
     }
+
+    private string ResolveAssemblyReferencePath(Assembly assembly, bool preferLooseModCopy)
+    {
+        if (assembly == null)
+            return null;
+
+        if (preferLooseModCopy)
+        {
+            string loosePath = TryResolveLooseModAssemblyPath(assembly);
+            if (!string.IsNullOrEmpty(loosePath))
+                return loosePath;
+        }
+
+        try
+        {
+            return assembly.Location;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private string TryResolveLooseModAssemblyPath(Assembly assembly)
+    {
+        if (string.IsNullOrEmpty(_sourcePath))
+            return null;
+
+        string assemblyFileName = assembly.GetName().Name + ".dll";
+        string modRoot = Path.GetFullPath(Path.Combine(_sourcePath, ".."));
+
+        string deployedPath = Path.Combine(modRoot, "Code", "net8.0", assemblyFileName);
+        if (File.Exists(deployedPath))
+            return deployedPath;
+
+        string debugOutputPath = Path.Combine(_sourcePath, "bin", "Debug", "net8.0", assemblyFileName);
+        if (File.Exists(debugOutputPath))
+            return debugOutputPath;
+
+        return null;
+    }
     
     private static MetadataReference GetOrCreateReference(string path)
     {
         if (!_referenceCache.TryGetValue(path, out var reference))
         {
-            reference = MetadataReference.CreateFromFile(path);
+            // Use an in-memory PE image so Roslyn does not keep Everest cache DLLs locked.
+            reference = MetadataReference.CreateFromImage(ImmutableArray.Create(File.ReadAllBytes(path)), filePath: path);
             _referenceCache[path] = reference;
         }
         return reference;

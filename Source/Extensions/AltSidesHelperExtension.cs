@@ -1,3 +1,5 @@
+﻿#pragma warning disable CS0436 // Local patch save types intentionally shadow imported Celeste runtime types.
+
 using System.Reflection;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -24,7 +26,6 @@ namespace MaggyHelper.Extensions
         // Reflection cache for AltSidesHelper types
         private static Type _altSidesHelperModuleType;
         private static Assembly _altSidesHelperAssembly;
-        private static bool _altSidesHelperAvailable = false;
         
         /// <summary>
         /// Initialize the AltSidesHelper extension. Should be called during mod Load.
@@ -56,8 +57,6 @@ namespace MaggyHelper.Extensions
                     return;
                 }
 
-                _altSidesHelperAvailable = true;
-                
                 // Register safety hooks
                 RegisterSafetyHooks();
                 

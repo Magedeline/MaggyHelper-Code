@@ -2,6 +2,7 @@
 
 using MaggyHelper;
 using FMOD.Studio;
+using Microsoft.Xna.Framework.Input;
 
 namespace MaggyHelper.Cutscenes
 {
@@ -17,6 +18,11 @@ namespace MaggyHelper.Cutscenes
         private const float CHOICE_EASE_SPEED = 4f;
         private const float VESSEL_DISPLAY_TIME = 3f;
         private const float WHITE_FADE_DURATION = 4f;
+        private const float TEXT_INPUT_SCALE = 0.7f;
+        private const int NAME_INPUT_MAX_LENGTH = 24;
+        private const int FEELING_INPUT_MAX_LENGTH = 64;
+        private const float TEXT_INPUT_BOX_WIDTH = 860f;
+        private const float TEXT_INPUT_BOX_HEIGHT = 78f;
         
         // Graphics paths
         private const string VESSEL_GRAPHICS_PATH = "bgs/maggy/00/anotherhuman/";
@@ -70,6 +76,17 @@ namespace MaggyHelper.Cutscenes
         private CreationPhase currentPhase = CreationPhase.Introduction;
         private int currentChoiceIndex = 0;
         private List<string> currentChoices = new List<string>();
+        private bool textInputActive = false;
+        private bool textInputPaletteActive = false;
+        private string textInputPrompt = string.Empty;
+        private string textInputValue = string.Empty;
+        private int textInputCursorIndex = 0;
+        private int textInputSelectionAnchor = 0;
+        private int textInputMaxLength = NAME_INPUT_MAX_LENGTH;
+        private int textInputPaletteRow = 0;
+        private int textInputPaletteColumn = 0;
+        private float textInputEase = 0f;
+        private Action<string>? textInputOnComplete;
         
         // Graphics – indexed arrays, one entry per sprite variant
         private MTexture[] gonerBodyTextures = Array.Empty<MTexture>();
@@ -85,6 +102,15 @@ namespace MaggyHelper.Cutscenes
         // Audio handle for creation music EventInstance
         private EventInstance? creationMusic;
         private EventInstance? droneMusic;
+
+        private static readonly string[][] TextInputPaletteRows =
+        {
+            new[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" },
+            new[] { "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T" },
+            new[] { "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3" },
+            new[] { "4", "5", "6", "7", "8", "9", "Space", "-", "'", "." },
+            new[] { "Back", "Del", "Clear", "OK" }
+        };
         
         public bool CanPause => pauseMenu == null;
         #endregion
@@ -280,7 +306,7 @@ namespace MaggyHelper.Cutscenes
             {
                 vesselName = name;
                 IngesteLogger.Info($"[VesselCreation] Vessel named: '{vesselName}'");
-            });
+            }, NAME_INPUT_MAX_LENGTH);
             
             yield return 1f;
         }
@@ -316,7 +342,7 @@ namespace MaggyHelper.Cutscenes
             {
                 playerFeeling = feeling;
                 IngesteLogger.Debug($"[VesselCreation] Player feeling: '{playerFeeling}'");
-            });
+            }, FEELING_INPUT_MAX_LENGTH);
             
             yield return 1f;
         }
@@ -331,7 +357,7 @@ namespace MaggyHelper.Cutscenes
             {
                 creatorName = name;
                 IngesteLogger.Info($"[VesselCreation] Creator named: '{creatorName}'");
-            });
+            }, NAME_INPUT_MAX_LENGTH);
             
             yield return 1f;
         }
@@ -561,18 +587,334 @@ namespace MaggyHelper.Cutscenes
             onSelect(selectedChoice, confirmedIndex);
         }
 
-        private IEnumerator showTextInput(string prompt, Action<string> onComplete)
+        private IEnumerator showTextInput(string prompt, Action<string> onComplete, int maxLength = NAME_INPUT_MAX_LENGTH)
         {
-            // This is a simplified text input system
-            // In a real implementation, this would need a proper text input dialog
-            yield return showCustomText(prompt);
-            
-            // For now, we'll simulate input with a basic string input system
-            // This could be enhanced with a proper text input UI
-            string input = "DefaultInput"; // Placeholder - could be enhanced with actual input
-            onComplete(input);
-            
-            yield return 1f;
+            IngesteLogger.Debug($"[VesselCreation] Opening text input for prompt '{prompt}' with max length {maxLength}");
+
+            textInputPrompt = prompt;
+            textInputValue = string.Empty;
+            textInputCursorIndex = 0;
+            textInputSelectionAnchor = 0;
+            textInputMaxLength = maxLength;
+            textInputPaletteRow = 0;
+            textInputPaletteColumn = 0;
+            textInputPaletteActive = false;
+            textInputOnComplete = onComplete;
+            textInputActive = true;
+
+            Audio.Play(CHOICE_APPEAR_EVENT);
+
+            while ((textInputEase += Engine.DeltaTime * CHOICE_EASE_SPEED) < 1f)
+                yield return null;
+
+            textInputEase = 1f;
+
+            while (textInputActive)
+                yield return null;
+
+            while ((textInputEase -= Engine.DeltaTime * CHOICE_EASE_SPEED) > 0f)
+                yield return null;
+
+            textInputEase = 0f;
+        }
+
+        private void updateTextInput()
+        {
+            if (!textInputActive)
+                return;
+
+            bool shift = MInput.Keyboard.Check(Keys.LeftShift) || MInput.Keyboard.Check(Keys.RightShift);
+            bool ctrl = MInput.Keyboard.Check(Keys.LeftControl) || MInput.Keyboard.Check(Keys.RightControl);
+
+            if (ctrl && MInput.Keyboard.Pressed(Keys.A))
+            {
+                textInputSelectionAnchor = 0;
+                textInputCursorIndex = textInputValue.Length;
+            }
+
+            if (textInputPaletteActive)
+            {
+                updateTextInputPalette();
+            }
+            else
+            {
+                updateTextInputCursorMovement(shift);
+
+                if (Input.MenuDown.Pressed)
+                {
+                    textInputPaletteActive = true;
+                    textInputPaletteColumn = Math.Min(textInputPaletteColumn, TextInputPaletteRows[textInputPaletteRow].Length - 1);
+                    Audio.Play(CHOICE_MOVE_EVENT);
+                }
+            }
+
+            if (MInput.Keyboard.Pressed(Keys.Home))
+                moveTextInputCursor(0, shift);
+
+            if (MInput.Keyboard.Pressed(Keys.End))
+                moveTextInputCursor(textInputValue.Length, shift);
+
+            if (MInput.Keyboard.Pressed(Keys.Back) || Input.MenuCancel.Pressed)
+            {
+                deleteTextInputSelectionOrBackspace();
+            }
+            else if (MInput.Keyboard.Pressed(Keys.Delete))
+            {
+                deleteTextInputSelectionOrDeleteForward();
+            }
+
+            foreach (Keys key in MInput.Keyboard.CurrentState.GetPressedKeys())
+            {
+                if (!MInput.Keyboard.Pressed(key))
+                    continue;
+
+                if (tryTranslateKeyToText(key, shift, out string? text) && text != null)
+                    insertTextInputText(text);
+            }
+
+            if (Input.MenuConfirm.Pressed || MInput.Keyboard.Pressed(Keys.Enter))
+            {
+                submitTextInput();
+            }
+        }
+
+        private void updateTextInputCursorMovement(bool extendSelection)
+        {
+            if (Input.MenuLeft.Pressed || Input.MenuLeft.Repeating || MInput.Keyboard.Pressed(Keys.Left))
+            {
+                moveTextInputCursor(textInputCursorIndex - 1, extendSelection);
+            }
+            else if (Input.MenuRight.Pressed || Input.MenuRight.Repeating || MInput.Keyboard.Pressed(Keys.Right))
+            {
+                moveTextInputCursor(textInputCursorIndex + 1, extendSelection);
+            }
+        }
+
+        private void updateTextInputPalette()
+        {
+            if (Input.MenuUp.Pressed)
+            {
+                if (textInputPaletteRow == 0)
+                {
+                    textInputPaletteActive = false;
+                }
+                else
+                {
+                    textInputPaletteRow--;
+                    textInputPaletteColumn = Math.Min(textInputPaletteColumn, TextInputPaletteRows[textInputPaletteRow].Length - 1);
+                }
+
+                Audio.Play(CHOICE_MOVE_EVENT);
+            }
+            else if (Input.MenuDown.Pressed)
+            {
+                textInputPaletteRow = Math.Min(textInputPaletteRow + 1, TextInputPaletteRows.Length - 1);
+                textInputPaletteColumn = Math.Min(textInputPaletteColumn, TextInputPaletteRows[textInputPaletteRow].Length - 1);
+                Audio.Play(CHOICE_MOVE_EVENT);
+            }
+            else if (Input.MenuLeft.Pressed || Input.MenuLeft.Repeating)
+            {
+                textInputPaletteColumn = Math.Max(textInputPaletteColumn - 1, 0);
+                Audio.Play(CHOICE_MOVE_EVENT);
+            }
+            else if (Input.MenuRight.Pressed || Input.MenuRight.Repeating)
+            {
+                textInputPaletteColumn = Math.Min(textInputPaletteColumn + 1, TextInputPaletteRows[textInputPaletteRow].Length - 1);
+                Audio.Play(CHOICE_MOVE_EVENT);
+            }
+
+            if (Input.MenuConfirm.Pressed)
+            {
+                applyTextInputPaletteItem(TextInputPaletteRows[textInputPaletteRow][textInputPaletteColumn]);
+            }
+        }
+
+        private void applyTextInputPaletteItem(string item)
+        {
+            switch (item)
+            {
+                case "Space":
+                    insertTextInputText(" ");
+                    break;
+
+                case "Back":
+                    deleteTextInputSelectionOrBackspace();
+                    break;
+
+                case "Del":
+                    deleteTextInputSelectionOrDeleteForward();
+                    break;
+
+                case "Clear":
+                    textInputValue = string.Empty;
+                    textInputCursorIndex = 0;
+                    textInputSelectionAnchor = 0;
+                    Audio.Play(CHOICE_MOVE_EVENT);
+                    break;
+
+                case "OK":
+                    submitTextInput();
+                    break;
+
+                default:
+                    insertTextInputText(item);
+                    break;
+            }
+        }
+
+        private void submitTextInput()
+        {
+            string sanitized = textInputValue.Trim();
+            if (string.IsNullOrEmpty(sanitized))
+                return;
+
+            Audio.Play(CHOICE_SELECT_EVENT);
+            textInputOnComplete?.Invoke(sanitized);
+            textInputOnComplete = null;
+            textInputActive = false;
+            textInputPaletteActive = false;
+        }
+
+        private void moveTextInputCursor(int newIndex, bool extendSelection)
+        {
+            textInputCursorIndex = Math.Clamp(newIndex, 0, textInputValue.Length);
+            if (!extendSelection)
+                textInputSelectionAnchor = textInputCursorIndex;
+        }
+
+        private void insertTextInputText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            int selectionLength = getTextInputSelectionLength();
+            int proposedLength = textInputValue.Length - selectionLength + text.Length;
+            if (proposedLength > textInputMaxLength)
+                return;
+
+            replaceTextInputSelection(text);
+            Audio.Play(CHOICE_MOVE_EVENT);
+        }
+
+        private void deleteTextInputSelectionOrBackspace()
+        {
+            if (hasTextInputSelection())
+            {
+                replaceTextInputSelection(string.Empty);
+                Audio.Play(CHOICE_MOVE_EVENT);
+                return;
+            }
+
+            if (textInputCursorIndex <= 0)
+                return;
+
+            textInputValue = textInputValue.Remove(textInputCursorIndex - 1, 1);
+            textInputCursorIndex--;
+            textInputSelectionAnchor = textInputCursorIndex;
+            Audio.Play(CHOICE_MOVE_EVENT);
+        }
+
+        private void deleteTextInputSelectionOrDeleteForward()
+        {
+            if (hasTextInputSelection())
+            {
+                replaceTextInputSelection(string.Empty);
+                Audio.Play(CHOICE_MOVE_EVENT);
+                return;
+            }
+
+            if (textInputCursorIndex >= textInputValue.Length)
+                return;
+
+            textInputValue = textInputValue.Remove(textInputCursorIndex, 1);
+            textInputSelectionAnchor = textInputCursorIndex;
+            Audio.Play(CHOICE_MOVE_EVENT);
+        }
+
+        private void replaceTextInputSelection(string replacement)
+        {
+            int start = getTextInputSelectionStart();
+            int length = getTextInputSelectionLength();
+            textInputValue = textInputValue.Remove(start, length).Insert(start, replacement);
+            textInputCursorIndex = start + replacement.Length;
+            textInputSelectionAnchor = textInputCursorIndex;
+        }
+
+        private bool hasTextInputSelection()
+            => textInputCursorIndex != textInputSelectionAnchor;
+
+        private int getTextInputSelectionStart()
+            => Math.Min(textInputCursorIndex, textInputSelectionAnchor);
+
+        private int getTextInputSelectionLength()
+            => Math.Abs(textInputCursorIndex - textInputSelectionAnchor);
+
+        private static bool tryTranslateKeyToText(Keys key, bool shift, out string? text)
+        {
+            text = null;
+
+            if (key >= Keys.A && key <= Keys.Z)
+            {
+                char c = (char)('a' + (key - Keys.A));
+                text = shift ? char.ToUpperInvariant(c).ToString() : c.ToString();
+                return true;
+            }
+
+            if (key >= Keys.D0 && key <= Keys.D9)
+            {
+                string shiftedDigits = ")!@#$%^&*(";
+                int index = key - Keys.D0;
+                text = shift ? shiftedDigits[index].ToString() : ((char)('0' + index)).ToString();
+                return true;
+            }
+
+            if (key >= Keys.NumPad0 && key <= Keys.NumPad9)
+            {
+                text = ((char)('0' + (key - Keys.NumPad0))).ToString();
+                return true;
+            }
+
+            switch (key)
+            {
+                case Keys.Space:
+                    text = " ";
+                    return true;
+                case Keys.OemMinus:
+                    text = shift ? "_" : "-";
+                    return true;
+                case Keys.OemPlus:
+                    text = shift ? "+" : "=";
+                    return true;
+                case Keys.OemComma:
+                    text = shift ? "<" : ",";
+                    return true;
+                case Keys.OemPeriod:
+                    text = shift ? ">" : ".";
+                    return true;
+                case Keys.OemQuestion:
+                    text = shift ? "?" : "/";
+                    return true;
+                case Keys.OemSemicolon:
+                    text = shift ? ":" : ";";
+                    return true;
+                case Keys.OemQuotes:
+                    text = shift ? "\"" : "'";
+                    return true;
+                case Keys.OemOpenBrackets:
+                    text = shift ? "{" : "[";
+                    return true;
+                case Keys.OemCloseBrackets:
+                    text = shift ? "}" : "]";
+                    return true;
+                case Keys.OemPipe:
+                    text = shift ? "|" : "\\";
+                    return true;
+                case Keys.OemTilde:
+                    text = shift ? "~" : "`";
+                    return true;
+                default:
+                    return false;
+            }
         }
         #endregion
 
@@ -629,6 +971,7 @@ namespace MaggyHelper.Cutscenes
             if (pauseMenu == null)
             {
                 base.Update();
+                updateTextInput();
                 if (!exiting)
                 {
                     // Update the sequence coroutine directly
@@ -637,7 +980,7 @@ namespace MaggyHelper.Cutscenes
                         sequenceCoroutine.Update();
                     }
                     
-                    if (Input.Pause.Pressed || Input.ESC.Pressed)
+                    if (!textInputActive && (Input.Pause.Pressed || Input.ESC.Pressed))
                     {
                         OpenPauseMenu();
                     }
@@ -774,6 +1117,11 @@ namespace MaggyHelper.Cutscenes
             {
                 renderChoiceMenu();
             }
+
+            if (textInputActive || textInputEase > 0f)
+            {
+                renderTextInput();
+            }
             
             // Render fade overlay if transitioning
             if (backgroundFade < 1f && currentPhase == CreationPhase.Transition)
@@ -876,6 +1224,163 @@ namespace MaggyHelper.Cutscenes
             }
             
             Draw.SpriteBatch.End();
+        }
+
+        private void renderTextInput()
+        {
+            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, null, RasterizerState.CullNone, null, Engine.ScreenMatrix);
+
+            float overlayAlpha = 0.9f * textInputEase;
+            Draw.Rect(0f, 0f, Engine.ViewWidth, Engine.ViewHeight, Color.Black * (0.65f * textInputEase));
+
+            Vector2 panelCenter = new Vector2(Engine.Width / 2f, Engine.Height / 2f);
+            float panelWidth = 980f;
+            float panelHeight = 430f;
+            Vector2 panelTopLeft = panelCenter - new Vector2(panelWidth / 2f, panelHeight / 2f);
+            Rectangle panelRect = new Rectangle((int)panelTopLeft.X, (int)panelTopLeft.Y, (int)panelWidth, (int)panelHeight);
+            Draw.Rect(panelRect, Color.Black * overlayAlpha);
+            Draw.HollowRect(panelRect, Color.White * textInputEase);
+
+            ActiveFont.DrawOutline(textInputPrompt, panelCenter + new Vector2(0f, -150f), new Vector2(0.5f, 0.5f), Vector2.One * 0.8f, Color.White * textInputEase, 2f, Color.Black);
+
+            Rectangle inputRect = new Rectangle(
+                (int)(panelCenter.X - TEXT_INPUT_BOX_WIDTH / 2f),
+                (int)(panelCenter.Y - TEXT_INPUT_BOX_HEIGHT / 2f - 45f),
+                (int)TEXT_INPUT_BOX_WIDTH,
+                (int)TEXT_INPUT_BOX_HEIGHT);
+
+            Draw.Rect(inputRect, Color.Black * 0.95f * textInputEase);
+            Draw.HollowRect(inputRect, (textInputPaletteActive ? Color.Gray : Color.White) * textInputEase);
+
+            renderTextInputValue(inputRect);
+            renderTextInputPalette(panelCenter + new Vector2(0f, 75f));
+
+            string hint = "Type to enter | Left/Right move cursor | Shift+Arrows select | Ctrl+A select all | Down opens character picker | Enter confirms";
+            ActiveFont.DrawOutline(hint, panelCenter + new Vector2(0f, 175f), new Vector2(0.5f, 0.5f), Vector2.One * 0.45f, Color.Gray * textInputEase, 2f, Color.Black);
+
+            string lengthText = $"{textInputValue.Length}/{textInputMaxLength}";
+            ActiveFont.DrawOutline(lengthText, new Vector2(inputRect.Right - 12f, inputRect.Bottom + 18f), new Vector2(1f, 0f), Vector2.One * 0.45f, Color.Gray * textInputEase, 2f, Color.Black);
+
+            Draw.SpriteBatch.End();
+        }
+
+        private void renderTextInputValue(Rectangle inputRect)
+        {
+            const float innerPadding = 18f;
+            float availableWidth = inputRect.Width - innerPadding * 2f;
+            int visibleStart = getVisibleTextStart(availableWidth);
+            int visibleLength = getVisibleTextLength(visibleStart, availableWidth);
+            string visibleText = textInputValue.Substring(visibleStart, visibleLength);
+
+            Vector2 basePosition = new Vector2(inputRect.X + innerPadding, inputRect.Y + inputRect.Height / 2f);
+            Vector2 textScale = Vector2.One * TEXT_INPUT_SCALE;
+            float lineHeight = ActiveFont.LineHeight * TEXT_INPUT_SCALE;
+            Vector2 textPosition = basePosition - new Vector2(0f, lineHeight / 2f);
+
+            if (visibleText.Length == 0)
+            {
+                ActiveFont.Draw("Type here...", textPosition, Vector2.Zero, textScale, Color.Gray * 0.8f * textInputEase);
+            }
+            else
+            {
+                if (hasTextInputSelection())
+                {
+                    int selectionStart = getTextInputSelectionStart();
+                    int selectionEnd = selectionStart + getTextInputSelectionLength();
+                    int visibleSelectionStart = Math.Max(selectionStart, visibleStart);
+                    int visibleSelectionEnd = Math.Min(selectionEnd, visibleStart + visibleText.Length);
+
+                    if (visibleSelectionStart < visibleSelectionEnd)
+                    {
+                        string preSelection = textInputValue.Substring(visibleStart, visibleSelectionStart - visibleStart);
+                        string selectionText = textInputValue.Substring(visibleSelectionStart, visibleSelectionEnd - visibleSelectionStart);
+                        float selectionX = ActiveFont.Measure(preSelection).X * TEXT_INPUT_SCALE;
+                        float selectionWidth = ActiveFont.Measure(selectionText).X * TEXT_INPUT_SCALE;
+                        Draw.Rect(textPosition.X + selectionX - 2f, textPosition.Y - 4f, selectionWidth + 4f, lineHeight + 8f, Calc.HexToColor("2B7FFF") * 0.6f * textInputEase);
+                    }
+                }
+
+                ActiveFont.Draw(visibleText, textPosition, Vector2.Zero, textScale, Color.White * textInputEase);
+            }
+
+            bool showCursor = textInputActive && ((int)(TimeActive * 2f) % 2 == 0);
+            if (showCursor)
+            {
+                int cursorWithinVisible = Math.Clamp(textInputCursorIndex - visibleStart, 0, visibleText.Length);
+                string cursorPrefix = visibleText.Substring(0, cursorWithinVisible);
+                float cursorX = ActiveFont.Measure(cursorPrefix).X * TEXT_INPUT_SCALE;
+                Draw.Rect(textPosition.X + cursorX, textPosition.Y - 4f, 3f, lineHeight + 8f, Color.White * textInputEase);
+            }
+
+            if (visibleStart > 0)
+                ActiveFont.Draw("<", new Vector2(inputRect.X + 4f, inputRect.Center.Y), new Vector2(0f, 0.5f), Vector2.One * 0.4f, Color.Gray * textInputEase);
+
+            if (visibleStart + visibleText.Length < textInputValue.Length)
+                ActiveFont.Draw(">", new Vector2(inputRect.Right - 8f, inputRect.Center.Y), new Vector2(1f, 0.5f), Vector2.One * 0.4f, Color.Gray * textInputEase);
+        }
+
+        private int getVisibleTextStart(float availableWidth)
+        {
+            int start = 0;
+            while (start < textInputCursorIndex)
+            {
+                string between = textInputValue.Substring(start, textInputCursorIndex - start);
+                if (ActiveFont.Measure(between).X * TEXT_INPUT_SCALE <= availableWidth - 40f)
+                    break;
+                start++;
+            }
+
+            return start;
+        }
+
+        private int getVisibleTextLength(int start, float availableWidth)
+        {
+            int length = 0;
+            while (start + length < textInputValue.Length)
+            {
+                string candidate = textInputValue.Substring(start, length + 1);
+                if (ActiveFont.Measure(candidate).X * TEXT_INPUT_SCALE > availableWidth)
+                    break;
+                length++;
+            }
+
+            return length;
+        }
+
+        private void renderTextInputPalette(Vector2 center)
+        {
+            float rowSpacing = 38f;
+            float buttonPaddingX = 16f;
+            float buttonPaddingY = 6f;
+
+            for (int row = 0; row < TextInputPaletteRows.Length; row++)
+            {
+                string[] paletteRow = TextInputPaletteRows[row];
+                float rowWidth = 0f;
+                for (int col = 0; col < paletteRow.Length; col++)
+                {
+                    rowWidth += ActiveFont.Measure(paletteRow[col]).X * 0.45f + buttonPaddingX * 2f + 10f;
+                }
+
+                rowWidth -= 10f;
+                float x = center.X - rowWidth / 2f;
+                float y = center.Y + row * rowSpacing;
+
+                for (int col = 0; col < paletteRow.Length; col++)
+                {
+                    string item = paletteRow[col];
+                    Vector2 itemSize = ActiveFont.Measure(item) * 0.45f;
+                    float buttonWidth = itemSize.X + buttonPaddingX * 2f;
+                    Rectangle buttonRect = new Rectangle((int)x, (int)y, (int)buttonWidth, (int)(itemSize.Y + buttonPaddingY * 2f));
+                    bool selected = textInputPaletteActive && row == textInputPaletteRow && col == textInputPaletteColumn;
+
+                    Draw.Rect(buttonRect, (selected ? Color.White : Calc.HexToColor("1A1A1A")) * (selected ? 0.22f : 0.85f) * textInputEase);
+                    Draw.HollowRect(buttonRect, (selected ? Color.White : Color.Gray) * textInputEase);
+                    ActiveFont.Draw(item, new Vector2(buttonRect.Center.X, buttonRect.Center.Y), new Vector2(0.5f, 0.5f), Vector2.One * 0.45f, (selected ? Color.White : Color.Silver) * textInputEase);
+
+                    x += buttonWidth + 10f;
+                }
+            }
         }
         #endregion
 

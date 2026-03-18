@@ -25,9 +25,6 @@ namespace MaggyHelper
         /// </summary>
         public static PCGOnnxInference PcgOnnx { get; } = new PCGOnnxInference();
 
-        private static bool playerModelLoaded = false;
-        private static bool kirbyModelLoaded  = false;
-
         public static void TryLoadModels(string modelsDir = "MLModels")
         {
             try
@@ -36,14 +33,12 @@ namespace MaggyHelper
                 if (System.IO.File.Exists(playerModel))
                 {
                     PlayerPredictor.LoadModel(playerModel);
-                    playerModelLoaded = true;
                 }
 
                 string kirbyModel = System.IO.Path.Combine(modelsDir, "kirby_model.zip");
                 if (System.IO.File.Exists(kirbyModel))
                 {
                     KirbyPredictor.LoadModel(kirbyModel);
-                    kirbyModelLoaded = true;
                 }
 
                 // Try to load the PCG ONNX model (produced by pcg_train_onnx.py or

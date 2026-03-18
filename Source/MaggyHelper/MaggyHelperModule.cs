@@ -178,6 +178,9 @@ public class MaggyHelperModule : EverestModule
             
             // Load HeartGemManager (proper heart gem collection for all 5 modes)
             HeartGemManager.Load();
+
+            // Load save-driven progression state for collectibles, respawn, and unlocks
+            MaggyProgressionManager.Load();
             
             // Load IntroRemixHooks (VHS-style B/C-Side intro cutscenes)
             IntroRemixHooks.Load();
@@ -293,6 +296,9 @@ public class MaggyHelperModule : EverestModule
             
             // Unload HeartGemManager (heart gem collection hooks)
             HeartGemManager.Unload();
+
+            // Unload save-driven progression hooks
+            MaggyProgressionManager.Unload();
             
             // Unload IntroRemixHooks (VHS intro cutscene hooks)
             IntroRemixHooks.Unload();

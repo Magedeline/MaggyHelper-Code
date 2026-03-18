@@ -14,6 +14,7 @@ namespace MaggyHelper.NPCs
         
         // Public properties for cutscene access
         public Sprite Sprite => sprite;
+        public string CheckpointId => "npc09_save_point";
 
         public NPC09_SavePoint(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
@@ -62,6 +63,7 @@ namespace MaggyHelper.NPCs
             if (Scene is Level level)
             {
                 isInteracting = true;
+                MaggyProgressionManager.RecordCheckpoint(level, player.Center, CheckpointId);
                 
                 // Get the current stage based on progression flags
                 var currentStage = CS09_FakeSavePoint.GetCurrentStage(level);

@@ -1,1 +1,11 @@
-{}
+{
+    "chat.mcp.serverSampling": {
+        "MaggyHelper-Code/.vscode/mcp.json: io.github.github/github-mcp-server": {
+            "allowedModels": [
+                "copilot/auto",
+                "copilotcli/claude-sonnet-4.6",
+                "copilotcli/claude-opus-4.6-fast"
+            ]
+        }
+    }
+}

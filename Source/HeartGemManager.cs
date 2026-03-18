@@ -212,11 +212,10 @@ public static class HeartGemManager
         // For extended modes, additionally track in our save system
         if (mode >= AreaModeExtender.MODE_DSIDE)
         {
-            string heartId = $"{area.SID}_{AreaModeExtender.GetModeName(mode)}";
-            MaggyHelperModule.SaveData?.CollectHeartGem(heartId);
+            MaggySaveFacade.TryRecordExtendedHeartGem(level.Session);
 
             Logger.Log(LogLevel.Info, "MaggyHelper",
-                $"Heart gem registered: {heartId}");
+                $"Heart gem registered: {MaggySaveFacade.BuildExtendedHeartId(area.SID, mode)}");
 
             // Set the "heart collected" flag for this side
             level.Session.SetFlag($"heartgem_{AreaModeExtender.GetModeName(mode)}_collected");
@@ -229,6 +228,8 @@ public static class HeartGemManager
             string completionKey = $"{area.SID}_{AreaModeExtender.GetModeName(mode)}_completed";
             MaggyHelperModule.SaveData?.UnlockAchievement(completionKey);
         }
+
+        MaggyProgressionManager.RefreshProgression();
     }
 
     // ── Utility Methods ──────────────────────────────────────────────────
@@ -238,23 +239,7 @@ public static class HeartGemManager
     /// </summary>
     public static bool IsHeartGemCollected(Session session)
     {
-        if (session == null) return false;
-
-        int mode = (int)session.Area.Mode;
-
-        // For vanilla modes (0-2), check Celeste's built-in tracking
-        if (mode < AreaModeExtender.MODE_DSIDE)
-        {
-            var areaStats = SaveData.Instance?.Areas_Safe[session.Area.ID];
-            if (areaStats != null && mode < areaStats.Modes.Length)
-                return areaStats.Modes[mode]?.HeartGem == true;
-            return false;
-        }
-
-        // For extended modes, check our custom save data
-        var area = AreaData.Get(session.Area);
-        string heartId = $"{area?.SID}_{AreaModeExtender.GetModeName(mode)}";
-        return MaggyHelperModule.SaveData?.HasCollectedHeartGem(heartId) == true;
+        return MaggySaveFacade.HasHeartGem(session);
     }
 
     /// <summary>
@@ -262,32 +247,7 @@ public static class HeartGemManager
     /// </summary>
     public static int GetTotalHeartsForChapter(int areaId)
     {
-        int count = 0;
-        var areaStats = SaveData.Instance?.Areas_Safe[areaId];
-
-        // Count vanilla mode hearts
-        if (areaStats?.Modes != null)
-        {
-            for (int i = 0; i < Math.Min(areaStats.Modes.Length, 3); i++)
-            {
-                if (areaStats.Modes[i]?.HeartGem == true)
-                    count++;
-            }
-        }
-
-        // Count extended mode hearts from our save data
-        var area = AreaData.Get(areaId);
-        if (area != null && AreaModeExtender.IsOurMap(area))
-        {
-            for (int m = AreaModeExtender.MODE_DSIDE; m < AreaModeExtender.TOTAL_MODES; m++)
-            {
-                string heartId = $"{area.SID}_{AreaModeExtender.GetModeName(m)}";
-                if (MaggyHelperModule.SaveData?.HasCollectedHeartGem(heartId) == true)
-                    count++;
-            }
-        }
-
-        return count;
+        return MaggySaveFacade.CountHeartsForChapter(areaId);
     }
 
     /// <summary>

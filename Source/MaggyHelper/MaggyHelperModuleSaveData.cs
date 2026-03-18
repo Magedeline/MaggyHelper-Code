@@ -38,6 +38,16 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
     /// List of collected cassette tape IDs.
     /// </summary>
     public List<string> CollectedCassettes { get; set; } = new List<string>();
+
+    /// <summary>
+    /// List of collected mini heart gem IDs.
+    /// </summary>
+    public List<string> CollectedMiniHeartGems { get; set; } = new List<string>();
+
+    /// <summary>
+    /// List of collected pink platinum berry IDs.
+    /// </summary>
+    public List<string> CollectedPinkPlatinumBerries { get; set; } = new List<string>();
     
     /// <summary>
     /// Dictionary of custom collectibles (type -> list of IDs).
@@ -67,6 +77,16 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
     /// Dictionary of chapter completion data (SID -> completion info).
     /// </summary>
     public Dictionary<string, ChapterCompletionData> ChapterData { get; set; } = new Dictionary<string, ChapterCompletionData>();
+
+    /// <summary>
+    /// Preferred playable character for each chapter SID.
+    /// </summary>
+    public Dictionary<string, string> PreferredChapterCharacters { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Saved respawn state per chapter SID.
+    /// </summary>
+    public Dictionary<string, SavedChapterRespawnState> ChapterRespawnStates { get; set; } = new Dictionary<string, SavedChapterRespawnState>(StringComparer.OrdinalIgnoreCase);
     
     /// <summary>
     /// Whether the player has seen the mod intro / selection screen.
@@ -199,6 +219,76 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
     /// Whether Chapter 19 has been completed.
     /// </summary>
     public bool Chapter19Complete { get; set; } = false;
+
+    /// <summary>
+    /// Whether all A/B/C side hearts required for D-side progression have been collected.
+    /// </summary>
+    public bool AllABCSideHeartsCollected { get; set; } = false;
+
+    /// <summary>
+    /// Whether D-side heart gem progression is globally unlocked.
+    /// </summary>
+    public bool DSideHeartGemUnlocked { get; set; } = false;
+
+    /// <summary>
+    /// Whether the pink platinum berry unlock requirement has been met.
+    /// </summary>
+    public bool PinkPlatinumBerryUnlocked { get; set; } = false;
+
+    /// <summary>
+    /// Whether boss rush content is unlocked.
+    /// </summary>
+    public bool BossRushUnlocked { get; set; } = false;
+
+    /// <summary>
+    /// Whether final DLC content is unlocked.
+    /// </summary>
+    public bool FinalDlcContentUnlocked { get; set; } = false;
+
+    /// <summary>
+    /// Whether the account has reached 100% completion.
+    /// </summary>
+    public bool OneHundredPercentComplete { get; set; } = false;
+
+    /// <summary>
+    /// Whether the ultra completion postcard is available.
+    /// </summary>
+    public bool UltraPostcardUnlocked { get; set; } = false;
+
+    /// <summary>
+    /// Whether the ultra completion postcard has already been shown.
+    /// </summary>
+    public bool HasSeenUltraCompletionPostcard { get; set; } = false;
+
+    /// <summary>
+    /// Total tracked strawberries across vanilla and custom Maggy progression.
+    /// </summary>
+    public int TotalTrackedStrawberries { get; set; } = 0;
+
+    /// <summary>
+    /// Total tracked heart gems across vanilla, mini hearts, and extended sides.
+    /// </summary>
+    public int TotalTrackedHeartGems { get; set; } = 0;
+
+    /// <summary>
+    /// Total tracked cassette/tape collectibles.
+    /// </summary>
+    public int TotalTrackedCassettes { get; set; } = 0;
+
+    /// <summary>
+    /// Total tracked mini heart gems.
+    /// </summary>
+    public int TotalTrackedMiniHeartGems { get; set; } = 0;
+
+    /// <summary>
+    /// Total tracked D-side heart gems.
+    /// </summary>
+    public int TotalTrackedDSideHeartGems { get; set; } = 0;
+
+    /// <summary>
+    /// Total tracked collectibles used by Maggy progression.
+    /// </summary>
+    public int TotalTrackedCollectibles { get; set; } = 0;
     
     /// <summary>
     /// Whether Chapter 19 has been unlocked.
@@ -241,6 +331,39 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
     public bool HasCollectedHeartGem(string heartId)
     {
         return CollectedHeartGems.Contains(heartId);
+    }
+
+    /// <summary>
+    /// Mark a cassette as collected.
+    /// </summary>
+    public void CollectCassette(string cassetteId)
+    {
+        if (!string.IsNullOrWhiteSpace(cassetteId) && !CollectedCassettes.Contains(cassetteId))
+        {
+            CollectedCassettes.Add(cassetteId);
+        }
+    }
+
+    /// <summary>
+    /// Mark a mini heart gem as collected.
+    /// </summary>
+    public void CollectMiniHeartGem(string miniHeartId)
+    {
+        if (!string.IsNullOrWhiteSpace(miniHeartId) && !CollectedMiniHeartGems.Contains(miniHeartId))
+        {
+            CollectedMiniHeartGems.Add(miniHeartId);
+        }
+    }
+
+    /// <summary>
+    /// Mark a pink platinum berry as collected.
+    /// </summary>
+    public void CollectPinkPlatinumBerry(string berryId)
+    {
+        if (!string.IsNullOrWhiteSpace(berryId) && !CollectedPinkPlatinumBerries.Contains(berryId))
+        {
+            CollectedPinkPlatinumBerries.Add(berryId);
+        }
     }
     
     /// <summary>
@@ -306,6 +429,56 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
         {
             UnlockedChapters.Add(sid);
         }
+    }
+
+    /// <summary>
+    /// Store the preferred playable character for a chapter.
+    /// </summary>
+    public void SetPreferredCharacter(string sid, string characterId)
+    {
+        if (string.IsNullOrWhiteSpace(sid) || string.IsNullOrWhiteSpace(characterId))
+            return;
+
+        PreferredChapterCharacters[sid] = characterId;
+    }
+
+    /// <summary>
+    /// Try to get the preferred playable character for a chapter.
+    /// </summary>
+    public bool TryGetPreferredCharacter(string sid, out string characterId)
+    {
+        if (string.IsNullOrWhiteSpace(sid))
+        {
+            characterId = string.Empty;
+            return false;
+        }
+
+        return PreferredChapterCharacters.TryGetValue(sid, out characterId) && !string.IsNullOrWhiteSpace(characterId);
+    }
+
+    /// <summary>
+    /// Store the current chapter respawn state.
+    /// </summary>
+    public void SaveChapterRespawn(string sid, SavedChapterRespawnState state)
+    {
+        if (string.IsNullOrWhiteSpace(sid) || state == null)
+            return;
+
+        ChapterRespawnStates[sid] = state;
+    }
+
+    /// <summary>
+    /// Try to get a saved respawn state for a chapter.
+    /// </summary>
+    public bool TryGetChapterRespawn(string sid, out SavedChapterRespawnState state)
+    {
+        if (string.IsNullOrWhiteSpace(sid))
+        {
+            state = null;
+            return false;
+        }
+
+        return ChapterRespawnStates.TryGetValue(sid, out state) && state != null;
     }
     
     /// <summary>
@@ -456,6 +629,8 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
         CombinedDeltaBerries   = "";
         CollectedHeartGems     = new List<string>();
         CollectedCassettes     = new List<string>();
+        CollectedMiniHeartGems = new List<string>();
+        CollectedPinkPlatinumBerries = new List<string>();
         CustomCollectibles     = new Dictionary<string, List<string>>();
 
         // Progression
@@ -463,6 +638,8 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
         UnlockedChapters   = new List<string>();
         CompletedCutscenes = new List<string>();
         ChapterData        = new Dictionary<string, ChapterCompletionData>();
+        PreferredChapterCharacters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        ChapterRespawnStates = new Dictionary<string, SavedChapterRespawnState>(StringComparer.OrdinalIgnoreCase);
 
         // Kirby / combat stats
         UnlockedKirbyPowers  = new List<string>();
@@ -474,6 +651,21 @@ public class MaggyHelperModuleSaveData : EverestModuleSaveData
 
         // Chapter intros should replay on a true new game.
         HasSeenChapter9IntroVignette = false;
+
+        AllABCSideHeartsCollected = false;
+        DSideHeartGemUnlocked = false;
+        PinkPlatinumBerryUnlocked = false;
+        BossRushUnlocked = false;
+        FinalDlcContentUnlocked = false;
+        OneHundredPercentComplete = false;
+        UltraPostcardUnlocked = false;
+        HasSeenUltraCompletionPostcard = false;
+        TotalTrackedStrawberries = 0;
+        TotalTrackedHeartGems = 0;
+        TotalTrackedCassettes = 0;
+        TotalTrackedMiniHeartGems = 0;
+        TotalTrackedDSideHeartGems = 0;
+        TotalTrackedCollectibles = 0;
 
         // Bump schema version so migration won't re-run on this file.
         SaveDataVersion = 1;
@@ -524,3 +716,4 @@ public class ChapterCompletionData
     /// </summary>
     public int TotalBerries { get; set; } = 0;
 }
+

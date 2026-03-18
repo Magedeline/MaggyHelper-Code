@@ -734,6 +734,7 @@ Maggy_ASide_16_Corruption_postcard=The corrupted realm where Els_Flowey has twis
 POSTCARD_CSIDE_UNLOCK=You've proven yourself on the B-Sides.{n}The {# ffcc00}C-Sides{#} are now unlocked.{n}These remixes push your skills to the limit.{n}Are you ready for the challenge?
 POSTCARD_DSIDE_UNLOCK=The C-Sides have been conquered.{n}The {# b031eb}D-Sides{#} are now unlocked.{n}These twisted remixes will test your{n}determination beyond all limits.
 POSTCARD_DXSIDE_UNLOCK=Beyond the D-Sides lies the{n}ultimate challenge.{n}The {# 200040}DX-Sides{#} are now unlocked.{n}Only the most determined will survive.
+POSTCARD_ULTRA_VARIANT_UNLOCK=Every heart, berry, cassette, and secret stands accounted for.{n}The {# ff88d0}Ultra Variant{#} is now unlocked.{n}A final distortion waits beyond the mountain's edge.{n}Only a complete file can reach it.
 
 # ================================
 # Side Completion Titles

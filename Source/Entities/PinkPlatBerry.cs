@@ -193,6 +193,8 @@ namespace MaggyHelper.Entities
                 session.Strawberries.Add(this.Id);
             }
 
+            MaggyProgressionManager.RecordPinkPlatinumBerry(this.Scene as Level, this.Id.ToString());
+
             session.UpdateLevelStartDashes();
             this.Add(new Coroutine(this.collectRoutine()));
         }

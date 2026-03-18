@@ -142,6 +142,8 @@ namespace MaggyHelper.Entities
             
             collected = true;
             Collidable = false;
+
+            MaggyProgressionManager.RecordMiniHeart(SceneAs<Level>(), gemId);
             
             // Set collection flag
             Level level = SceneAs<Level>();

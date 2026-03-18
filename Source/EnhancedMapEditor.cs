@@ -51,7 +51,6 @@ public static class EnhancedMapEditor
     private static bool _hooksLoaded = false;
     private static bool _showEntityOverlay = false;
     private static bool _showRoomConnections = false;
-    private static bool _showSpawnPoints = true;
     private static bool _showCheckpointPaths = false;
     private static int _selectedEntityFilter = -1; // -1 = all, 0+ = specific type index
     
