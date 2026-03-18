@@ -80,6 +80,26 @@ This mod requires many helper mods including:
 msbuild /property:GenerateFullPaths=true /t:build
 ```
 
+### Codespaces Prebuild Setup
+
+Use this checklist once per repository to speed up new Codespaces for everyone:
+
+1. Open GitHub repository settings for this repo.
+2. Go to **Codespaces** > **Prebuild configurations**.
+3. Click **Create configuration**.
+4. Set branch to `main`.
+5. Region: choose the one closest to your team.
+6. Machine type: `4-core` is a good default for this project.
+7. Trigger prebuilds on `push` to `main` and on pull requests targeting `main`.
+8. Retention: keep at least the latest successful prebuild.
+9. Save and wait for the first prebuild run to finish.
+
+Quick verification:
+
+1. Click **Code** > **Codespaces** > **Create codespace on main**.
+2. Confirm startup is using a prebuild (faster init, immediate restore state).
+3. Run `dotnet build Source/MaggyHelper.csproj` to verify local container health.
+
 ### Split Repos
 If you want to keep runtime code and map authoring in separate repositories, use `Tools/Split-MaggyHelperRepos.ps1` and follow `Docs/REPO_SPLIT_GUIDE.md`.
 
