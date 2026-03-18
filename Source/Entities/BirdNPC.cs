@@ -93,7 +93,7 @@ namespace MaggyHelper.Entities
                     break;
 
                 case Modes.DashingTutorial:
-                    Add(new Coroutine(DashingTutorial()));
+                    Add(new Coroutine(GetDashingTutorial()));
                     break;
 
                 case Modes.DreamJumpTutorial:
@@ -326,7 +326,7 @@ namespace MaggyHelper.Entities
             yield return startleAndFlyAway();
         }
 
-        public IEnumerator DashingTutorial()
+        public IEnumerator GetDashingTutorial()
         {
             var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
             if (player == null) yield break;
@@ -446,10 +446,11 @@ namespace MaggyHelper.Entities
             // Small raw-time pause so landing settles
             for (float t = 0f; t < 0.4f; t += Engine.RawDeltaTime) yield return null;
 
-            // --- Show dash tutorial prompt ---
+            // --- Show dash tutorial prompt with instruction text ---
             var dashTutorial = new BirdGonerTutorialGui(this, new Vector2(0f, -16f),
                 Dialog.Clean("tutorial_dash"), new object[]
                 {
+                    Dialog.Clean("tutorial_dash_instructions") ?? "Dash towards me to unfreeze time!",
                     BirdGonerTutorialGui.ButtonPrompt.Dash,
                     "+",
                     new Vector2(1f, 0f)
@@ -470,6 +471,13 @@ namespace MaggyHelper.Entities
 
             // --- Unfreeze time ---
             timeRateModifier.ResetTimeRateMultiplier();
+            
+            // Also unfreeze the bridge's time modifier if it exists
+            var bridge = Scene.Tracker.GetEntity<Bridge>();
+            if (bridge != null)
+            {
+                bridge.UnfreezeTime();
+            }
 
             // Hide tutorial
             if (Gui != null)
@@ -486,6 +494,7 @@ namespace MaggyHelper.Entities
             // Store session before RemoveSelf stops the coroutine
             Level.Session.SetFlag("dash_tutorial_complete");
             Level.Session.SetFlag(FlownFlag + Level.Session.Level);
+            Level.Session.SetFlag("bridge_end_dash_triggered");
             var savedSession = Level.Session;
 
             // Fly straight up and out
@@ -507,7 +516,7 @@ namespace MaggyHelper.Entities
                 yield return null;
             }
 
-            // Transition to the bridge ending vignette
+            // Transition to the bridge ending vignette, which will then lead to CS00_EndingMod
             yield return 0.3f;
             Engine.Scene = new Cs00BridgeEndingVignette(savedSession);
             RemoveSelf();
@@ -747,7 +756,6 @@ namespace MaggyHelper.Entities
         }
     }
 }
-
 
 
 

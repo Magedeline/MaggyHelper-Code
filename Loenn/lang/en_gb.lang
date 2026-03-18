@@ -7105,6 +7105,21 @@ triggers.MaggyHelper/Kirby_Player_Trigger.placements.name.fire_power_enable=Kirb
 triggers.MaggyHelper/Kirby_Player_Trigger.placements.description.fire_power_enable=
 triggers.MaggyHelper/Kirby_Player_Trigger.placements.name.sword_power_enable=Kirby Player Trigger (Sword Power Enable)
 triggers.MaggyHelper/Kirby_Player_Trigger.placements.description.sword_power_enable=
+triggers.MaggyHelper/Kirby_Player_Trigger.attributes.name.action=Action
+triggers.MaggyHelper/Kirby_Player_Trigger.attributes.description.action=
+triggers.MaggyHelper/Kirby_Player_Trigger.attributes.name.height=Height
+triggers.MaggyHelper/Kirby_Player_Trigger.attributes.description.height=
+triggers.MaggyHelper/Kirby_Player_Trigger.attributes.name.width=Width
+triggers.MaggyHelper/Kirby_Player_Trigger.attributes.description.width=
+
+# -- Bridge Freeze Trigger --
+triggers.MaggyHelper/BridgeFreezeTrigger.placements.name.default=Bridge Freeze (Nearly Frozen)
+triggers.MaggyHelper/BridgeFreezeTrigger.placements.description.default=Freezes time during the bridge collapse sequence when the player enters. Nearly frozen state (0.001x speed).
+triggers.MaggyHelper/BridgeFreezeTrigger.placements.name.slow_motion=Bridge Freeze (Slow Motion)
+triggers.MaggyHelper/BridgeFreezeTrigger.placements.description.slow_motion=Freezes time during the bridge collapse sequence with a slow motion effect (0.1x speed).
+triggers.MaggyHelper/BridgeFreezeTrigger.attributes.name.freezeStrength=Freeze Strength
+triggers.MaggyHelper/BridgeFreezeTrigger.attributes.description.freezeStrength=How much time slows down (0.001 = nearly frozen, 0.1 = slow motion, 1.0 = normal speed).
+triggers.MaggyHelper/Kirby_Player_Trigger.placements.description.sword_power_enable=
 triggers.MaggyHelper/Kirby_Player_Trigger.placements.name.knight_mode_enable=Kirby Player Trigger (Knight Mode Enable)
 triggers.MaggyHelper/Kirby_Player_Trigger.placements.description.knight_mode_enable=
 triggers.MaggyHelper/Kirby_Player_Trigger.attributes.name.activationType=Activation Type

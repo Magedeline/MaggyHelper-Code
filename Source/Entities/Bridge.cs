@@ -9,7 +9,6 @@ namespace MaggyHelper.Entities;
 public class Bridge : Entity
 {
     /// <summary>Room name within the prologue map where this bridge lives.</summary>
-    private const string BridgeRoom = "3-bridge";
 
     /// <summary>Area SID for the chapter that owns this bridge.</summary>
     private const string PrologueSid = "00_Prologue";
@@ -38,6 +37,10 @@ public class Bridge : Entity
 
     private SoundSource collapseSfx;
 
+    private TimeRateModifier timeRateModifier;
+
+    public TimeRateModifier TimeRateModifier => timeRateModifier;
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     public Bridge(Vector2 position, int width, float gapStartX, float gapEndX)
         : base(position)
@@ -57,6 +60,7 @@ public class Bridge : Entity
         tileSizes.Add(new Rectangle(80, 0, 16, 52));
         tileSizes.Add(new Rectangle(96, 0, 8, 52));
         Add(collapseSfx = new SoundSource());
+        Add(timeRateModifier = new TimeRateModifier(1f, false));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -105,7 +109,6 @@ public class Bridge : Entity
             if (entity != null && entity.X >= base.X + 112f)
             {
                 // Only override the music track when inside the correct prologue room.
-                if (level.Session?.Area.SID == PrologueSid && level.Session?.Level == BridgeRoom)
                 {
                     Audio.SetMusic("event:/desolozantas/music/lvl0/bridge");
                 }
@@ -174,6 +177,8 @@ public class Bridge : Entity
             var bird = level.Tracker.GetEntity<BirdNpcGoner>();
             if (bird != null && bird.Mode == BirdNpcGoner.Modes.BridgeEndDash)
             {
+                // Freeze time for the bird entrance sequence
+                timeRateModifier.SetTimeRateMultiplier(0.001f);
                 bird.BridgeEndTriggered = true;
             }
         }
@@ -182,6 +187,11 @@ public class Bridge : Entity
     public void StopCollapseLoop()
     {
         collapseSfx.Stop();
+    }
+
+    public void UnfreezeTime()
+    {
+        timeRateModifier.ResetTimeRateMultiplier();
     }
 }
 

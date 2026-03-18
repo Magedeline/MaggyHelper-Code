@@ -148,6 +148,15 @@ return {
                 spawnDelay = "Spawn Delay",
                 respawn = "Respawn on Death"
             }
+        },
+        ["MaggyHelper/BridgeFreezeTrigger"] = {
+            placements = {
+                default = "Bridge Freeze (Nearly Frozen)",
+                slow_motion = "Bridge Freeze (Slow Motion)"
+            },
+            attributes = {
+                freezeStrength = "Freeze Strength (0.001 = nearly frozen, 1.0 = normal)"
+            }
         }
     }
 }
