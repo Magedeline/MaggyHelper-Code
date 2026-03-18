@@ -1,0 +1,207 @@
+{
+  "seed": 17,
+  "pool_path": "C:\\Users\\Gabriel L\\Desktop\\celeste\\Mods\\MaggyHelper\\loenn-mcp\\pcg_room_pool.movement_focus.json",
+  "room_prefix": "decor_",
+  "room_count": 8,
+  "sequence_ids": [
+    "movement_intro",
+    "climb_column",
+    "hazard_zipper",
+    "dash_bridge",
+    "checkpoint_breath",
+    "hazard_zipper",
+    "tempo_refill",
+    "dash_bridge"
+  ],
+  "rooms": [
+    {
+      "index": 0,
+      "archetype_id": "movement_intro",
+      "difficulty": 1,
+      "tags": [
+        "intro",
+        "movement",
+        "rest"
+      ],
+      "open_left": false,
+      "open_right": true,
+      "hazard_density": 0.0,
+      "contains_checkpoint": false
+    },
+    {
+      "index": 1,
+      "archetype_id": "climb_column",
+      "difficulty": 2,
+      "tags": [
+        "climb",
+        "movement",
+        "check"
+      ],
+      "open_left": true,
+      "open_right": true,
+      "hazard_density": 0.0,
+      "contains_checkpoint": false
+    },
+    {
+      "index": 2,
+      "archetype_id": "hazard_zipper",
+      "difficulty": 4,
+      "tags": [
+        "hazard",
+        "movement",
+        "precision"
+      ],
+      "open_left": true,
+      "open_right": true,
+      "hazard_density": 0.075,
+      "contains_checkpoint": false
+    },
+    {
+      "index": 3,
+      "archetype_id": "dash_bridge",
+      "difficulty": 2,
+      "tags": [
+        "dash",
+        "movement"
+      ],
+      "open_left": true,
+      "open_right": true,
+      "hazard_density": 0.0,
+      "contains_checkpoint": false
+    },
+    {
+      "index": 4,
+      "archetype_id": "checkpoint_breath",
+      "difficulty": 3,
+      "tags": [
+        "checkpoint",
+        "movement",
+        "rest"
+      ],
+      "open_left": true,
+      "open_right": true,
+      "hazard_density": 0.0,
+      "contains_checkpoint": true
+    },
+    {
+      "index": 5,
+      "archetype_id": "hazard_zipper",
+      "difficulty": 4,
+      "tags": [
+        "hazard",
+        "movement",
+        "precision"
+      ],
+      "open_left": true,
+      "open_right": true,
+      "hazard_density": 0.075,
+      "contains_checkpoint": false
+    },
+    {
+      "index": 6,
+      "archetype_id": "tempo_refill",
+      "difficulty": 3,
+      "tags": [
+        "dash",
+        "movement",
+        "rest"
+      ],
+      "open_left": true,
+      "open_right": true,
+      "hazard_density": 0.0,
+      "contains_checkpoint": false
+    },
+    {
+      "index": 7,
+      "archetype_id": "dash_bridge",
+      "difficulty": 2,
+      "tags": [
+        "dash",
+        "movement"
+      ],
+      "open_left": true,
+      "open_right": true,
+      "hazard_density": 0.0,
+      "contains_checkpoint": false
+    }
+  ],
+  "tag_counts": {
+    "check": 1,
+    "checkpoint": 1,
+    "climb": 1,
+    "dash": 3,
+    "hazard": 2,
+    "intro": 1,
+    "movement": 8,
+    "precision": 2,
+    "rest": 3
+  },
+  "rules": {
+    "required_tags": [
+      "checkpoint",
+      "climb"
+    ],
+    "min_tag_counts": {
+      "hazard": 2,
+      "dash": 2
+    },
+    "excluded_adjacent_tag_pairs": [
+      [
+        "climb",
+        "climb"
+      ],
+      [
+        "rest",
+        "rest"
+      ]
+    ],
+    "late_game_tags": [
+      "finale",
+      "hazard",
+      "precision"
+    ],
+    "late_game_start_ratio": 0.7,
+    "late_game_start_index": 4
+  },
+  "constraint_status": {
+    "required_tags": {
+      "checkpoint": true,
+      "climb": true
+    },
+    "min_tag_counts": {
+      "dash": {
+        "required": 2,
+        "actual": 3,
+        "satisfied": true
+      },
+      "hazard": {
+        "required": 2,
+        "actual": 2,
+        "satisfied": true
+      }
+    },
+    "excluded_adjacent_violations": [],
+    "late_game_rooms": [
+      {
+        "index": 2,
+        "archetype_id": "hazard_zipper",
+        "tags": [
+          "hazard",
+          "movement",
+          "precision"
+        ],
+        "is_late_slot": false
+      },
+      {
+        "index": 5,
+        "archetype_id": "hazard_zipper",
+        "tags": [
+          "hazard",
+          "movement",
+          "precision"
+        ],
+        "is_late_slot": true
+      }
+    ]
+  }
+}
