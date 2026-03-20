@@ -164,6 +164,15 @@ public class MaggyHelperModuleSession : EverestModuleSession
     public Dictionary<string, string> CustomStrings { get; set; } = new Dictionary<string, string>();
 
     /// <summary>
+    /// Lives remaining in the current chapter attempt. Game over music plays when this hits zero.
+    /// Resets to <see cref="MaxLives"/> on a fresh (non-save) chapter entry.
+    /// </summary>
+    public int LivesRemaining { get; set; } = MaxLives;
+
+    /// <summary>Starting lives for a chapter attempt.</summary>
+    public const int MaxLives = 3;
+
+    /// <summary>
     /// Whether the current chapter entry used a saved respawn state.
     /// </summary>
     public bool UsedSavedChapterRespawn { get; set; } = false;

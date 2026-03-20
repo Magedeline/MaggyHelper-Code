@@ -7629,3 +7629,55 @@ entities.MaggyHelper/HeartCompanion.placements.name.HeartCompanion=Heart Compani
 entities.MaggyHelper/HeartCompanion.placements.description.HeartCompanion=This floating heart companion follows the player around. It has no combat behavior outside of the true final boss fight, where it will assist the player by attacking and defending against the boss's attacks. It can be used in other rooms, but it will only serve as a visual companion without any combat functionality.
 
 entities.MaggyHelper/StarBlock.placements.name.StarBlock=Star StarBlock
+
+# -- Kirby Tutorial Bird --
+entities.MaggyHelper/KirbyTutorialBird.placements.name.tutorial_bird=Kirby Tutorial Bird
+entities.MaggyHelper/KirbyTutorialBird.placements.name.aqua_hook_intro=Kirby Tutorial Bird (Aqua Hook Intro)
+entities.MaggyHelper/KirbyTutorialBird.placements.name.aqua_hook_swing=Kirby Tutorial Bird (Aqua Hook Swing)
+entities.MaggyHelper/KirbyTutorialBird.placements.name.method_btn_dash_jump=Kirby Tutorial Bird (Button Method Example)
+entities.MaggyHelper/KirbyTutorialBird.placements.name.method_compound_tokens=Kirby Tutorial Bird (Compound Token Example)
+entities.MaggyHelper/KirbyTutorialBird.placements.name.method_mod_binding=Kirby Tutorial Bird (Mod Binding Example)
+entities.MaggyHelper/KirbyTutorialBird.placements.name.controls_method_reference=Kirby Tutorial Bird (Controls Method Reference)
+entities.MaggyHelper/KirbyTutorialBird.placements.description.tutorial_bird=A bird NPC that can show tutorial panels and be controlled by matching tutorial triggers.
+entities.MaggyHelper/KirbyTutorialBird.placements.description.aqua_hook_intro=Preset bird for introducing Aqua hook controls with Kirby.
+entities.MaggyHelper/KirbyTutorialBird.placements.description.aqua_hook_swing=Preset bird for swing-focused Aqua hook guidance with Kirby.
+entities.MaggyHelper/KirbyTutorialBird.placements.description.method_btn_dash_jump=Example using explicit button method syntax (btn:/prompt:).
+entities.MaggyHelper/KirbyTutorialBird.placements.description.method_compound_tokens=Example using compact tokens without commas (auto-split by parser).
+entities.MaggyHelper/KirbyTutorialBird.placements.description.method_mod_binding=Example combining mod button binding with direction prompts.
+entities.MaggyHelper/KirbyTutorialBird.placements.description.controls_method_reference=Reference preset showing mixed control token styles in one bird for quick copy/edit.
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.birdId=Bird ID
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.birdId=Shared identifier used by KirbyTutorialBirdTrigger to target this bird.
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.dialogs=Tutorial Dialog IDs
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.dialogs=Semicolon-separated dialog keys, one per tutorial panel.
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.controls=Tutorial Controls
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.controls=Semicolon-separated control lines matching each dialog panel. Supports Dash/Jump/Grab/Talk, btn:Dash style, direction tokens, and compact tokens like PressPLUSClimb.
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.startupIndex=Startup Tutorial Index
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.startupIndex=Tutorial index to show immediately on room load (-1 to skip auto-show).
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.triggerOnce=Trigger Once Per Tutorial
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.triggerOnce=If checked, each tutorial index can only be shown one time.
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.faceLeft=Face Left
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.faceLeft=If checked, the bird starts facing left.
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.caw=Caw Before Tutorial
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.caw=If checked, the bird plays its caw animation/sound before opening a tutorial panel.
+entities.MaggyHelper/KirbyTutorialBird.attributes.name.onlyOnce=Only Once
+entities.MaggyHelper/KirbyTutorialBird.attributes.description.onlyOnce=If checked, this bird is removed permanently after closing and flying away.
+
+# -- Kirby Tutorial Bird Trigger --
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.name.tutorial_bird_trigger=Kirby Tutorial Bird Trigger
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.name.show_when_aqua_hook_fixed=Kirby Tutorial Trigger (Aqua Hook Fixed)
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.name.show_when_kirby_aqua_swinging=Kirby Tutorial Trigger (Kirby Aqua Swinging)
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.name.close_when_aqua_attracted=Kirby Tutorial Trigger (Close On Aqua Attracted)
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.description.tutorial_bird_trigger=Shows or closes a tutorial panel on a matching KirbyTutorialBird.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.description.show_when_aqua_hook_fixed=Shows a tutorial when Aqua hook state is Fixed.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.description.show_when_kirby_aqua_swinging=Shows a tutorial while Kirby is swinging with Aqua hook.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.placements.description.close_when_aqua_attracted=Closes the tutorial when Kirby enters Aqua Attracted hook state.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.name.birdId=Target Bird ID
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.description.birdId=Bird ID of the KirbyTutorialBird this trigger controls.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.name.tutorialIndex=Tutorial Index
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.description.tutorialIndex=Tutorial panel index to show; use -1 to close and fly the bird away.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.name.conditionFunction=Condition Function
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.description.conditionFunction=Optional static bool(Level) function reference, for example mod:MaggyHelper.Extensions.Kirby.ModCompat.AquaTutorialCompat.IsAquaHookFixed.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.name.width=Width
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.description.width=Trigger area width.
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.name.height=Height
+triggers.MaggyHelper/KirbyTutorialBirdTrigger.attributes.description.height=Trigger area height.

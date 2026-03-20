@@ -120,8 +120,10 @@ namespace MaggyHelper.Extensions.Kirby
 
             EmitInhaleParticles(mouthPos);
 
-            foreach (var entity in Level.Tracker.GetEntities<Actor>())
+            foreach (Entity candidate in Level.Entities)
             {
+                if (candidate is not Actor entity) continue;
+
                 if (entity == Extension || entity == Player) continue;
                 if (!IsInhalable(entity)) continue;
 

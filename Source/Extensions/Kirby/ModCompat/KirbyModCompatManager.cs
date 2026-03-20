@@ -40,6 +40,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
         public static bool HonlyHelperLoaded { get; private set; }
         public static bool MoreDashelineLoaded { get; private set; }
         public static bool DoonvHelperLoaded { get; private set; }
+        public static bool AquaLoaded { get; private set; }
 
         /// <summary>
         /// Initialize mod compatibility detection and activate bridges.
@@ -169,12 +170,13 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             HonlyHelperLoaded = IsModLoaded("HonlyHelper", "1.0.0");
             MoreDashelineLoaded = IsModLoaded("MoreDasheline", "1.0.0");
             DoonvHelperLoaded = IsModLoaded("DoonvHelper", "1.0.0");
+            AquaLoaded = IsModLoaded("Aqua", "0.0.0");
 
             Logger.Log(LogLevel.Info, "KirbyModCompat",
                 $"Detected: Communal={CommunalHelperLoaded}, Viv={VivHelperLoaded}, " +
                 $"Bosses={BossesHelperLoaded}, MaxHH={MaxHelpingHandLoaded}, " +
                 $"DJ={DJMapHelperLoaded}, Honly={HonlyHelperLoaded}, " +
-                $"MoreDash={MoreDashelineLoaded}, Doonv={DoonvHelperLoaded}");
+                $"MoreDash={MoreDashelineLoaded}, Doonv={DoonvHelperLoaded}, Aqua={AquaLoaded}");
         }
 
         private static bool IsModLoaded(string modName, string minVersion)
@@ -198,6 +200,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             _bridges.Add(new VivHelperBridge());
             _bridges.Add(new MoreDashelineBridge());
             _bridges.Add(new HonlyHelperBridge());
+            _bridges.Add(new AquaBridge());
         }
     }
 }

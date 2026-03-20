@@ -290,8 +290,10 @@ namespace MaggyHelper.Extensions.Kirby
             int damage = GetCurrentDamage();
             Vector2 knockDir = GetKnockbackDirection();
 
-            foreach (var entity in Level.Tracker.GetEntities<Actor>())
+            foreach (Entity candidate in Level.Entities)
             {
+                if (candidate is not Actor entity) continue;
+
                 if (entity == Player || entity == Extension) continue;
                 if (entity is KirbyPlayerExtension || entity is KirbyMode) continue;
 

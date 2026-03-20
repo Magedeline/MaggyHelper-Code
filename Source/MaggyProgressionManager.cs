@@ -161,6 +161,15 @@ public static class MaggyProgressionManager
     private static void OnLevelEnterGo(On.Celeste.LevelEnter.orig_Go orig, Session session, bool fromSaveData)
     {
         ApplySavedChapterEntryState(session, fromSaveData);
+
+        // Reset lives on a fresh chapter entry so game over music only fires after all lives are spent.
+        if (!fromSaveData)
+        {
+            var modSession = MaggyHelperModule.Session;
+            if (modSession != null)
+                modSession.LivesRemaining = MaggyHelperModuleSession.MaxLives;
+        }
+
         orig(session, fromSaveData);
     }
 
@@ -188,7 +197,15 @@ public static class MaggyProgressionManager
 
         if (deadBody != null)
         {
-            Audio.SetMusic(OverworldMusicManager.MUSIC_GAMEOVER);
+            var modSession = MaggyHelperModule.Session;
+            if (modSession != null)
+            {
+                modSession.LivesRemaining = Math.Max(0, modSession.LivesRemaining - 1);
+                if (modSession.LivesRemaining <= 0)
+                {
+                    Audio.SetMusic(OverworldMusicManager.MUSIC_GAMEOVER);
+                }
+            }
             RefreshProgression();
         }
 

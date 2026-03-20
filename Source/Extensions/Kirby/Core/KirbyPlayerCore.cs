@@ -27,7 +27,6 @@ public sealed class KirbyPlayerCore
         level.ParticlesFG?.Emit(ParticleTypes.SparkyDust, 20, player.Position, Vector2.One * 16f);
 
         SpawnOrActivateExtension(player, level);
-        SpawnOrActivateLegacy(player, level);
 
         var state = LevelStateManager.GetState();
         if (state != null)
@@ -42,7 +41,6 @@ public sealed class KirbyPlayerCore
         level.ParticlesFG?.Emit(ParticleTypes.Dust, 10, player.Position, Vector2.One * 12f);
 
         DeactivateExtension(level);
-        DeactivateLegacy(level);
 
         var state = LevelStateManager.GetState();
         if (state != null)
@@ -66,7 +64,6 @@ public sealed class KirbyPlayerCore
         }
 
         SpawnOrActivateExtension(player, level);
-        SpawnOrActivateLegacy(player, level);
     }
 
     public void SaveOnLevelUnloaded(Level level)

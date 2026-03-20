@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Sprites>
 
   <!-- ================================================================ -->
@@ -618,17 +618,17 @@
       <Frames path="run_carry" hair="x" carry="-1,0,0,0,-3,-2,-1,0,0,0,-3,-1"/>
     </Metadata>
 
-    <Anim id="attack" path="combat/punchA" delay="0.05" frames="0-5" goto="idle" />
-    <Anim id="parry" path="combat/punchB" delay="0.04" frames="0-3" goto="idle" />
+    <Anim id="attack" path="combat/punchA_" delay="0.05" frames="0-5" goto="idle" />
+    <Anim id="parry" path="combat/punchB_" delay="0.04" frames="0-3" goto="idle" />
     
-    <Anim id="punchA" path="combat/punchA" delay="0.05" frames="0-5" goto="idle" />
-    <Anim id="punchB" path="combat/punchB" delay="0.04" frames="0-8" goto="idle" />
-    <Anim id="backflip" path="combat/backflip" delay="0.06" frames="0-5" goto="idle" />
-    <Loop id="spin" path="combat/spin" delay="0.05" frames="0-7" />
-    <Anim id="groundpound" path="combat/groundpound" delay="0.04" frames="0-10" goto="idle" />
-    <Anim id="grab_enemy" path="combat/grab_enemy" delay="0.06" frames="0-5" goto="idle" />
+    <Anim id="punchA" path="combat/punchA_" delay="0.05" frames="0-5" goto="idle" />
+    <Anim id="punchB" path="combat/punchB_" delay="0.04" frames="0-8" goto="idle" />
+    <Anim id="backflip" path="combat/backflip_" delay="0.06" frames="0-5" goto="idle" />
+    <Loop id="spin" path="combat/spin_" delay="0.05" frames="0-7" />
+    <Anim id="groundpound" path="combat/groundpound_" delay="0.04" frames="0-10" goto="idle" />
+    <Anim id="grab_enemy" path="combat/grab_enemy_" delay="0.06" frames="0-5" goto="idle" />
     
-    <Anim id="combat_slide" path="combat/slide" delay="0.04" frames="0-13" />
+    <Anim id="combat_slide" path="combat/slide_" delay="0.04" frames="0-13" />
     <Loop id="roll" path="roll" delay="0.05" frames="0-16" />
     
     <Anim id="hurt" path="faint" delay="0.08" frames="0-3" goto="idle" />
@@ -636,10 +636,10 @@
     <!-- ========================================== -->
     <!-- DEATH ANIMATIONS                           -->
     <!-- ========================================== -->
-    <Anim id="pre_death" path="combat/pre_death" delay="0.08" frames="0-9" goto="mid_death" />
-    <Anim id="mid_death" path="combat/mid_death" delay="0.08" frames="0-9" goto="post_death" />
-    <Anim id="post_death" path="combat/post_death" delay="0.08" frames="0-9" />
-    <Anim id="death" path="combat/death" delay="0.08" frames="0-9" />
+    <Anim id="pre_death" path="combat/pre_death_" delay="0.08" frames="0-9" goto="mid_death" />
+    <Anim id="mid_death" path="combat/mid_death_" delay="0.08" frames="0-9" goto="post_death" />
+    <Anim id="post_death" path="combat/post_death_" delay="0.08" frames="0-9" />
+    <Anim id="death" path="combat/death_" delay="0.08" frames="0-9" />
     
     <Anim id="deadside_combat" path="death_h" delay="0.02" frames="0-14" />
     <Anim id="deadup_combat" path="death_h" delay="0.02" frames="0-14" />
@@ -672,222 +672,6 @@
     <Anim id="flash" path="flash" delay="0.06"  frames="0-20" goto="idle"/>
   </warpstars>
 
-  <kirby_player_ext path="characters/kirby/" start="kirby_idle">
-    <Justify x=".5" y="1" />
-    
-    <!-- Basic Animations -->
-    <Loop id="kirby_idle" path="idle" delay="0.15" />
-    <Anim id="kirby_walk" path="walk" delay="0.08" />
-    <Anim id="kirby_run" path="run" delay="0.06" />
-    <Anim id="kirby_jump" path="jump" delay="0.1" />
-    <Anim id="kirby_fall" path="fall" delay="0.1" />
-    
-    <!-- Kirby Abilities -->
-    <Anim id="kirby_inhale" path="inhale" delay="0.05" />
-    <Loop id="kirby_hover" path="hover" delay="0.1" />
-    <Anim id="kirby_spit" path="spit" delay="0.05" />
-    <Anim id="kirby_damage" path="damage" delay="0.08" goto="kirby_idle" />
-    
-    <!-- Transformation Animations -->
-    <Anim id="kirby_transform_in" path="transform_in" delay="0.06" goto="kirby_transform_in" />
-    <Anim id="kirby_transform_out" path="transform_out" delay="0.06" goto="kirby_transform_out" />
-    
-    <!-- Power States - Fire -->
-    <Loop id="kirby_fire_idle" path="fire/idle" delay="0.15" />
-    <Anim id="kirby_fire_walk" path="fire/walk" delay="0.08" />
-    <Anim id="kirby_fire_attack" path="fire/attack" delay="0.04" goto="kirby_fire_idle" />
-    
-    <!-- Power States - Ice -->
-    <Loop id="kirby_ice_idle" path="ice/idle" delay="0.15" />
-    <Anim id="kirby_ice_walk" path="ice/walk" delay="0.08" />
-    <Anim id="kirby_ice_attack" path="ice/attack" delay="0.06" goto="kirby_ice_idle" />
-    
-    <!-- Power States - Spark -->
-    <Loop id="kirby_spark_idle" path="spark/idle" delay="0.12" />
-    <Anim id="kirby_spark_walk" path="spark/walk" delay="0.08" />
-    <Anim id="kirby_spark_attack" path="spark/attack" delay="0.03" goto="kirby_spark_idle" />
-    
-    <!-- Power States - Stone -->
-    <Loop id="kirby_stone_idle" path="stone/idle" delay="0.2" />
-    <Anim id="kirby_stone_walk" path="stone/walk" delay="0.1" />
-    <Anim id="kirby_stone_transform" path="stone/transform" delay="0.05" />
-    <Loop id="kirby_stone_form" path="stone/form" delay="0.3" />
-    
-    <!-- Power States - Sword -->
-    <Loop id="kirby_sword_idle" path="sword/idle" delay="0.15" />
-    <Anim id="kirby_sword_walk" path="sword/walk" delay="0.08" />
-    <Anim id="kirby_sword_attack1" path="sword/attack1" delay="0.04" goto="kirby_sword_idle" />
-    <Anim id="kirby_sword_attack2" path="sword/attack2" delay="0.05" goto="kirby_sword_idle" />
-    <Anim id="kirby_sword_spin" path="sword/spin" delay="0.03" goto="kirby_sword_idle" />
-
-    <!-- Power States - Archer -->
-    <Loop id="kirby_archer_idle" path="archer/idle" delay="0.15" />
-    <Anim id="kirby_archer_aim" path="archer/aim" delay="0.08" />
-    <Anim id="kirby_archer_shoot" path="archer/shoot" delay="0.04" goto="kirby_archer_idle" />
-
-    <!-- Power States - Leaf -->
-    <Loop id="kirby_leaf_idle" path="leaf/idle" delay="0.15" />
-    <Anim id="kirby_leaf_guard" path="leaf/guard" delay="0.06" />
-    <Anim id="kirby_leaf_burst" path="leaf/burst" delay="0.04" goto="kirby_leaf_idle" />
-
-    <!-- Power States - Water -->
-    <Loop id="kirby_water_idle" path="water/idle" delay="0.15" />
-    <Anim id="kirby_water_surf" path="water/surf" delay="0.06" />
-    <Anim id="kirby_water_splash" path="water/splash" delay="0.04" goto="kirby_water_idle" />
-
-    <!-- Power States - ESP -->
-    <Loop id="kirby_esp_idle" path="esp/idle" delay="0.15" />
-    <Anim id="kirby_esp_teleport" path="esp/teleport" delay="0.05" />
-    <Anim id="kirby_esp_burst" path="esp/burst" delay="0.03" goto="kirby_esp_idle" />
-
-    <!-- Power States - Hammer -->
-    <Loop id="kirby_hammer_idle" path="hammer/idle" delay="0.15" />
-    <Anim id="kirby_hammer_swing" path="hammer/swing" delay="0.05" />
-    <Anim id="kirby_hammer_slam" path="hammer/slam" delay="0.04" goto="kirby_hammer_idle" />
-
-    <!-- Power States - Ranger -->
-    <Loop id="kirby_ranger_idle" path="ranger/idle" delay="0.15" />
-    <Anim id="kirby_ranger_aim" path="ranger/aim" delay="0.07" />
-    <Anim id="kirby_ranger_fire" path="ranger/fire" delay="0.04" goto="kirby_ranger_idle" />
-
-    <!-- Power States - Mike -->
-    <Loop id="kirby_mike_idle" path="mike/idle" delay="0.15" />
-    <Anim id="kirby_mike_shout" path="mike/shout" delay="0.05" />
-    <Anim id="kirby_mike_finale" path="mike/finale" delay="0.04" goto="kirby_mike_idle" />
-
-    <!-- Power States - Crash -->
-    <Loop id="kirby_crash_idle" path="crash/idle" delay="0.15" />
-    <Anim id="kirby_crash_charge" path="crash/charge" delay="0.05" />
-    <Anim id="kirby_crash_burst" path="crash/burst" delay="0.04" goto="kirby_crash_idle" />
-
-    <!-- Power States - Bomb -->
-    <Loop id="kirby_bomb_idle" path="bomb/idle" delay="0.15" />
-    <Anim id="kirby_bomb_throw" path="bomb/throw" delay="0.05" />
-    <Anim id="kirby_bomb_juggle" path="bomb/juggle" delay="0.04" goto="kirby_bomb_idle" />
-
-    <!-- Power States - Cutter -->
-    <Loop id="kirby_cutter_idle" path="cutter/idle" delay="0.15" />
-    <Anim id="kirby_cutter_throw" path="cutter/throw" delay="0.05" />
-    <Anim id="kirby_cutter_return" path="cutter/return" delay="0.04" goto="kirby_cutter_idle" />
-
-    <!-- Power States - Painter -->
-    <Loop id="kirby_painter_idle" path="painter/idle" delay="0.15" />
-    <Anim id="kirby_painter_stroke" path="painter/stroke" delay="0.05" />
-    <Anim id="kirby_painter_palette" path="painter/palette" delay="0.04" goto="kirby_painter_idle" />
-
-    <!-- Power States - Cook -->
-    <Loop id="kirby_cook_idle" path="cook/idle" delay="0.15" />
-    <Anim id="kirby_cook_stir" path="cook/stir" delay="0.05" />
-    <Anim id="kirby_cook_serve" path="cook/serve" delay="0.04" goto="kirby_cook_idle" />
-
-    <!-- Power States - Bell -->
-    <Loop id="kirby_bell_idle" path="bell/idle" delay="0.15" />
-    <Anim id="kirby_bell_ring" path="bell/ring" delay="0.05" />
-    <Anim id="kirby_bell_resonate" path="bell/resonate" delay="0.04" goto="kirby_bell_idle" />
-
-    <!-- Power States - Light -->
-    <Loop id="kirby_light_idle" path="light/idle" delay="0.15" />
-    <Anim id="kirby_light_flash" path="light/flash" delay="0.05" />
-    <Anim id="kirby_light_phase" path="light/phase" delay="0.04" goto="kirby_light_idle" />
-
-    <!-- Power States - Drill -->
-    <Loop id="kirby_drill_idle" path="drill/idle" delay="0.15" />
-    <Anim id="kirby_drill_spin" path="drill/spin" delay="0.05" />
-    <Anim id="kirby_drill_dive" path="drill/dive" delay="0.04" goto="kirby_drill_idle" />
-
-    <!-- Power States - Beam -->
-    <Loop id="kirby_beam_idle" path="beam/idle" delay="0.15" />
-    <Anim id="kirby_beam_whip" path="beam/whip" delay="0.04" />
-    <Anim id="kirby_beam_combo" path="beam/combo" delay="0.04" goto="kirby_beam_idle" />
-
-    <!-- Power States - Wheel -->
-    <Loop id="kirby_wheel_idle" path="wheel/idle" delay="0.15" />
-    <Anim id="kirby_wheel_roll" path="wheel/roll" delay="0.03" />
-    <Anim id="kirby_wheel_jump" path="wheel/jump" delay="0.04" goto="kirby_wheel_idle" />
-
-    <!-- Power States - Phase -->
-    <Loop id="kirby_phase_idle" path="phase/idle" delay="0.15" />
-    <Anim id="kirby_phase_shift" path="phase/shift" delay="0.05" />
-    <Anim id="kirby_phase_remerge" path="phase/remerge" delay="0.04" goto="kirby_phase_idle" />
-
-    <!-- Power States - Triple Swap -->
-    <Loop id="kirby_tripleswap_idle" path="tripleswap/idle" delay="0.15" />
-    <Anim id="kirby_tripleswap_cycle" path="tripleswap/cycle" delay="0.05" />
-    <Anim id="kirby_tripleswap_finish" path="tripleswap/finish" delay="0.04" goto="kirby_tripleswap_idle" />
-
-    <!-- Power States - Time Crash -->
-    <Loop id="kirby_timecrash_idle" path="timecrash/idle" delay="0.15" />
-    <Anim id="kirby_timecrash_charge" path="timecrash/charge" delay="0.05" />
-    <Anim id="kirby_timecrash_release" path="timecrash/release" delay="0.04" goto="kirby_timecrash_idle" />
-
-    <!-- Power States - Umbrella -->
-    <Loop id="kirby_umbrella_idle" path="umbrella/idle" delay="0.15" />
-    <Anim id="kirby_umbrella_twirl" path="umbrella/twirl" delay="0.05" />
-    <Anim id="kirby_umbrella_glide" path="umbrella/glide" delay="0.04" goto="kirby_umbrella_idle" />
-
-    <!-- Power States - Mirror -->
-    <Loop id="kirby_mirror_idle" path="mirror/idle" delay="0.15" />
-    <Anim id="kirby_mirror_guard" path="mirror/guard" delay="0.05" />
-    <Anim id="kirby_mirror_reflect" path="mirror/reflect" delay="0.04" goto="kirby_mirror_idle" />
-
-    <!-- Power States - Recycler -->
-    <Loop id="kirby_recycler_idle" path="recycler/idle" delay="0.15" />
-    <Anim id="kirby_recycler_charge" path="recycler/charge" delay="0.05" />
-    <Anim id="kirby_recycler_launch" path="recycler/launch" delay="0.04" goto="kirby_recycler_idle" />
-
-    <!-- Power States - Mini -->
-    <Loop id="kirby_mini_idle" path="mini/idle" delay="0.15" />
-    <Anim id="kirby_mini_dash" path="mini/dash" delay="0.05" />
-    <Anim id="kirby_mini_celebrate" path="mini/celebrate" delay="0.04" goto="kirby_mini_idle" />
-
-    <!-- Super Ability - Inferno Light -->
-    <Loop id="kirby_inferno_super_idle" path="super/inferno/idle" delay="0.15" />
-    <Anim id="kirby_inferno_super_charge" path="super/inferno/charge" delay="0.05" />
-    <Anim id="kirby_inferno_super_blast" path="super/inferno/blast" delay="0.04" goto="kirby_inferno_super_idle" />
-
-    <!-- Super Ability - Grand Hammer -->
-    <Loop id="kirby_grandhammer_super_idle" path="super/grandhammer/idle" delay="0.15" />
-    <Anim id="kirby_grandhammer_super_windup" path="super/grandhammer/windup" delay="0.05" />
-    <Anim id="kirby_grandhammer_super_slam" path="super/grandhammer/slam" delay="0.04" goto="kirby_grandhammer_super_idle" />
-
-    <!-- Super Ability - Mechanize Ranger -->
-    <Loop id="kirby_mechanizeranger_super_idle" path="super/mechanizeranger/idle" delay="0.15" />
-    <Anim id="kirby_mechanizeranger_super_deploy" path="super/mechanizeranger/deploy" delay="0.05" />
-    <Anim id="kirby_mechanizeranger_super_volley" path="super/mechanizeranger/volley" delay="0.04" goto="kirby_mechanizeranger_super_idle" />
-
-    <!-- Super Ability - Frost Mind -->
-    <Loop id="kirby_frostmind_super_idle" path="super/frostmind/idle" delay="0.15" />
-    <Anim id="kirby_frostmind_super_channel" path="super/frostmind/channel" delay="0.05" />
-    <Anim id="kirby_frostmind_super_burst" path="super/frostmind/burst" delay="0.04" goto="kirby_frostmind_super_idle" />
-
-    <!-- Super Ability - Ultra Sword -->
-    <Loop id="kirby_ultrasword_super_idle" path="super/ultrasword/idle" delay="0.15" />
-    <Anim id="kirby_ultrasword_super_windup" path="super/ultrasword/windup" delay="0.05" />
-    <Anim id="kirby_ultrasword_super_cleave" path="super/ultrasword/cleave" delay="0.04" goto="kirby_ultrasword_super_idle" />
-
-    <!-- Super Ability - Knight -->
-    <Loop id="kirby_knight_super_idle" path="super/knight/idle" delay="0.15" />
-    <Anim id="kirby_knight_super_slash" path="super/knight/slash" delay="0.05" />
-    <Anim id="kirby_knight_super_finale" path="super/knight/finale" delay="0.04" goto="kirby_knight_super_idle" />
-    
-    <!-- Combat Animations -->
-    <Anim id="kirby_melee" path="combat/punchA" delay="0.05" goto="kirby_idle" />
-    <Anim id="kirby_melee_up" path="combat/punchB" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_melee_down" path="combat/groundpound" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_punchA" path="combat/punchA" delay="0.05" goto="kirby_idle" />
-    <Anim id="kirby_punchB" path="combat/punchB" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_backflip" path="combat/backflip" delay="0.06" goto="kirby_idle" />
-    <Anim id="kirby_spin" path="combat/spin" delay="0.05" />
-    <Anim id="kirby_groundpound" path="combat/groundpound" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_grab_enemy" path="combat/grab_enemy" delay="0.06" goto="kirby_idle" />
-    <Anim id="kirby_slide" path="combat/slide" delay="0.04" goto="kirby_idle" />
-    
-    <!-- Death Animations -->
-    <Anim id="kirby_pre_death" path="combat/pre_death" delay="0.08" goto="kirby_mid_death" />
-    <Anim id="kirby_mid_death" path="combat/mid_death" delay="0.08" goto="kirby_post_death" />
-    <Anim id="kirby_post_death" path="combat/post_death" delay="0.08" />
-    <Anim id="kirby_death" path="combat/death" delay="0.08" />
-  </kirby_player_ext>
 
   <!-- NPCs -->
   <madeline path="characters/madeline/" start="idle">
@@ -1903,16 +1687,16 @@
     
     <!-- Basic Animations -->
     <Loop id="kirby_idle" path="idle" delay="0.15" />
-    <Anim id="kirby_walk" path="walk" delay="0.08" />
-    <Anim id="kirby_run" path="run" delay="0.06" />
-    <Anim id="kirby_jump" path="jump" delay="0.1" />
-    <Anim id="kirby_fall" path="fall" delay="0.1" />
+    <Loop id="kirby_walk" path="walk" delay="0.08" />
+    <Loop id="kirby_run" path="runFast" delay="0.06" />
+    <Loop id="kirby_jump" path="jumpFast" delay="0.1" frames="0,1" />
+    <Loop id="kirby_fall" path="fall" delay="0.1" />
     
     <!-- Kirby Abilities -->
-    <Anim id="kirby_inhale" path="inhale" delay="0.05" />
+    <Loop id="kirby_inhale" path="inhale" delay="0.05" />
     <Loop id="kirby_hover" path="hover" delay="0.1" />
     <Anim id="kirby_spit" path="spit" delay="0.05" />
-    <Anim id="kirby_damage" path="damage" delay="0.08" goto="kirby_idle" />
+    <Anim id="kirby_damage" path="hurt" delay="0.08" goto="kirby_idle" />
     
     <!-- Transformation Animations -->
     <Anim id="kirby_transform_in" path="transform_in" delay="0.06" goto="kirby_idle" />
@@ -1920,14 +1704,14 @@
     
     <!-- Power States - Fire -->
     <Loop id="kirby_fire_idle" path="fire/idle" delay="0.15" />
-    <Anim id="kirby_fire_walk" path="fire/walk" delay="0.08" />
+    <Loop id="kirby_fire_walk" path="fire/walk" delay="0.08" />
     <Anim id="kirby_fire_attack" path="fire/attack" delay="0.04" goto="kirby_fire_idle" />
     <Anim id="kirby_fire_breath" path="fire/breath" delay="0.03" goto="kirby_fire_idle" />
     <Anim id="kirby_fire_dashball" path="fire/dashball" delay="0.1" />
     
     <!-- Power States - Ice -->
     <Loop id="kirby_ice_idle" path="ice/idle" delay="0.15" />
-    <Anim id="kirby_ice_walk" path="ice/walk" delay="0.08" />
+    <Loop id="kirby_ice_walk" path="ice/walk" delay="0.08" />
     <Anim id="kirby_ice_attack" path="ice/attack" delay="0.06" goto="kirby_ice_idle" />
     <Anim id="kirby_ice_shard" path="ice/shard" delay="0.05" goto="kirby_ice_idle" />
     <Anim id="kirby_ice_slide" path="ice/slide" delay="0.1" goto="kirby_ice_idle" />
@@ -1936,7 +1720,7 @@
     
     <!-- Power States - Spark -->
     <Loop id="kirby_spark_idle" path="spark/idle" delay="0.12" />
-    <Anim id="kirby_spark_walk" path="spark/walk" delay="0.08" />
+    <Loop id="kirby_spark_walk" path="spark/walk" delay="0.08" />
     <Anim id="kirby_spark_attack" path="spark/attack" delay="0.03" goto="kirby_spark_idle" />
     <Anim id="kirby_spark_shield" path="spark/shield" delay="0.05" goto="kirby_spark_idle" />
     <Anim id="kirby_spark_charge" path="spark/charge" delay="0.1" goto="kirby_spark_idle" />
@@ -1944,7 +1728,7 @@
     
     <!-- Power States - Stone -->
     <Loop id="kirby_stone_idle" path="stone/idle" delay="0.2" />
-    <Anim id="kirby_stone_walk" path="stone/walk" delay="0.1" />
+    <Loop id="kirby_stone_walk" path="stone/walk" delay="0.1" />
     <Anim id="kirby_stone_transform" path="stone/transform" delay="0.05" />
     <Loop id="kirby_stone_form" path="stone/form" delay="0.3" />
     <Anim id="kirby_stone_shatter" path="stone/shatter" delay="0.05" goto="kirby_idle" />
@@ -1954,7 +1738,7 @@
     
     <!-- Power States - Sword -->
     <Loop id="kirby_sword_idle" path="sword/idle" delay="0.15" />
-    <Anim id="kirby_sword_walk" path="sword/walk" delay="0.08" />
+    <Loop id="kirby_sword_walk" path="sword/walk" delay="0.08" />
     <Anim id="kirby_sword_attack1" path="sword/attack1" delay="0.04" goto="kirby_sword_idle" />
     <Anim id="kirby_sword_attack2" path="sword/attack2" delay="0.05" goto="kirby_sword_idle" />
     <Anim id="kirby_sword_spin" path="sword/spin" delay="0.03" goto="kirby_sword_idle" />
@@ -1964,22 +1748,27 @@
     <Anim id="kirby_sword_finalslice" path="sword/finalslice" delay="0.04" goto="kirby_sword_idle" />
     
     <!-- Combat Animations -->
-    <Anim id="kirby_melee" path="combat/punchA" delay="0.05" goto="kirby_idle" />
-    <Anim id="kirby_melee_up" path="combat/punchB" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_melee_down" path="combat/groundpound" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_punchA" path="combat/punchA" delay="0.05" goto="kirby_idle" />
-    <Anim id="kirby_punchB" path="combat/punchB" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_backflip" path="combat/backflip" delay="0.06" goto="kirby_idle" />
-    <Anim id="kirby_spin" path="combat/spin" delay="0.05" />
-    <Anim id="kirby_groundpound" path="combat/groundpound" delay="0.04" goto="kirby_idle" />
-    <Anim id="kirby_grab_enemy" path="combat/grab_enemy" delay="0.06" goto="kirby_idle" />
-    <Anim id="kirby_slide" path="combat/slide" delay="0.04" goto="kirby_idle" />
+    <Anim id="kirby_melee" path="combat/punchA_" delay="0.05" goto="kirby_idle" />
+    <Anim id="kirby_melee_up" path="combat/punchB_" delay="0.04" goto="kirby_idle" />
+    <Anim id="kirby_melee_down" path="combat/groundpound_" delay="0.04" goto="kirby_idle" />
+    <Anim id="kirby_punchA" path="combat/punchA_" delay="0.05" goto="kirby_idle" />
+    <Anim id="kirby_punchB" path="combat/punchB_" delay="0.04" goto="kirby_idle" />
+    <Anim id="kirby_backflip" path="combat/backflip_" delay="0.06" goto="kirby_idle" />
+    <Anim id="kirby_spin" path="combat/spin_" delay="0.05" />
+    <Anim id="kirby_groundpound" path="combat/groundpound_" delay="0.04" goto="kirby_idle" />
+    <Anim id="kirby_grab_enemy" path="combat/grab_enemy_" delay="0.06" goto="kirby_idle" />
+    <Anim id="kirby_slide" path="combat/slide_" delay="0.04" goto="kirby_idle" />
+    <!-- Range / Mouthful / Swallow / Copy — use placeholder frames until dedicated art is added -->
+    <Anim id="kirby_range" path="spit" delay="0.05" goto="kirby_idle" />
+    <Loop id="kirby_mouthful" path="idlemouthful" delay="0.08" />
+    <Anim id="kirby_swallow" path="exhale" delay="0.08" goto="kirby_idle" />
+    <Anim id="kirby_copy" path="transform_in" delay="0.06" goto="kirby_idle" />
     
     <!-- Death Animations -->
-    <Anim id="kirby_pre_death" path="combat/pre_death" delay="0.08" goto="kirby_mid_death" />
-    <Anim id="kirby_mid_death" path="combat/mid_death" delay="0.08" goto="kirby_post_death" />
-    <Anim id="kirby_post_death" path="combat/post_death" delay="0.08" />
-    <Anim id="kirby_death" path="combat/death" delay="0.08" />
+    <Anim id="kirby_pre_death" path="combat/pre_death_" delay="0.08" goto="kirby_mid_death" />
+    <Anim id="kirby_mid_death" path="combat/mid_death_" delay="0.08" goto="kirby_post_death" />
+    <Anim id="kirby_post_death" path="combat/post_death_" delay="0.08" />
+    <Anim id="kirby_death" path="combat/death_" delay="0.08" />
 </kirby_player_ext>
 
   <!-- ================================================================ -->

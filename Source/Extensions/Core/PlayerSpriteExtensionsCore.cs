@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Extensions.Core
 {
@@ -13,14 +14,14 @@ namespace MaggyHelper.Extensions.Core
         public static void Initialize()
         {
             IngesteLogger.Debug("PlayerSpriteExtensionsCore: Initializing...");
-            // Add hooks as needed
+            KirbyPlayerSpriteCore.Initialize();
             IngesteLogger.Debug("PlayerSpriteExtensionsCore: Initialized");
         }
 
         public static void Uninitialize()
         {
             IngesteLogger.Debug("PlayerSpriteExtensionsCore: Uninitializing...");
-            // Remove hooks
+            KirbyPlayerSpriteCore.Uninitialize();
             IngesteLogger.Debug("PlayerSpriteExtensionsCore: Uninitialized");
         }
 

@@ -149,16 +149,16 @@ namespace MaggyHelper.Extensions.Kirby
             try
             {
                 _sprite = new Sprite(GFX.Game, "projectiles/kirby/star/");
-                _sprite.AddLoop("idle", "", 0.08f);
+                _sprite.AddLoop(KirbyAnimIds.Idle, "", 0.08f);
                 _sprite.CenterOrigin();
-                _sprite.Play("idle");
+                _sprite.Play(KirbyAnimIds.Idle);
             }
             catch
             {
                 _sprite = new Sprite(GFX.Game, "objects/refill/");
-                _sprite.AddLoop("idle", "idle", 0.1f);
+                _sprite.AddLoop(KirbyAnimIds.Idle, KirbyAnimIds.Idle, 0.1f);
                 _sprite.CenterOrigin();
-                _sprite.Play("idle");
+                _sprite.Play(KirbyAnimIds.Idle);
                 _sprite.Color = Color.Yellow;
             }
             Add(_sprite);
@@ -208,8 +208,10 @@ namespace MaggyHelper.Extensions.Kirby
         {
             if (Scene == null) return;
 
-            foreach (var entity in Scene.Tracker.GetEntities<Actor>())
+            foreach (Entity candidate in Scene.Entities)
             {
+                if (candidate is not Actor entity) continue;
+
                 if (entity == this) continue;
                 if (entity is Player) continue;
                 if (entity is KirbyPlayerExtension) continue;

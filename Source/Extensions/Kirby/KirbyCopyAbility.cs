@@ -383,8 +383,10 @@ namespace MaggyHelper.Extensions.Kirby
         {
             if (Level == null) return;
 
-            foreach (var entity in Level.Tracker.GetEntities<Actor>())
+            foreach (Entity candidate in Level.Entities)
             {
+                if (candidate is not Actor entity) continue;
+
                 if (entity == Player || entity == Extension) continue;
                 if (entity is Entities.Kirby.KirbyActorBase kirbyActor)
                 {
@@ -398,8 +400,10 @@ namespace MaggyHelper.Extensions.Kirby
             if (Level == null) return;
             int healed = 0;
 
-            foreach (var entity in Level.Tracker.GetEntities<Actor>())
+            foreach (Entity candidate in Level.Entities)
             {
+                if (candidate is not Actor entity) continue;
+
                 if (entity == Player || entity == Extension) continue;
                 if (entity is Entities.Kirby.KirbyActorBase)
                 {

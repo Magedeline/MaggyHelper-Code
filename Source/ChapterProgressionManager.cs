@@ -173,6 +173,10 @@ public static class ChapterProgressionManager
         if (selectedData?.SID == null || !IsLockedChapterSID(selectedData.SID))
             return;
 
+        // Never force chapter selection changes outside our own maps.
+        if (!AreaModeExtender.IsOurMap(selectedData))
+            return;
+
         int fallbackArea = FindNearestUnlockedArea(selectedArea);
         if (fallbackArea < 0 || fallbackArea == selectedArea)
             return;
@@ -211,10 +215,24 @@ public static class ChapterProgressionManager
 
     private static int FindNearestUnlockedArea(int fromArea)
     {
+        var origin = AreaData.Get(fromArea);
+        if (origin?.SID == null)
+            return MaggySaveFacade.SelectedAreaId;
+
+        bool originIsOurMap = AreaModeExtender.IsOurMap(origin);
+        string originPrefix = GetSidPrefix(origin.SID);
+
         for (int i = fromArea - 1; i >= 0; i--)
         {
             var ad = AreaData.Get(i);
             if (ad?.SID == null)
+                continue;
+
+            // Keep fallback inside the same campaign lane to avoid cross-campaign softlocks.
+            if (AreaModeExtender.IsOurMap(ad) != originIsOurMap)
+                continue;
+
+            if (!string.Equals(GetSidPrefix(ad.SID), originPrefix, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             if (IsLockedChapterSID(ad.SID))
@@ -224,6 +242,15 @@ public static class ChapterProgressionManager
         }
 
         return MaggySaveFacade.SelectedAreaId;
+    }
+
+    private static string GetSidPrefix(string sid)
+    {
+        if (string.IsNullOrEmpty(sid))
+            return string.Empty;
+
+        int slash = sid.LastIndexOf('/');
+        return slash > 0 ? sid[..slash] : sid;
     }
 
     [Command("maggy_chapter_test", "Test late chapter unlock flow. Usage: maggy_chapter_test [status|queue16|queue19|queue20|unlock16|unlock19|unlock20|apply]")]

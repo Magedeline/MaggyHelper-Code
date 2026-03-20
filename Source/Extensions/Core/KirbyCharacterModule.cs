@@ -1,5 +1,6 @@
 using MaggyHelper.Extensions.Kirby;
 using MaggyHelper.Extensions.Kirby.Core;
+using MaggyHelper.Extensions.Kirby.ModCompat;
 
 namespace MaggyHelper.Extensions.Core
 {
@@ -26,10 +27,12 @@ namespace MaggyHelper.Extensions.Core
         protected override void OnInitialize()
         {
             _extensionCore.Hook();
+            KirbyModCompatManager.Initialize();
         }
 
         protected override void OnUninitialize()
         {
+            KirbyModCompatManager.Uninitialize();
             _extensionCore.Unhook();
         }
 

@@ -118,7 +118,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             // Always-kill bypasses Kirby health (e.g., falling into void)
             if (always)
             {
-                kirby.TakeDamage(kirby.MaxHealth, dir);
                 return orig(self, dir, always, register);
             }
 
@@ -130,8 +129,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
                 return null; // Cancel actual death
             }
 
-            // Last hit — allow real death
-            kirby.TakeDamage(1, dir);
+            // Last hit — allow real death without re-entering Player.Die from TakeDamage.
             return orig(self, dir, always, register);
         }
 
@@ -170,8 +168,8 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             level.Shake(0.2f);
             Input.Rumble(RumbleStrength.Light, RumbleLength.Medium);
 
-            // Kirby hurt animation
-            kirby.KirbySprite?.Play(kirby.ResolveAnim("death"));
+            // Kirby hurt animation — use the damage flash rather than the long death sequence.
+            kirby.KirbySprite?.Play(kirby.ResolveAnim(KirbyAnimIds.Logical.Damage));
 
             // Brief stagger then reposition
             player.Add(new Coroutine(FakeDeathRoutine(kirby, player, level)));
@@ -202,7 +200,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             player.StateMachine.State = Player.StNormal;
 
             // Kirby idle animation
-            kirby.KirbySprite?.Play(kirby.ResolveAnim("idle"));
+            kirby.KirbySprite?.Play(kirby.ResolveAnim(KirbyAnimIds.Logical.Idle));
 
             // Grant invulnerability frames
             // (Kirby's own invuln timer handles this via TakeDamage)

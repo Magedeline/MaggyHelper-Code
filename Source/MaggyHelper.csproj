@@ -71,6 +71,7 @@
 
     <ItemGroup>
         <Compile Include="..\MaggyHelperModule.cs" Link="MaggyHelperModule.cs" />
+        <Compile Include="..\MaggyHelperSaveData.cs" Link="MaggyHelperSaveData.cs" />
         <!-- Exclude decompiled Celeste.Player shim to prevent type conflicts -->
         <Compile Remove="Source\Extensions\Player.cs" />
         <Compile Remove="Extensions\Player.cs" />

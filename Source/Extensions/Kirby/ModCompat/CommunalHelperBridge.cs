@@ -41,10 +41,9 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
 
             // Hook player state transitions to handle dream tunnel dash
             On.Celeste.Player.Update += OnPlayerUpdate_CommunalCompat;
-            On.Celeste.Player.RefillDash += OnPlayerRefillDash_CommunalCompat;
 
             Logger.Log(LogLevel.Info, "KirbyModCompat",
-                "CommunalHelper bridge: hooked dream tunnel dash + custom booster compat");
+                "CommunalHelper bridge: hooked dream tunnel dash compat");
         }
 
         public void Unload()
@@ -52,7 +51,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             if (!IsActive) return;
 
             On.Celeste.Player.Update -= OnPlayerUpdate_CommunalCompat;
-            On.Celeste.Player.RefillDash -= OnPlayerRefillDash_CommunalCompat;
         }
 
         public void UpdateKirby(KirbyPlayerExtension kirby, Player player, Level level)
@@ -80,7 +78,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             // During dream tunnel dash, keep Kirby sprite synced
             if (inDreamTunnelDash && kirby.IsSynced)
             {
-                kirby.KirbySprite?.Play(kirby.ResolveAnim("dash"));
+                kirby.KirbySprite?.Play(kirby.ResolveAnim(KirbyAnimIds.Logical.Dash));
             }
 
             // Handle custom booster states — CommunalHelper boosters set
@@ -131,12 +129,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             // Restore Kirby stamina (dream tunnel dash refills stamina like vanilla)
             kirby.CurrentStamina = Math.Max(kirby.CurrentStamina, _dreamDashStaminaSnapshot);
 
-            // Refill Kirby health by 1 as a bonus for successful dream tunnel passage
-            if (kirby.CurrentHealth < kirby.MaxHealth)
-            {
-                kirby.Heal(1);
-            }
-
             Logger.Log(LogLevel.Verbose, "KirbyModCompat",
                 "Kirby exited CommunalHelper dream tunnel dash");
         }
@@ -147,7 +139,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             // but with modified behavior. Ensure Kirby sprite stays synced.
             if (player.StateMachine.State == Player.StBoost && kirby.IsSynced)
             {
-                kirby.KirbySprite?.Play(kirby.ResolveAnim("dash"));
+                kirby.KirbySprite?.Play(kirby.ResolveAnim(KirbyAnimIds.Logical.Dash));
             }
         }
 
@@ -165,25 +157,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
                     SyncKirbyWithConnectedSolids(kirby, self, level);
                 }
             }
-        }
-
-        private bool OnPlayerRefillDash_CommunalCompat(On.Celeste.Player.orig_RefillDash orig, Player self)
-        {
-            bool result = orig(self);
-
-            // When CommunalHelper refills dashes (e.g., from DashStateRefill),
-            // also partially restore Kirby hover stamina
-            if (result && self.Scene is Level level)
-            {
-                var kirby = level.Tracker.GetEntity<KirbyPlayerExtension>();
-                if (kirby != null)
-                {
-                    float staminaRefill = kirby.MaxStamina * 0.25f;
-                    kirby.CurrentStamina = Math.Min(kirby.CurrentStamina + staminaRefill, kirby.MaxStamina);
-                }
-            }
-
-            return result;
         }
 
         private void SyncKirbyWithConnectedSolids(KirbyPlayerExtension kirby, Player player, Level level)

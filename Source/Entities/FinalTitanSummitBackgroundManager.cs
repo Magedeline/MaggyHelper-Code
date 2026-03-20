@@ -188,7 +188,7 @@ public class FinalTitanSummitBackgroundManager : Entity
         chara.Sprite?.Play("spin");
         badeline.Sprite.Scale.X = 1f;
         ralsei.Sprite.Scale.X = 1.5f;
-        chara.Sprite.Scale.X = 2f;
+        if (chara.Sprite != null) chara.Sprite.Scale.X = 2f;
 
         while (spinning || dist > 0f)
         {
@@ -201,7 +201,7 @@ public class FinalTitanSummitBackgroundManager : Entity
             player.Sprite.SetAnimationFrame(frame);
             badeline.Sprite.SetAnimationFrame(frame + 7);
             ralsei.Sprite.SetAnimationFrame(frame + 7);
-            chara.Sprite.SetAnimationFrame(frame + 7);
+            chara.Sprite?.SetAnimationFrame(frame + 7);
 
             player.Position = center + new Vector2(sin * radius, cos * dist * 8f);
             badeline.Position = center + new Vector2((float)Math.Sin(timer + Math.PI / 3) * radius, (float)Math.Cos(timer + Math.PI / 3) * dist * 8f);

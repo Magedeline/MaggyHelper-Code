@@ -41,9 +41,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             // Hook player update to track VivHelper speed modifications
             On.Celeste.Player.Update += OnPlayerUpdate_VivCompat;
 
-            // Hook springs to give Kirby stamina on bounce
-            On.Celeste.Spring.OnCollide += OnSpringCollide_VivCompat;
-
             Logger.Log(LogLevel.Info, "KirbyModCompat",
                 "VivHelper bridge: hooked custom booster + speed trigger compat");
         }
@@ -53,7 +50,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             if (!IsActive) return;
 
             On.Celeste.Player.Update -= OnPlayerUpdate_VivCompat;
-            On.Celeste.Spring.OnCollide -= OnSpringCollide_VivCompat;
         }
 
         public void UpdateKirby(KirbyPlayerExtension kirby, Player player, Level level)
@@ -83,9 +79,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
                 _speedMultiplier = Math.Max(1f, currentSpeed / Player.MaxRun);
             }
 
-            // Check for VivHelper refill wall passage
-            // VivHelper refill walls refill dashes on contact — sync with Kirby
-            CheckRefillWallSync(kirby, player, level);
         }
 
         public bool OnDamage(KirbyPlayerExtension kirby, int amount, Vector2 source) => false;
@@ -117,7 +110,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
                 inhale.Cancel();
 
             // Sync sprite
-            kirby.KirbySprite?.Play(kirby.ResolveAnim("dash"));
+            kirby.KirbySprite?.Play(kirby.ResolveAnim(KirbyAnimIds.Logical.Dash));
         }
 
         private void OnExitBoost(KirbyPlayerExtension kirby, Player player)
@@ -144,29 +137,5 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             }
         }
 
-        private void OnSpringCollide_VivCompat(On.Celeste.Spring.orig_OnCollide orig, Spring self, Player player)
-        {
-            orig(self, player);
-
-            // If this is a VivHelper custom spring, give Kirby extra bounce benefit
-            if (player.Scene is Level level)
-            {
-                var kirby = level.Tracker.GetEntity<KirbyPlayerExtension>();
-                if (kirby != null)
-                {
-                    // Spring bounce refills some hover stamina
-                    kirby.CurrentStamina = Math.Min(
-                        kirby.CurrentStamina + kirby.MaxStamina * 0.15f,
-                        kirby.MaxStamina);
-                }
-            }
-        }
-
-        private void CheckRefillWallSync(KirbyPlayerExtension kirby, Player player, Level level)
-        {
-            // VivHelper Refill Walls refill dash on passage — we detect dash refill
-            // via the dash count and sync Kirby's stamina already in the
-            // MaxHelpingHandBridge's RefillDash hook (shared hook point)
-        }
     }
 }

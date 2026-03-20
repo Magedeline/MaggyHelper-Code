@@ -4,40 +4,10 @@
   Dependencies:
     - Name: AdventureHelper
       Version: 1.6.0
-    - Name: AdventureHelper
-      Version: 1.6.0
-    - Name: AdventureHelper
-      Version: 1.6.0
-    - Name: AdventureHelper
-      Version: 1.6.0
-    - Name: AdventureHelper
-      Version: 1.6.0
-    - Name: AdventureHelper
-      Version: 1.6.0
-    - Name: Anonhelper
-      Version: 1.1.1
-    - Name: Anonhelper
-      Version: 1.1.1
-    - Name: Anonhelper
-      Version: 1.1.1
     - Name: Anonhelper
       Version: 1.1.1
     - Name: AxoHelper
       Version: 1.0.0
-    - Name: AxoHelper
-      Version: 1.0.0
-    - Name: AxoHelper
-      Version: 1.0.0
-    - Name: BounceHelper
-      Version: 1.14.0
-    - Name: BounceHelper
-      Version: 1.14.0
-    - Name: BounceHelper
-      Version: 1.14.0
-    - Name: BounceHelper
-      Version: 1.14.0
-    - Name: BounceHelper
-      Version: 1.14.0
     - Name: BounceHelper
       Version: 1.14.0
     - Name: BrokemiaHelper
@@ -74,8 +44,6 @@
       Version: 1.4.7
     - Name: KirbyBoi_Skinmod_UnPseduo_and_Maggy
       Version: 1.0.0
-    - Name: Loenn PCG
-      Version: 1.0.0
     - Name: LoennScripts
       Version: 1.0.8
     - Name: LuaCutscenes
@@ -102,13 +70,5 @@
       Version: 1.8.3
     - Name: VidPlayer
       Version: 0.5.2
-    - Name: VidPlayer
-      Version: 0.5.2
-    - Name: VivHelper
-      Version: 1.14.10
-    - Name: VivHelper
-      Version: 1.14.10
-    - Name: VivHelper
-      Version: 1.14.10
     - Name: VivHelper
       Version: 1.14.10

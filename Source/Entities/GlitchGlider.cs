@@ -324,8 +324,7 @@ namespace MaggyHelper.Entities
         private void CheckBarrierPiercing()
         {
             // Check for barriers that can be pierced (like lightning barriers)
-            var entities = Scene.Tracker.GetEntities<Entity>();
-            foreach (var entity in entities)
+            foreach (Entity entity in Scene.Entities)
             {
                 if (CollideCheck(entity) && IsBarrier(entity) && !barriersPierced.Contains(entity))
                 {

@@ -18,6 +18,17 @@ public sealed class KirbyPlayerExtensionCore
     private const string SfxHurt = SfxPath + "predeath";
     private const string SfxDie = SfxPath + "predeath";
     private const string SfxBounce = SfxPath + "bounce";
+    private static readonly string[] InstantKillHazardKeywords =
+    {
+        "Spinner",
+        "Blade",
+        "Crush",
+        "CrushingBlock",
+        "CrushBlock",
+        "Spikes",
+        "Spike",
+        "Saw"
+    };
 
     private readonly KirbyPlayerCore _playerCore;
     private bool _hooked;
@@ -77,6 +88,14 @@ public sealed class KirbyPlayerExtensionCore
             return orig(self, direction, evenIfInvincible, registerDeathInStats);
         }
 
+        // Spinner/blade/crush-style hazards should stay lethal in one hit,
+        // otherwise Kirby health buffering can leave the player trapped in hazard geometry.
+        if (IsInstantKillHazardContact(self, true))
+        {
+            Audio.Play(SfxDie, self.Position);
+            return orig(self, direction, evenIfInvincible, registerDeathInStats);
+        }
+
         var ext = _playerCore.GetExtension(self.Scene);
         if (ext != null && ext.CurrentHealth > 1)
         {
@@ -97,6 +116,57 @@ public sealed class KirbyPlayerExtensionCore
 
         Audio.Play(SfxDie, self.Position);
         return orig(self, direction, evenIfInvincible, registerDeathInStats);
+    }
+
+    private static bool IsInstantKillHazardContact(Player player, bool includeVertical = false)
+    {
+        if (player?.Scene is not Level level)
+        {
+            return false;
+        }
+
+        foreach (Entity entity in level.Entities)
+        {
+            if (entity == null || entity == player || !entity.Collidable)
+            {
+                continue;
+            }
+
+            if (!LooksLikeInstantKillHazard(entity.GetType().Name))
+            {
+                continue;
+            }
+
+            if (player.CollideCheck(entity))
+            {
+                return true;
+            }
+
+            if (includeVertical && player.CollideCheck(entity, Vector2.UnitY))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool LooksLikeInstantKillHazard(string typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < InstantKillHazardKeywords.Length; i++)
+        {
+            if (typeName.Contains(InstantKillHazardKeywords[i], StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void PlayerOnCollideH(On.Celeste.Player.orig_OnCollideH orig, Player self, CollisionData data)

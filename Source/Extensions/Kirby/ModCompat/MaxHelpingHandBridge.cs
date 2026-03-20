@@ -36,20 +36,13 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
         {
             if (!IsActive) return;
 
-            // Hook dash refill to also restore Kirby stamina
-            On.Celeste.Player.RefillDash += OnRefillDash_MaxHH;
-            On.Celeste.Player.UseRefill += OnUseRefill_MaxHH;
-
             Logger.Log(LogLevel.Info, "KirbyModCompat",
-                "MaxHelpingHand bridge: hooked dash count + flag refill compat");
+                "MaxHelpingHand bridge: tracking dash count compat");
         }
 
         public void Unload()
         {
             if (!IsActive) return;
-
-            On.Celeste.Player.RefillDash -= OnRefillDash_MaxHH;
-            On.Celeste.Player.UseRefill -= OnUseRefill_MaxHH;
         }
 
         public void UpdateKirby(KirbyPlayerExtension kirby, Player player, Level level)
@@ -67,9 +60,6 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
                 _previousDashCount = newCount;
             }
 
-            // Check flag-based refills — MaxHH uses session flags
-            // like "refill_dash", "refill_stamina" etc.
-            CheckFlagRefills(kirby, player, level);
         }
 
         public bool OnDamage(KirbyPlayerExtension kirby, int amount, Vector2 source) => false;
@@ -112,84 +102,5 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             KirbyModCompatManager.OnDashCountChanged(kirby, player, newCount);
         }
 
-        private bool OnRefillDash_MaxHH(On.Celeste.Player.orig_RefillDash orig, Player self)
-        {
-            bool result = orig(self);
-
-            if (result && self.Scene is Level level)
-            {
-                var kirby = level.Tracker.GetEntity<KirbyPlayerExtension>();
-                if (kirby != null)
-                {
-                    // MaxHH refills often give more than vanilla — give Kirby
-                    // proportional stamina recovery
-                    float staminaRefill = kirby.MaxStamina * 0.3f;
-                    kirby.CurrentStamina = Math.Min(
-                        kirby.CurrentStamina + staminaRefill, kirby.MaxStamina);
-                }
-            }
-
-            return result;
-        }
-
-        private bool OnUseRefill_MaxHH(On.Celeste.Player.orig_UseRefill orig, Player self, bool twoDashes)
-        {
-            bool result = orig(self, twoDashes);
-
-            if (result && self.Scene is Level level)
-            {
-                var kirby = level.Tracker.GetEntity<KirbyPlayerExtension>();
-                if (kirby != null)
-                {
-                    // Two-dash refills give more stamina than one-dash
-                    float staminaRefill = twoDashes
-                        ? kirby.MaxStamina * 0.5f
-                        : kirby.MaxStamina * 0.25f;
-                    kirby.CurrentStamina = Math.Min(
-                        kirby.CurrentStamina + staminaRefill, kirby.MaxStamina);
-
-                    // Also reduce any active ability cooldowns
-                    foreach (var ability in kirby.AbilityManager.All)
-                    {
-                        ability.Cooldown = Math.Max(0f, ability.Cooldown - 0.5f);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Check if MaxHelpingHand flag-based refills have been triggered
-        /// and sync Kirby state accordingly.
-        /// </summary>
-        private void CheckFlagRefills(KirbyPlayerExtension kirby, Player player, Level level)
-        {
-            if (level?.Session == null) return;
-
-            // Check for custom flag-based refill patterns used by MaxHH
-            if (level.Session.GetFlag("kirby_full_refill"))
-            {
-                kirby.CurrentStamina = kirby.MaxStamina;
-                kirby.Heal(kirby.MaxHealth);
-                foreach (var ability in kirby.AbilityManager.All)
-                {
-                    ability.Cooldown = 0f;
-                }
-                level.Session.SetFlag("kirby_full_refill", false);
-            }
-
-            if (level.Session.GetFlag("kirby_stamina_refill"))
-            {
-                kirby.CurrentStamina = kirby.MaxStamina;
-                level.Session.SetFlag("kirby_stamina_refill", false);
-            }
-
-            if (level.Session.GetFlag("kirby_health_refill"))
-            {
-                kirby.Heal(kirby.MaxHealth);
-                level.Session.SetFlag("kirby_health_refill", false);
-            }
-        }
     }
 }

@@ -66,7 +66,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             // During star fly state (feather), sync Kirby sprite
             if (player.StateMachine.State == Player.StStarFly && kirby.IsSynced)
             {
-                kirby.KirbySprite?.Play(kirby.ResolveAnim("hover"));
+                kirby.KirbySprite?.Play(kirby.ResolveAnim(KirbyAnimIds.Logical.Hover));
             }
         }
 

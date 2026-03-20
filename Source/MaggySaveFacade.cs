@@ -23,7 +23,11 @@ public static class MaggySaveFacade
 
     public static bool TrySelectArea(int areaId)
     {
-        if (Vanilla == null || areaId < 0)
+        if (Vanilla == null || areaId < 0 || AreaData.Areas == null || areaId >= AreaData.Areas.Count)
+            return false;
+
+        AreaData target = AreaData.Get(areaId);
+        if (target == null)
             return false;
 
         Vanilla.LastArea = new AreaKey(areaId, AreaMode.Normal);

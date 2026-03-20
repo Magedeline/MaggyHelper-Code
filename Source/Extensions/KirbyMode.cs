@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using MaggyHelper.Entities;
 using MaggyHelper.Entities.Kirby;
+using MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Extensions
 {
@@ -69,7 +70,6 @@ namespace MaggyHelper.Extensions
         private KirbyHealthDisplay hud;
 
         private bool syncToPlayer;
-        private bool useKirbyExtSprite;
 
         private bool isInhaling;
         private bool hasMouthful;
@@ -77,6 +77,7 @@ namespace MaggyHelper.Extensions
         private float mouthOpenTimer;
         private float spitCooldown;
         private float invulnTimer;
+        private float hurtAnimTimer;
         private float hoverStamina;
         private int floatJumpsUsed;
 
@@ -244,6 +245,9 @@ namespace MaggyHelper.Extensions
             this.invulnTimer = this.settings.DamageInvulnTime;
             Audio.Play(SFX_HURT, this.Position);
 
+            if (this.CurrentHealth > 0)
+                this.hurtAnimTimer = 0.4f;
+
             if (this.CurrentHealth <= 0)
             {
                 this.CurrentHealth = 0;
@@ -260,18 +264,16 @@ namespace MaggyHelper.Extensions
             try
             {
                 this.sprite = GFX.SpriteBank.Create("kirby_player_ext");
-                this.useKirbyExtSprite = true;
             }
             catch
             {
                 this.sprite = GFX.SpriteBank.Create("kirby_player");
-                this.useKirbyExtSprite = false;
             }
 
             this.Add(this.sprite);
             this.sprite.Position = Vector2.Zero;
             this.sprite.Scale = Vector2.One;
-            this.sprite.Play(this.ResolveAnim("idle"));
+            this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Idle));
         }
 
         private void LoadFromSession()
@@ -463,8 +465,11 @@ namespace MaggyHelper.Extensions
             float range = this.settings.InhaleRange;
             float rangeSq = range * range;
 
-            foreach (var entity in level.Tracker.GetEntities<Actor>())
+            foreach (Entity candidate in level.Entities)
             {
+                if (candidate is not Actor entity)
+                    continue;
+
                 if (entity == this || entity == this.player)
                     continue;
                 if (!this.IsInhalable(entity))
@@ -611,80 +616,53 @@ namespace MaggyHelper.Extensions
 
             if (this.IsDead)
             {
-                this.sprite.Play(this.ResolveAnim("death"));
+                this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Death));
+                return;
+            }
+
+            // Hurt flash: play damage animation while the invuln window is active.
+            if (this.hurtAnimTimer > 0f)
+            {
+                this.hurtAnimTimer -= Engine.DeltaTime;
+                this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Damage));
                 return;
             }
 
             if (this.isInhaling)
             {
-                this.sprite.Play(this.ResolveAnim("inhale"));
+                this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Inhale));
                 return;
             }
 
             if (this.player.DashAttacking || this.player.StateMachine.State == 2)
             {
-                this.sprite.Play(this.ResolveAnim("dash"));
+                this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Dash));
                 return;
             }
 
             if (!this.player.OnGround())
             {
                 if (this.settings.IsKeyCheck("Hover") && (double)this.hoverStamina > 0.0)
-                    this.sprite.Play(this.ResolveAnim("hover"));
+                    this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Hover));
                 else if ((double)this.player.Speed.Y > 0.0)
-                    this.sprite.Play(this.ResolveAnim("fall"));
+                    this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Fall));
                 else
-                    this.sprite.Play(this.ResolveAnim("jump"));
+                    this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Jump));
                 return;
             }
 
             float speedX = Math.Abs(this.player.Speed.X);
             if ((double)speedX <= 1.0)
-                this.sprite.Play(this.ResolveAnim("idle"));
+                this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Idle));
             else if ((double)speedX < 90.0)
-                this.sprite.Play(this.ResolveAnim("walk"));
+                this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Walk));
             else
-                this.sprite.Play(this.ResolveAnim("run"));
+                this.sprite.Play(this.ResolveAnim(KirbyAnimIds.Logical.Run));
         }
 
         private string ResolveAnim(string baseId)
         {
-            if (!this.useKirbyExtSprite)
-            {
-                switch (baseId)
-                {
-                    case "run":
-                        return "runFast";
-                    default:
-                        return baseId;
-                }
-            }
-
-            switch (baseId)
-            {
-                case "idle":
-                    return "kirby_idle";
-                case "walk":
-                    return "kirby_walk";
-                case "run":
-                    return "kirby_run";
-                case "jump":
-                    return "kirby_jump";
-                case "fall":
-                    return "kirby_fall";
-                case "dash":
-                    return "kirby_run";
-                case "inhale":
-                    return "kirby_inhale";
-                case "hover":
-                    return "kirby_hover";
-                case "slide":
-                    return "kirby_slide";
-                case "death":
-                    return "kirby_death";
-                default:
-                    return "kirby_idle";
-            }
+            return KirbyPlayerSpriteCore.ResolveAnimId(this.sprite, baseId);
         }
 
         #endregion

@@ -102,6 +102,9 @@ public static class AreaMapData
     /// <summary>Lookup by SID</summary>
     private static readonly Dictionary<string, ChapterDef> _bySID = new();
 
+    /// <summary>Lookup by side-agnostic chapter key (for A/B/C/D/DX variants).</summary>
+    private static readonly Dictionary<string, ChapterDef> _byBaseKey = new(StringComparer.OrdinalIgnoreCase);
+
     // ── Initialization ───────────────────────────────────────────────────
 
     /// <summary>
@@ -112,6 +115,7 @@ public static class AreaMapData
         Chapters.Clear();
         _byNumber.Clear();
         _bySID.Clear();
+        _byBaseKey.Clear();
 
         // ── Prologue (Chapter 0) ──
         Register(new ChapterDef
@@ -381,11 +385,19 @@ public static class AreaMapData
     {
         foreach (var chapter in Chapters.OrderBy(ch => ch.Number))
         {
-            var area = AreaData.Get(chapter.SID);
-            if (area == null)
-                continue;
+            try
+            {
+                var area = AreaData.Get(chapter.SID);
+                if (area == null)
+                    continue;
 
-            ApplyHardcodedRuntimeData(area, chapter);
+                ApplyHardcodedRuntimeData(area, chapter);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Warn, "MaggyHelper",
+                    $"Skipped hardcoded chapter data for '{chapter?.SID ?? "<null>"}' due to {ex.GetType().Name}: {ex.Message}");
+            }
         }
     }
 
@@ -394,11 +406,22 @@ public static class AreaMapData
         if (area == null)
             return;
 
+        if (!AreaModeExtender.IsOurMap(area))
+            return;
+
         var chapter = FindByAnySID(area.SID);
         if (chapter == null)
             return;
 
-        ApplyHardcodedRuntimeData(area, chapter);
+        try
+        {
+            ApplyHardcodedRuntimeData(area, chapter);
+        }
+        catch (Exception ex)
+        {
+            Logger.Log(LogLevel.Warn, "MaggyHelper",
+                $"Failed applying hardcoded chapter data to '{area.SID}': {ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     public static void RefreshChapterIcon(string sid)
@@ -406,9 +429,17 @@ public static class AreaMapData
         if (string.IsNullOrWhiteSpace(sid))
             return;
 
-        var area = AreaData.Get(sid);
-        if (area != null)
-            ApplyHardcodedRuntimeData(area);
+        try
+        {
+            var area = AreaData.Get(sid);
+            if (area != null)
+                ApplyHardcodedRuntimeData(area);
+        }
+        catch (Exception ex)
+        {
+            Logger.Log(LogLevel.Warn, "MaggyHelper",
+                $"RefreshChapterIcon skipped for '{sid}' due to {ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     public static string ResolveChapterIconPath(ChapterDef chapter)
@@ -513,6 +544,10 @@ public static class AreaMapData
         Chapters.Add(chapter);
         _byNumber[chapter.Number] = chapter;
         _bySID[chapter.SID] = chapter;
+
+        string baseKey = ExtractBaseKey(chapter.SID);
+        if (!string.IsNullOrEmpty(baseKey))
+            _byBaseKey[baseKey] = chapter;
     }
 
     private static void EnsureModeArray(AreaData area)
@@ -652,18 +687,19 @@ public static class AreaMapData
     /// <summary>Gets a chapter by matching any of its side SIDs</summary>
     public static ChapterDef FindByAnySID(string sid)
     {
-        if (string.IsNullOrEmpty(sid)) return null;
+        if (string.IsNullOrEmpty(sid))
+            return null;
+
+        if (!sid.StartsWith(AreaModeExtender.MAP_ROOT + "/", StringComparison.OrdinalIgnoreCase))
+            return null;
 
         // Direct match
-        if (_bySID.TryGetValue(sid, out var ch)) return ch;
+        if (_bySID.TryGetValue(sid, out var ch))
+            return ch;
 
-        // Try to find by chapter key
-        foreach (var chapter in Chapters)
-        {
-            string key = ExtractBaseKey(chapter.SID);
-            if (!string.IsNullOrEmpty(key) && sid.Contains(key))
-                return chapter;
-        }
+        string baseKey = ExtractBaseKey(sid);
+        if (!string.IsNullOrEmpty(baseKey) && _byBaseKey.TryGetValue(baseKey, out ch))
+            return ch;
 
         return null;
     }

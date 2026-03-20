@@ -81,6 +81,7 @@ public class MaggyHelperModule : EverestModule
             LoadSubsystem("IntroRemixHooks", () => IntroRemixHooks.Load());
             LoadSubsystem("OverworldMusicManager", () => OverworldMusicManager.Load());
             LoadSubsystem("MountainOverworldManager", () => MountainOverworldManager.Load());
+            LoadSubsystem("DesoloZantasOuiHooks", () => DesoloZantasOuiHooks.Load());
             LoadSubsystem("ChapterProgressionManager", () => ChapterProgressionManager.Load());
 
             LoadSubsystem("GlobalModAudioLoader", () => GlobalModAudioLoader.Load());
@@ -164,6 +165,7 @@ public class MaggyHelperModule : EverestModule
             IntroRemixHooks.Unload();
             OverworldMusicManager.Unload();
             MountainOverworldManager.Unload();
+            DesoloZantasOuiHooks.Unload();
             ChapterProgressionManager.Unload();
 
             EffectManager.UnloadAll();

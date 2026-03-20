@@ -46,8 +46,8 @@ namespace MaggyHelper.Extensions.Kirby
         private Sprite _sprite;
         private KirbyHealthDisplay _hud;
         private bool _syncToPlayer;
-        private bool _useExtSprite;
         private float _invulnTimer;
+        private float _hurtAnimTimer;
         private bool _wasDead;
         private bool _isDead;
 
@@ -96,6 +96,12 @@ namespace MaggyHelper.Extensions.Kirby
 
         /// <summary>Current copy ability power state.</summary>
         public KirbyMode.KirbyPowerState CurrentPower { get; private set; } = KirbyMode.KirbyPowerState.None;
+
+        /// <summary>
+        /// Optional compat-provided animation override evaluated after ability animations
+        /// but before default movement animation selection.
+        /// </summary>
+        public string CompatAnimationOverride { get; set; }
 
         /// <summary>Quick access: Inhale ability.</summary>
         public KirbyInhaleAbility Inhale => _abilityManager.Get<KirbyInhaleAbility>();
@@ -180,7 +186,16 @@ namespace MaggyHelper.Extensions.Kirby
 
             // Re-acquire player if lost
             if (_player == null || _player.Scene != Scene)
+            {
                 _player = Scene.Tracker.GetEntity<Player>();
+                // Re-apply visibility suppression so the real player doesn't reappear after transitions
+                if (_player != null && _syncToPlayer)
+                {
+                    _player.Visible = false;
+                    if (_player.Sprite != null) _player.Sprite.Visible = false;
+                    if (_player.Hair != null) _player.Hair.Visible = false;
+                }
+            }
 
             if (_player == null)
                 return;
@@ -280,9 +295,15 @@ namespace MaggyHelper.Extensions.Kirby
             if (ModCompat.KirbyModCompatManager.OnKirbyDamage(this, amount, source ?? Vector2.Zero))
                 return false;
 
+            // Cancel any active abilities so their animation IDs stop being requested.
+            _abilityManager.CancelAll();
+
             CurrentHealth -= amount;
             _invulnTimer = _settings.DamageInvulnTime;
             Audio.Play(SFX_HURT, Position);
+
+            if (CurrentHealth > 0)
+                _hurtAnimTimer = 0.4f;
 
             if (CurrentHealth <= 0)
             {
@@ -381,18 +402,16 @@ namespace MaggyHelper.Extensions.Kirby
             try
             {
                 _sprite = GFX.SpriteBank.Create("kirby_player_ext");
-                _useExtSprite = true;
             }
             catch
             {
                 _sprite = GFX.SpriteBank.Create("kirby_player");
-                _useExtSprite = false;
             }
 
             Add(_sprite);
             _sprite.Position = Vector2.Zero;
             _sprite.Scale = Vector2.One;
-            _sprite.Play(ResolveAnim("idle"));
+            _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Idle));
         }
 
         private void UpdateAnimation()
@@ -402,78 +421,64 @@ namespace MaggyHelper.Extensions.Kirby
             _sprite.FlipX = _player.Facing == Facings.Left;
             _sprite.FlipY = false;
 
-            if (_isDead) { _sprite.Play(ResolveAnim("death")); return; }
+            if (_isDead) { _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Death)); return; }
 
-            // Let active abilities override animation
+            // Hurt flash: play damage animation while the invuln window is active.
+            if (_hurtAnimTimer > 0f)
+            {
+                _hurtAnimTimer -= Engine.DeltaTime;
+                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Damage));
+                return;
+            }
+
+            // Let active abilities override animation (guarded against missing IDs).
             string abilityAnim = _abilityManager.GetActiveAnimation();
             if (abilityAnim != null)
             {
-                _sprite.Play(ResolveAnim(abilityAnim));
+                string abilityAnimId = ResolveAnim(abilityAnim);
+                try { _sprite.Play(abilityAnimId); }
+                catch { /* Unknown animation ID — skip to avoid crash */ }
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(CompatAnimationOverride))
+            {
+                _sprite.Play(ResolveAnim(CompatAnimationOverride));
                 return;
             }
 
             // Dash
             if (_player.DashAttacking || _player.StateMachine.State == 2)
             {
-                _sprite.Play(ResolveAnim("dash")); return;
+                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Dash)); return;
             }
 
             // Airborne
             if (!_player.OnGround())
             {
                 if (Hover != null && Hover.IsHovering)
-                    _sprite.Play(ResolveAnim("hover"));
+                    _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Hover));
                 else if (_player.Speed.Y > 0f)
-                    _sprite.Play(ResolveAnim("fall"));
+                    _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Fall));
                 else
-                    _sprite.Play(ResolveAnim("jump"));
+                    _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Jump));
                 return;
             }
 
             // Ground
             float speedX = Math.Abs(_player.Speed.X);
             if (speedX <= 1f)
-                _sprite.Play(ResolveAnim("idle"));
+                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Idle));
             else if (speedX < 90f)
-                _sprite.Play(ResolveAnim("walk"));
+                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Walk));
             else
-                _sprite.Play(ResolveAnim("run"));
+                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Run));
         }
 
         /// <summary>Map a logical animation id to the sprite bank id.</summary>
         public string ResolveAnim(string baseId)
         {
-            if (!_useExtSprite)
-            {
-                return baseId switch
-                {
-                    "run" => "runFast",
-                    _ => baseId
-                };
-            }
-
-            return baseId switch
-            {
-                "idle" => "kirby_idle",
-                "walk" => "kirby_walk",
-                "run" => "kirby_run",
-                "jump" => "kirby_jump",
-                "fall" => "kirby_fall",
-                "dash" => "kirby_run",
-                "inhale" => "kirby_inhale",
-                "hover" => "kirby_hover",
-                "slide" => "kirby_slide",
-                "death" => "kirby_death",
-                "spit" => "kirby_spit",
-                "melee" => "kirby_melee",
-                "melee_up" => "kirby_melee_up",
-                "melee_down" => "kirby_melee_down",
-                "range" => "kirby_range",
-                "swallow" => "kirby_swallow",
-                "copy" => "kirby_copy",
-                "mouthful" => "kirby_mouthful",
-                _ => "kirby_idle"
-            };
+            return KirbyPlayerSpriteCore.ResolveAnimId(_sprite, baseId);
         }
 
         #endregion

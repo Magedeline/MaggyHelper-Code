@@ -106,6 +106,23 @@ return {
                 chaseSpeed = "Chase Speed",
                 canBeInhaled = "Can Be Inhaled"
             }
+        },
+        ["MaggyHelper/KirbyTutorialBird"] = {
+            placements = {
+                tutorial_bird = "Kirby Tutorial Bird",
+                aqua_hook_intro = "Kirby Tutorial Bird (Aqua Hook Intro)",
+                aqua_hook_swing = "Kirby Tutorial Bird (Aqua Hook Swing)"
+            },
+            attributes = {
+                birdId = "Bird ID",
+                dialogs = "Tutorial Dialog IDs",
+                controls = "Tutorial Controls",
+                startupIndex = "Startup Tutorial Index",
+                triggerOnce = "Trigger Each Tutorial Once",
+                faceLeft = "Face Left",
+                caw = "Caw Before Showing Tutorial",
+                onlyOnce = "Disappear Permanently After Closing"
+            }
         }
     },
     
@@ -156,6 +173,21 @@ return {
             },
             attributes = {
                 freezeStrength = "Freeze Strength (0.001 = nearly frozen, 1.0 = normal)"
+            }
+        },
+        ["MaggyHelper/KirbyTutorialBirdTrigger"] = {
+            placements = {
+                tutorial_bird_trigger = "Kirby Tutorial Bird Trigger",
+                show_when_aqua_hook_fixed = "Kirby Tutorial Trigger (Aqua Hook Fixed)",
+                show_when_kirby_aqua_swinging = "Kirby Tutorial Trigger (Kirby Aqua Swinging)",
+                close_when_aqua_attracted = "Kirby Tutorial Trigger (Close On Aqua Attracted)"
+            },
+            attributes = {
+                birdId = "Target Bird ID",
+                tutorialIndex = "Tutorial Index (-1 to Close)",
+                conditionFunction = "Condition Function (mod:...)",
+                width = "Width",
+                height = "Height"
             }
         }
     }

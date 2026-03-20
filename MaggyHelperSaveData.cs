@@ -1,12 +1,16 @@
 using Celeste.Mod;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Monocle;
+using CopyAbilityType = MaggyHelper.Entities.Bosses.CopyAbilityType;
 
 namespace MaggyHelper
 {
     public class MaggyHelperSaveData : EverestModuleSaveData
     {
+        private static readonly StringComparer SidComparer = StringComparer.OrdinalIgnoreCase;
+
         // ===== Save Data Version =====
         
         /// <summary>
@@ -150,7 +154,13 @@ namespace MaggyHelper
         /// <summary>
         /// Records a boss defeat
         /// </summary>
+        public void RecordBossDefeat(string bossName)
         {
+            if (string.IsNullOrWhiteSpace(bossName))
+                return;
+
+            DefeatedBosses ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             if (DefeatedBosses.Add(bossName))
             {
                 TotalBossesDefeated++;
@@ -171,7 +181,9 @@ namespace MaggyHelper
         /// </summary>
         public bool HasDefeatedBoss(string bossName)
         {
-            return DefeatedBosses.Contains(bossName);
+            return !string.IsNullOrWhiteSpace(bossName)
+                && DefeatedBosses != null
+                && DefeatedBosses.Contains(bossName);
         }
 
         /// <summary>
@@ -212,10 +224,14 @@ namespace MaggyHelper
         /// </summary>
         public void CompleteChapter(string sid)
         {
-            if (!CompletedChapters.Contains(sid))
+            string normalizedSid = NormalizeChapterSid(sid);
+            if (normalizedSid == null)
+                return;
+
+            if (!ContainsIgnoreCase(CompletedChapters, normalizedSid))
             {
-                CompletedChapters.Add(sid);
-                Logger.Log(LogLevel.Info, "MaggyHelper", $"Chapter completed: {sid}");
+                CompletedChapters.Add(normalizedSid);
+                Logger.Log(LogLevel.Info, "MaggyHelper", $"Chapter completed: {normalizedSid}");
                 OnSaveDataChanged();
             }
         }
@@ -225,7 +241,8 @@ namespace MaggyHelper
         /// </summary>
         public bool HasCompletedChapter(string sid)
         {
-            return CompletedChapters.Contains(sid);
+            string normalizedSid = NormalizeChapterSid(sid);
+            return normalizedSid != null && ContainsIgnoreCase(CompletedChapters, normalizedSid);
         }
 
         /// <summary>
@@ -233,10 +250,14 @@ namespace MaggyHelper
         /// </summary>
         public void UnlockChapter(string sid)
         {
-            if (!UnlockedChapters.Contains(sid))
+            string normalizedSid = NormalizeChapterSid(sid);
+            if (normalizedSid == null)
+                return;
+
+            if (!ContainsIgnoreCase(UnlockedChapters, normalizedSid))
             {
-                UnlockedChapters.Add(sid);
-                Logger.Log(LogLevel.Info, "MaggyHelper", $"Chapter unlocked: {sid}");
+                UnlockedChapters.Add(normalizedSid);
+                Logger.Log(LogLevel.Info, "MaggyHelper", $"Chapter unlocked: {normalizedSid}");
                 OnSaveDataChanged();
             }
         }
@@ -246,7 +267,8 @@ namespace MaggyHelper
         /// </summary>
         public bool HasUnlockedChapter(string sid)
         {
-            return UnlockedChapters.Contains(sid);
+            string normalizedSid = NormalizeChapterSid(sid);
+            return normalizedSid != null && ContainsIgnoreCase(UnlockedChapters, normalizedSid);
         }
 
         /// <summary>
@@ -382,7 +404,7 @@ namespace MaggyHelper
             
             if (DefeatedBosses == null)
             {
-                DefeatedBosses = new HashSet<string>();
+                DefeatedBosses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 needsRepair = true;
             }
             
@@ -440,6 +462,35 @@ namespace MaggyHelper
                 TotalAbilityStarsCollected = 0;
                 needsRepair = true;
             }
+
+            // Normalize and de-duplicate string collections.
+            needsRepair |= RepairStringList(CompletedChapters, isChapterSid: true);
+            needsRepair |= RepairStringList(UnlockedChapters, isChapterSid: true);
+            needsRepair |= RepairStringList(CollectedHeartGems, isChapterSid: false);
+            needsRepair |= RepairStringList(CollectedCassettes, isChapterSid: false);
+            needsRepair |= RepairStringSet(Achievements);
+
+            // Remove invalid chapter data keys.
+            if (ChapterData != null)
+            {
+                List<string> invalidKeys = new List<string>();
+                foreach (var pair in ChapterData)
+                {
+                    if (NormalizeChapterSid(pair.Key) == null)
+                        invalidKeys.Add(pair.Key);
+                    else if (pair.Value == null)
+                        ChapterData[pair.Key] = new ChapterCompletionData();
+                }
+
+                if (invalidKeys.Count > 0)
+                {
+                    foreach (string key in invalidKeys)
+                        ChapterData.Remove(key);
+                    needsRepair = true;
+                }
+            }
+
+            SaveDataVersion = Math.Max(SaveDataVersion, 1);
 
             if (needsRepair)
             {
@@ -514,7 +565,7 @@ namespace MaggyHelper
             ChapterData = new Dictionary<string, ChapterCompletionData>(StringComparer.OrdinalIgnoreCase);
             TotalBossesDefeated = 0;
             TotalEnemiesDefeated = 0;
-            DefeatedBosses = new HashSet<string>();
+            DefeatedBosses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             UnlockedColors = new HashSet<KirbyColorOption> { KirbyColorOption.Pink };
             UnlockedAbilities = new HashSet<CopyAbilityType>();
             CompletedAsKirby = false;
@@ -524,6 +575,100 @@ namespace MaggyHelper
             TotalAbilityStarsCollected = 0;
             AbilityUsageCount = new Dictionary<CopyAbilityType, int>();
             Achievements = new HashSet<string>();
+        }
+
+        private static bool ContainsIgnoreCase(List<string> values, string item)
+        {
+            if (values == null || string.IsNullOrWhiteSpace(item))
+                return false;
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (SidComparer.Equals(values[i], item))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static string NormalizeChapterSid(string sid)
+        {
+            if (string.IsNullOrWhiteSpace(sid))
+                return null;
+
+            sid = sid.Trim();
+
+            if (!sid.StartsWith(AreaModeExtender.MAP_ROOT + "/", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return sid;
+        }
+
+        private static bool RepairStringList(List<string> values, bool isChapterSid)
+        {
+            if (values == null)
+                return false;
+
+            bool repaired = false;
+            HashSet<string> seen = new HashSet<string>(SidComparer);
+
+            for (int i = values.Count - 1; i >= 0; i--)
+            {
+                string value = values[i]?.Trim();
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    values.RemoveAt(i);
+                    repaired = true;
+                    continue;
+                }
+
+                if (isChapterSid)
+                {
+                    value = NormalizeChapterSid(value);
+                    if (value == null)
+                    {
+                        values.RemoveAt(i);
+                        repaired = true;
+                        continue;
+                    }
+                }
+
+                if (!seen.Add(value))
+                {
+                    values.RemoveAt(i);
+                    repaired = true;
+                    continue;
+                }
+
+                if (!string.Equals(values[i], value, StringComparison.Ordinal))
+                {
+                    values[i] = value;
+                    repaired = true;
+                }
+            }
+
+            return repaired;
+        }
+
+        private static bool RepairStringSet(HashSet<string> values)
+        {
+            if (values == null || values.Count == 0)
+                return false;
+
+            string[] normalized = values
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v.Trim())
+                .Distinct(SidComparer)
+                .ToArray();
+
+            if (normalized.Length == values.Count)
+                return false;
+
+            values.Clear();
+            foreach (string value in normalized)
+                values.Add(value);
+
+            return true;
         }
 
         /// <summary>
@@ -553,5 +698,20 @@ namespace MaggyHelper
         public bool CassetteCollected { get; set; } = false;
         public long BestTime { get; set; } = 0;
         public int DeathCount { get; set; } = 0;
+    }
+
+    /// <summary>
+    /// Color palette options persisted by legacy MaggyHelperSaveData.
+    /// </summary>
+    public enum KirbyColorOption
+    {
+        Pink,
+        Yellow,
+        Blue,
+        Red,
+        Green,
+        White,
+        Orange,
+        Purple
     }
 }
