@@ -131,14 +131,6 @@ namespace MaggyHelper.Extensions.Core
         #region Helper Methods
 
         /// <summary>
-        /// Get the KirbyPlayer entity in the scene
-        /// </summary>
-        protected KirbyPlayer GetKirbyExtension(Scene scene)
-        {
-            return scene?.Tracker.GetEntity<KirbyPlayer>();
-        }
-
-        /// <summary>
         /// Get the player entity in the scene
         /// </summary>
         protected Player GetPlayer(Scene scene)

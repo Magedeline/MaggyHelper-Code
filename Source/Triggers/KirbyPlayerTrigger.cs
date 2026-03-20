@@ -44,7 +44,7 @@ namespace MaggyHelper.Triggers
         private float particleTimer;
 
         // SFX paths
-        private const string SFX_TRANSFORM = "event:/desolozantas/char/kirby/transform";
+        private const string SFX_TRANSFORM = "event:/desolozantas/char/kirby/transform_in";
 
         #endregion
 

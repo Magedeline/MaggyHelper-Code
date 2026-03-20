@@ -1,4 +1,5 @@
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Entities.Kirby
 {
@@ -562,10 +563,10 @@ namespace MaggyHelper.Entities.Kirby
 
         private void HandleScarfyTransform()
         {
-            var kirby = Scene.Tracker.GetEntity<KirbyPlayer>();
-            if (kirby != null && kirby.IsInhaling)
+            var kirbyExt = Scene.Tracker.GetEntity<KirbyPlayerExtension>();
+            if (kirbyExt?.Inhale != null && kirbyExt.Inhale.IsInhaling)
             {
-                float distance = Vector2.Distance(Position, kirby.Position);
+                float distance = Vector2.Distance(Position, kirbyExt.Position);
                 if (distance < 60f)
                 {
                     // Transform into angry Scarfy
@@ -575,6 +576,23 @@ namespace MaggyHelper.Entities.Kirby
                     Health = 2;
                     MaxHealth = 2;
                     sprite?.Play("attack"); // Use angry animation
+                    Audio.Play("event:/game/general/thing_booped", Position);
+                }
+                return;
+            }
+
+            var kirbyLegacy = Scene.Tracker.GetEntity<KirbyMode>();
+            if (kirbyLegacy != null && kirbyLegacy.IsInhaling)
+            {
+                float distance = Vector2.Distance(Position, kirbyLegacy.Position);
+                if (distance < 60f)
+                {
+                    isTransformed = true;
+                    CanBeInhaled = false;
+                    MoveSpeed = 100f;
+                    Health = 2;
+                    MaxHealth = 2;
+                    sprite?.Play("attack");
                     Audio.Play("event:/game/general/thing_booped", Position);
                 }
             }

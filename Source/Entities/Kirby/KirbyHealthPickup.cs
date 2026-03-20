@@ -1,5 +1,6 @@
 using MaggyHelper.Entities;
 using MaggyHelper.Extensions;
+using MaggyHelper.Extensions.Kirby;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -165,43 +166,42 @@ namespace MaggyHelper.Entities.Kirby
 
         private void CheckCollection()
         {
-            // Check for KirbyPlayerExtension
-            var kirby = Scene.Tracker.GetEntity<KirbyPlayer>();
-            if (kirby != null && !kirby.IsDead)
+            var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
+            if (player == null || !player.IsKirbyMode())
             {
-                float distance = Vector2.Distance(Position, kirby.Position);
-                if (distance < COLLECT_RADIUS)
-                {
-                    Collect(kirby);
-                    return;
-                }
+                return;
             }
 
-            // Also check regular player if in Kirby mode
-            var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-            if (player != null && player.IsKirbyMode())
+            float distance = Vector2.Distance(Position, player.Position);
+            if (distance < COLLECT_RADIUS)
             {
-                float distance = Vector2.Distance(Position, player.Position);
-                if (distance < COLLECT_RADIUS)
-                {
-                    // Find Kirby extension and heal through it
-                    if (kirby != null)
-                    {
-                        Collect(kirby);
-                    }
-                }
+                Collect();
             }
         }
 
-        private void Collect(KirbyPlayer kirby)
+        private void Collect()
         {
             if (isCollected)
                 return;
 
             isCollected = true;
-            
-            // Heal Kirby
-            kirby.Heal(healAmount);
+
+            // Heal active Kirby runtime target.
+            var kirbyExt = Scene.Tracker.GetEntity<KirbyPlayerExtension>();
+            var kirbyLegacy = Scene.Tracker.GetEntity<KirbyMode>();
+            var kirbyShim = Scene.Tracker.GetEntity<KirbyPlayer>();
+            if (kirbyExt != null && !kirbyExt.IsDead)
+            {
+                kirbyExt.Heal(healAmount);
+            }
+            else if (kirbyLegacy != null && !kirbyLegacy.IsDead)
+            {
+                kirbyLegacy.Heal(healAmount);
+            }
+            else if (kirbyShim != null && !kirbyShim.IsDead)
+            {
+                kirbyShim.Heal(healAmount);
+            }
             
             // Play collection effects
             Audio.Play(SFX_COLLECT, Position);

@@ -256,7 +256,7 @@ namespace MaggyHelper.Triggers.Kirby
         {
             level.Flash(Color.Gold * 0.4f, true);
             level.Shake(0.3f);
-            Audio.Play("event:/desolozantas/char/kirby/knight_transform", Position);
+            Audio.Play("event:/desolozantas/char/kirby/kirby_knight/backflip", Position);
             
             // Golden particles burst
             if (level.ParticlesFG != null)
@@ -278,7 +278,7 @@ namespace MaggyHelper.Triggers.Kirby
         private void PlayDetransformEffects(Level level)
         {
             level.Flash(Color.White * 0.2f, true);
-            Audio.Play("event:/desolozantas/char/kirby/knight_detransform", Position);
+            Audio.Play("event:/desolozantas/char/kirby/kirby_knight/soar", Position);
         }
 
         private void PlayUnlockEffects(Level level, string text)

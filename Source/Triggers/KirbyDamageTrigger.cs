@@ -54,16 +54,11 @@ namespace MaggyHelper.Triggers
             if (cooldownTimer > 0f)
                 return;
 
-            // Try to damage Kirby if player is in Kirby mode
-            if (player.IsKirbyMode())
+            // Route damage through shared runtime helpers so extension/legacy implementations stay in sync.
+            if (player.TryDamageKirby(damage, Center))
             {
-                var kirby = Scene.Tracker.GetEntity<KirbyMode>();
-                if (kirby != null && !kirby.IsDead)
-                {
-                    kirby.TakeDamage(damage, Center);
-                    cooldownTimer = cooldown;
-                    hasTriggered = true;
-                }
+                cooldownTimer = cooldown;
+                hasTriggered = true;
             }
         }
 
@@ -129,26 +124,11 @@ namespace MaggyHelper.Triggers
                 return;
             }
 
-            // Check for Kirby collision
-            var kirby = Scene.Tracker.GetEntity<KirbyMode>();
-            if (kirby != null && !kirby.IsDead)
-            {
-                if (CollideCheck(kirby))
-                {
-                    kirby.TakeDamage(damage, Center);
-                    damageTimer = damageInterval;
-                }
-            }
-
             // Also check regular player in Kirby mode
             var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-            if (player != null && player.IsKirbyMode() && kirby != null)
+            if (player != null && CollideCheck(player) && player.TryDamageKirby(damage, Center))
             {
-                if (CollideCheck(player))
-                {
-                    kirby.TakeDamage(damage, Center);
-                    damageTimer = damageInterval;
-                }
+                damageTimer = damageInterval;
             }
         }
 

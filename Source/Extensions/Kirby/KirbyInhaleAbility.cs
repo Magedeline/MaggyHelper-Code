@@ -22,8 +22,8 @@ namespace MaggyHelper.Extensions.Kirby
         public override string AbilityId => "inhale";
         public override string DisplayName => "Inhale";
 
-        private const string SFX_INHALE = "event:/desolozantas/char/kirby/inhale";
-        private const string SFX_INHALE_END = "event:/desolozantas/char/kirby/inhale_end";
+        private const string SFX_INHALE = "event:/desolozantas/char/kirby/inhale_start";
+        private const string SFX_INHALE_END = "event:/desolozantas/char/kirby/spit";
 
         private float _inhaleTimer;
         private float _mouthOpenTimer;

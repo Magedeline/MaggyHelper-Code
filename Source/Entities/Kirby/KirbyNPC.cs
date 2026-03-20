@@ -1,4 +1,6 @@
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions;
+using MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Entities.Kirby
 {
@@ -373,6 +375,7 @@ namespace MaggyHelper.Entities.Kirby
 
         private IEnumerator TalkRoutine(global::Celeste.Player player, Level level)
         {
+            bool wasKirbyMode = player.IsKirbyMode();
             player.StateMachine.State = global::Celeste.Player.StDummy;
             yield return 0.1f;
             
@@ -388,6 +391,10 @@ namespace MaggyHelper.Entities.Kirby
             }
             
             player.StateMachine.State = global::Celeste.Player.StNormal;
+            if (wasKirbyMode && !player.IsKirbyMode())
+            {
+                player.EnableKirbyMode();
+            }
             level.EndCutscene();
             State = ActorState.Idle;
         }
@@ -412,8 +419,7 @@ namespace MaggyHelper.Entities.Kirby
                     Scene.Add(new KirbyFood(Position + new Vector2(0, -16), KirbyFood.FoodType.MaxTomato));
                     break;
                 case "health":
-                    var kirby = Scene.Tracker.GetEntity<KirbyPlayer>();
-                    kirby?.Heal(20);
+                    player.TryHealKirby(20);
                     break;
                 case "star":
                     Scene.Add(new KirbyFood(Position + new Vector2(0, -16), KirbyFood.FoodType.InvincibilityStar));

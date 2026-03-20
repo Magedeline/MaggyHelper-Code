@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Extensions.Core
 {
@@ -41,15 +42,15 @@ namespace MaggyHelper.Extensions.Core
 
         private static void OnCharacterInteract(this Spring self, Entity character, Vector2 at)
         {
-            if (character is KirbyPlayer kirby)
+            if (character is KirbyPlayerExtension)
             {
-                // Apply spring bounce to Kirby
-                Vector2 bounceDir = self.GetBounceDirection();
-                float bounceSpeed = 200f;
-                
-                // Apply velocity based on bounce direction
-                kirby.Speed = bounceDir * bounceSpeed;
-                
+                // Trigger spring animation
+                Audio.Play("event:/game/general/spring", self.Position);
+                return;
+            }
+
+            if (character is KirbyMode legacy)
+            {
                 // Trigger spring animation
                 Audio.Play("event:/game/general/spring", self.Position);
             }

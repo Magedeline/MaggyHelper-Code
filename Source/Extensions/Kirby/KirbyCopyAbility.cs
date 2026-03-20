@@ -32,10 +32,10 @@ namespace MaggyHelper.Extensions.Kirby
 
         #region Constants
 
-        private const string SFX_COPY = "event:/desolozantas/char/kirby/transform";
-        private const string SFX_LOSE = "event:/game/general/seed_touch";
-        private const string SFX_SUPER = "event:/desolozantas/char/kirby/knight_transform";
-        private const string SFX_UTILITY = "event:/desolozantas/char/kirby/knight_special";
+        private const string SFX_COPY = "event:/desolozantas/char/kirby/transform_in";
+        private const string SFX_LOSE = "event:/desolozantas/char/kirby/transform_out";
+        private const string SFX_SUPER = "event:/desolozantas/char/kirby/kirby_knight/backflip";
+        private const string SFX_UTILITY = "event:/desolozantas/char/kirby/kirby_knight/spin";
 
         private const float SUPER_ABILITY_DURATION = 20f;
         private const float COPY_TRANSFORM_ANIM_TIME = 0.4f;

@@ -854,9 +854,9 @@ do
     table.insert(e, makePlayer(40, 200))
     table.insert(e, makeSign(64, 200, "KIRBY_TEST_ROOM_20"))
     -- SampleTrigger
-    table.insert(t, { _name = "MaggyHelper/SampleTrigger", id = eid(),
+    table.insert(t, { _name = "MaggyHelper/SessionFlagTrigger", id = eid(),
         x = 100, y = 180, width = 32, height = 32,
-        sampleProperty = 42 })
+        sessionFlag = "kirby_test_room_20_trigger", flagAction = "Toggle" })
     table.insert(rooms, buildRoom(20, "20_misc_sample", e, t))
 end
 
@@ -1161,9 +1161,9 @@ rooms[19].triggers = {
 
 -- ROOM 20 triggers
 rooms[20].triggers = {
-    { _name = "MaggyHelper/SampleTrigger", id = eid(),
+    { _name = "MaggyHelper/SessionFlagTrigger", id = eid(),
         x = 100, y = 180, width = 32, height = 32,
-        sampleProperty = 42 },
+        sessionFlag = "kirby_test_room_20_trigger", flagAction = "Toggle" },
 }
 
 --------------------------------------------------------------------------------

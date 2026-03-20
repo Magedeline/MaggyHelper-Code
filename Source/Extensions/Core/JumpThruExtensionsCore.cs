@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby;
 using MonoMod.Utils;
 using JumpThru = Celeste.JumpThru; // Celeste JumpThru for hooks and extensions
 
@@ -62,11 +63,23 @@ namespace MaggyHelper.Extensions.Core
         public static bool HasKirbyRider(this JumpThru self)
         {
             if (self.Scene == null) return false;
-            
-            var kirby = self.Scene.Tracker.GetEntity<KirbyPlayer>();
-            if (kirby != null && kirby.Active)
+
+            var ext = self.Scene.Tracker.GetEntity<KirbyPlayerExtension>();
+            if (ext != null && ext.Active && ext.Player != null)
             {
-                return kirby.IsRiding(self);
+                return ext.Player.IsRiding(self);
+            }
+
+            var legacy = self.Scene.Tracker.GetEntity<KirbyMode>();
+            if (legacy != null && legacy.Active)
+            {
+                return legacy.IsRiding(self);
+            }
+
+            var shim = self.Scene.Tracker.GetEntity<KirbyPlayer>();
+            if (shim != null && shim.Active)
+            {
+                return shim.IsRiding(self);
             }
             
             return false;

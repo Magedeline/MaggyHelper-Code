@@ -1,5 +1,6 @@
 using MaggyHelper.Effects.ShaderEffects;
 using MaggyHelper.Extensions.Core;
+using MaggyHelper.Extensions.Kirby;
 using MaggyHelper.HotReload;
 using MaggyHelper.Popstarberry;
 using MonoMod.RuntimeDetour;
@@ -70,6 +71,7 @@ public class MaggyHelperModule : EverestModule
             });
 
             LoadSubsystem("PlayerExtensionCore", () => PlayerExtensionCore.Instance.Hook());
+            LoadSubsystem("KirbyPauseMenuCompat", () => KirbyPauseMenuCompat.Load());
             LoadSubsystem("PopstarberryIntegration", () => PopstarberryIntegration.Initialize());
 
             // Core systems requested for Everest integration.
@@ -151,6 +153,7 @@ public class MaggyHelperModule : EverestModule
             }
 
             PlayerExtensionCore.Instance.Unhook();
+            KirbyPauseMenuCompat.Unload();
             RemoveHotReloadHook();
             ShutdownHotReload();
             PopstarberryIntegration.Unload();

@@ -29,13 +29,13 @@ namespace MaggyHelper.Entities.Kirby
         private const string FLAG_KNIGHT_EMERGENCY = "kirby_knight_emergency";
 
         // SFX paths
-        private const string SFX_TRANSFORM = "event:/desolozantas/char/kirby/knight_transform";
-        private const string SFX_DETRANSFORM = "event:/desolozantas/char/kirby/knight_detransform";
-        private const string SFX_ATTACK = "event:/desolozantas/char/kirby/knight_attack";
-        private const string SFX_SPECIAL = "event:/desolozantas/char/kirby/knight_special";
-        private const string SFX_CHARGE = "event:/desolozantas/char/kirby/knight_charge";
-        private const string SFX_FINISHER = "event:/desolozantas/char/kirby/knight_finisher";
-        private const string SFX_BLOCK = "event:/desolozantas/char/kirby/knight_block";
+        private const string SFX_TRANSFORM = "event:/desolozantas/char/kirby/kirby_knight/backflip";
+        private const string SFX_DETRANSFORM = "event:/desolozantas/char/kirby/kirby_knight/soar";
+        private const string SFX_ATTACK = "event:/desolozantas/char/kirby/kirby_knight/punch_A";
+        private const string SFX_SPECIAL = "event:/desolozantas/char/kirby/kirby_knight/spin";
+        private const string SFX_CHARGE = "event:/desolozantas/char/kirby/kirby_knight/punch_B";
+        private const string SFX_FINISHER = "event:/desolozantas/char/kirby/kirby_knight/punch_Final";
+        private const string SFX_BLOCK = "event:/desolozantas/char/kirby/kirby_knight/slide";
 
         // Combat values
         private const float BASE_DAMAGE_MULTIPLIER = 2.0f;
@@ -91,7 +91,7 @@ namespace MaggyHelper.Entities.Kirby
         #region Fields
 
         private Level level;
-        private KirbyPlayer kirbyExtension;
+        private KirbyMode kirbyExtension;
         private global::Celeste.Player player;
         
         // Timers
@@ -148,7 +148,7 @@ namespace MaggyHelper.Entities.Kirby
             CheckChapterEligibility();
             
             // Find player/kirby
-            kirbyExtension = level.Tracker.GetEntity<KirbyPlayer>();
+            kirbyExtension = level.Tracker.GetEntity<KirbyMode>();
             player = level.Tracker.GetEntity<global::Celeste.Player>();
             
             // Add visual components
@@ -908,7 +908,7 @@ namespace MaggyHelper.Entities.Kirby
             base.Added(scene);
             level = scene as Level;
             
-            Audio.Play("event:/desolozantas/char/kirby/sword_beam", Position);
+            Audio.Play("event:/desolozantas/char/kirby/charge_beam", Position);
         }
 
         public override void Update()

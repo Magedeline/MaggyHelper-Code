@@ -7,5 +7,6 @@
                 "copilotcli/claude-opus-4.6-fast"
             ]
         }
-    }
+    },
+    "FSharp.suggestGitignore": false
 }

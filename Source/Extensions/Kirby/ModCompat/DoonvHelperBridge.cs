@@ -196,7 +196,7 @@ namespace MaggyHelper.Extensions.Kirby.ModCompat
             if (power != KirbyMode.KirbyPowerState.None && kirby.Settings.PowerCopyEnabled)
             {
                 kirby.SetPowerState(power);
-                Audio.Play("event:/desolozantas/char/kirby/copy_get", kirby.Position);
+                Audio.Play("event:/desolozantas/char/kirby/copy_ability", kirby.Position);
             }
 
             // Remove the enemy

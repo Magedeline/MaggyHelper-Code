@@ -1,6 +1,7 @@
+using MaggyHelper.Extensions.Kirby;
 namespace MaggyHelper.Entities
 {
-    // Note: Abstract class - cannot have [CustomEntity] attribute as Everest cannot instantiate abstract classes
+    [CustomEntity(ids: "MaggyHelper/StarBlock")]
     [Tracked(true)]
     public abstract class StarBlock : Entity
     {
@@ -8,6 +9,7 @@ namespace MaggyHelper.Entities
         private int width;
         private int height;
         private const int grid_size = 8;
+        private MTexture texture;
 
         public StarBlock(Vector2 position, int width, int height) : base(position)
         {
@@ -15,16 +17,30 @@ namespace MaggyHelper.Entities
             this.height = height;
             Collider = new Hitbox(width, height, -width / 2f, -height / 2f);
             Add(new PlayerCollider(OnPlayer));
+            Depth = -10000;
+            texture = ResolveTexture(width, height);
         }
 
         public Vector2 Speed { get; set; }
 
         private void OnPlayer(global::Celeste.Player player)
         {
-            if (!isBroken && Collider.Collide(player.Collider))
+            if (isBroken || !Collider.Collide(player.Collider))
+            {
+                return;
+            }
+
+            // Kirby can inhale-break this block; everyone can dash-break it.
+            if (player.IsKirbyMode() && IsKirbyInhaling(player))
+            {
+                Audio.Play("event:/desolozantas/char/kirby/inhale_start", Position);
+                Break();
+                return;
+            }
+
+            if (player.DashAttacking)
             {
                 Audio.Play("event:/game/general/diamond_touch", Position);
-                player.Bounce(1.5f);
                 Break();
             }
         }
@@ -33,9 +49,19 @@ namespace MaggyHelper.Entities
         {
             base.Update();
             var player = Scene.Tracker.GetEntity<global::Celeste.Player>();
-            if (player != null && player.StateMachine.State == (int)global::Celeste.Player.BoostTime && Collider.Collide(player.Collider))
+            if (player != null && !isBroken && Collider.Collide(player.Collider))
             {
-                Break();
+                if (player.IsKirbyMode() && IsKirbyInhaling(player))
+                {
+                    Audio.Play("event:/desolozantas/char/kirby/inhale_start", Position);
+                    Break();
+                    return;
+                }
+
+                if (!player.IsKirbyMode() && player.DashAttacking)
+                {
+                    Break();
+                }
             }
         }
 
@@ -54,7 +80,19 @@ namespace MaggyHelper.Entities
         public override void Render()
         {
             base.Render();
-            Draw.Rect(Collider.Bounds, Color.Yellow);
+
+            if (texture != null)
+            {
+                texture.Draw(
+                    Position + new Vector2(-width / 2f, -height / 2f),
+                    Vector2.Zero,
+                    Color.White,
+                    new Vector2(width / (float)texture.Width, height / (float)texture.Height));
+            }
+            else
+            {
+                Draw.Rect(Collider.Bounds.X, Collider.Bounds.Y, Collider.Bounds.Width, Collider.Bounds.Height, Color.Yellow);
+            }
         }
 
         public void Resize(int newWidth, int newHeight)
@@ -64,11 +102,47 @@ namespace MaggyHelper.Entities
             Collider.Width = width;
             Collider.Height = height;
             Collider.Position = new Vector2(-width / 2f, -height / 2f);
+            texture = ResolveTexture(width, height);
         }
 
         private int snapToGrid(int value)
         {
             return (value / grid_size) * grid_size;
+        }
+
+        private bool IsKirbyInhaling(global::Celeste.Player player)
+        {
+            if (Scene is not Level level || !player.IsKirbyMode())
+            {
+                return false;
+            }
+
+            var extension = level.Tracker.GetEntity<KirbyPlayerExtension>();
+            if (extension?.Inhale != null && extension.Inhale.IsInhaling)
+            {
+                return true;
+            }
+
+            var legacy = level.Tracker.GetEntity<KirbyMode>();
+            if (legacy != null && legacy.IsInhaling)
+            {
+                return true;
+            }
+
+            var shim = level.Tracker.GetEntity<KirbyPlayer>();
+            return shim != null && shim.IsInhaling;
+        }
+
+        private static MTexture ResolveTexture(int width, int height)
+        {
+            int area = width * height;
+            string path = area >= 256
+                ? "objects/starblock/oversized"
+                : area >= 128
+                    ? "objects/starblock/large"
+                    : "objects/starblock/normal";
+
+            return GFX.Game.Has(path) ? GFX.Game[path] : null;
         }
 
         private class Particle : Entity

@@ -3534,6 +3534,20 @@ entities.MaggyHelper/KirbyPlayerExtension.attributes.description.power=
 entities.MaggyHelper/KirbyPlayerExtension.attributes.name.useSpawnPoints=Use Spawn Points
 entities.MaggyHelper/KirbyPlayerExtension.attributes.description.useSpawnPoints=
 
+# -- Kirby Player Core --
+entities.MaggyHelper/KirbyPlayerCore.placements.name.default=Kirby Player Core
+entities.MaggyHelper/KirbyPlayerCore.placements.description.default=Core Kirby runtime spawn entity (Loenn alias).
+entities.MaggyHelper/KirbyPlayerCore.attributes.name.introType=Intro Type
+entities.MaggyHelper/KirbyPlayerCore.attributes.description.introType=Spawn intro behavior for Kirby.
+entities.MaggyHelper/KirbyPlayerCore.attributes.name.inventory=Inventory
+entities.MaggyHelper/KirbyPlayerCore.attributes.description.inventory=Initial inventory mode for Kirby runtime.
+entities.MaggyHelper/KirbyPlayerCore.attributes.name.maxHealth=Max Health
+entities.MaggyHelper/KirbyPlayerCore.attributes.description.maxHealth=Maximum health points for Kirby.
+entities.MaggyHelper/KirbyPlayerCore.attributes.name.power=Power
+entities.MaggyHelper/KirbyPlayerCore.attributes.description.power=Initial copy ability power state.
+entities.MaggyHelper/KirbyPlayerCore.attributes.name.useSpawnPoints=Use Spawn Points
+entities.MaggyHelper/KirbyPlayerCore.attributes.description.useSpawnPoints=Allow node-based spawn positions for intro logic.
+
 # -- Kirby Small Enemy --
 entities.MaggyHelper/KirbySmallEnemy.placements.name.Waddle Dee=Kirby Small Enemy (Waddle Dee)
 entities.MaggyHelper/KirbySmallEnemy.placements.description.Waddle Dee=
@@ -7611,3 +7625,7 @@ triggers.MaggyHelper/ZoomTrigger.attributes.description.width=
 triggers.MaggyHelper/ZoomTrigger.attributes.name.zoomDuration=Zoom Duration
 triggers.MaggyHelper/ZoomTrigger.attributes.description.zoomDuration=
 
+entities.MaggyHelper/HeartCompanion.placements.name.HeartCompanion=Heart Companion
+entities.MaggyHelper/HeartCompanion.placements.description.HeartCompanion=This floating heart companion follows the player around. It has no combat behavior outside of the true final boss fight, where it will assist the player by attacking and defending against the boss's attacks. It can be used in other rooms, but it will only serve as a visual companion without any combat functionality.
+
+entities.MaggyHelper/StarBlock.placements.name.StarBlock=Star StarBlock

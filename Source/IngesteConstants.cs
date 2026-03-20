@@ -13,6 +13,7 @@ namespace MaggyHelper
         {
             public const string ANCIENT_SWITCH = "MaggyHelper/AncientSwitch";
             public const string DELTA_BERRY = "MaggyHelper/DeltaBerry";
+            public const string SESSION_FLAG_TRIGGER = "MaggyHelper/SessionFlagTrigger";
             public const string SAMPLE_TRIGGER = "MaggyHelper/SampleTrigger";
         }
     }

@@ -21,7 +21,7 @@ namespace MaggyHelper.Extensions.Kirby
         public override string DisplayName => "Hover";
 
         private const string SFX_FLAP = "event:/desolozantas/char/kirby/jump";
-        private const string SFX_EXHALE = "event:/desolozantas/char/kirby/inhale_end";
+        private const string SFX_EXHALE = "event:/desolozantas/char/kirby/spit";
 
         private int _flapCount;
         private bool _wasOnGround;

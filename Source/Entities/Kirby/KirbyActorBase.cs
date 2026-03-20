@@ -1,4 +1,5 @@
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Entities.Kirby
 {
@@ -259,8 +260,31 @@ namespace MaggyHelper.Entities.Kirby
         /// </summary>
         protected virtual void UpdateInhaleState()
         {
-            var kirby = Scene.Tracker.GetEntity<KirbyPlayer>();
-            if (kirby == null || !kirby.IsInhaling)
+            var level = Scene as Level;
+            var extension = level?.Tracker.GetEntity<KirbyPlayerExtension>();
+            var legacy = level?.Tracker.GetEntity<KirbyMode>();
+            var shim = level?.Tracker.GetEntity<KirbyPlayer>();
+
+            bool isInhaling = false;
+            Vector2 kirbyPosition = Position;
+
+            if (extension?.Inhale != null && extension.Inhale.IsInhaling)
+            {
+                isInhaling = true;
+                kirbyPosition = extension.Position;
+            }
+            else if (legacy != null && legacy.IsInhaling)
+            {
+                isInhaling = true;
+                kirbyPosition = legacy.Position;
+            }
+            else if (shim != null && shim.IsInhaling)
+            {
+                isInhaling = true;
+                kirbyPosition = shim.Position;
+            }
+
+            if (!isInhaling)
             {
                 // Kirby stopped inhaling
                 State = ActorState.Idle;
@@ -269,7 +293,7 @@ namespace MaggyHelper.Entities.Kirby
             }
             
             // Move toward Kirby
-            Vector2 toKirby = kirby.Position - Position;
+            Vector2 toKirby = kirbyPosition - Position;
             float distance = toKirby.Length();
             
             if (distance > 5f)
@@ -286,19 +310,36 @@ namespace MaggyHelper.Entities.Kirby
             if (inhaleProgress >= INHALE_THRESHOLD || distance < 10f)
             {
                 // Successfully inhaled
-                OnInhaled(kirby);
+                OnInhaled();
             }
         }
 
         /// <summary>
         /// Called when successfully inhaled by Kirby
         /// </summary>
-        protected virtual void OnInhaled(KirbyPlayer kirby)
+        protected virtual void OnInhaled()
         {
             Audio.Play("event:/game/general/thing_collected", Position);
-            
-            // Add to Kirby's inhaled entities
-            kirby.InhaledEntities.Add(this);
+
+            var level = Scene as Level;
+            var extension = level?.Tracker.GetEntity<KirbyPlayerExtension>();
+            if (extension?.Inhale != null)
+            {
+                extension.Inhale.InhaledEntities.Add(this);
+            }
+            else
+            {
+                var legacy = level?.Tracker.GetEntity<KirbyMode>();
+                if (legacy != null)
+                {
+                    legacy.InhaledEntities.Add(this);
+                }
+                else
+                {
+                    var shim = level?.Tracker.GetEntity<KirbyPlayer>();
+                    shim?.InhaledEntities.Add(this);
+                }
+            }
             
             // Hide but don't remove yet (Kirby will handle that)
             Visible = false;

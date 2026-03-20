@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using System.Reflection;
+using MaggyHelper.Extensions;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -223,48 +223,7 @@ namespace MaggyHelper.Entities
 
         private static bool IsKirbyMode(global::Celeste.Player player)
         {
-            if (player == null)
-                return false;
-
-            Type t = player.GetType();
-
-            PropertyInfo prop = t.GetProperty("IsKirbyMode", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (prop != null && prop.PropertyType == typeof(bool))
-            {
-                try
-                {
-                    return (bool) prop.GetValue(player);
-                }
-                catch
-                {
-                }
-            }
-
-            FieldInfo field = t.GetField("IsKirbyMode", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field != null && field.FieldType == typeof(bool))
-            {
-                try
-                {
-                    return (bool) field.GetValue(player);
-                }
-                catch
-                {
-                }
-            }
-
-            MethodInfo method = t.GetMethod("IsKirbyMode", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
-            if (method != null && method.ReturnType == typeof(bool))
-            {
-                try
-                {
-                    return (bool) method.Invoke(player, null);
-                }
-                catch
-                {
-                }
-            }
-
-            return false;
+            return player?.IsKirbyMode() == true;
         }
         
         #endregion

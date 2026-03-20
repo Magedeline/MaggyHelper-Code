@@ -33,9 +33,9 @@ namespace MaggyHelper.Extensions.Kirby
 
         #region Constants
 
-        private const string SFX_FIRE = "event:/desolozantas/char/kirby/knight_attack";
-        private const string SFX_CHARGE = "event:/desolozantas/char/kirby/knight_charge";
-        private const string SFX_RELEASE = "event:/desolozantas/char/kirby/knight_special";
+        private const string SFX_FIRE = "event:/desolozantas/char/kirby/kirby_knight/punch_A";
+        private const string SFX_CHARGE = "event:/desolozantas/char/kirby/kirby_knight/punch_C";
+        private const string SFX_RELEASE = "event:/desolozantas/char/kirby/kirby_knight/spin";
 
         private const float FIRE_SPEED = 180f;
         private const float ICE_SPEED = 200f;

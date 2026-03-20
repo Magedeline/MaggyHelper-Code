@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby;
 using MonoMod.Utils;
 using JumpThru = Celeste.JumpThru; // Use Celeste.JumpThru for MMHOOK hooks
 
@@ -87,25 +88,45 @@ namespace MaggyHelper.Extensions.Core
         public static void MoveAttachedCharacters(this Celeste.Platform self, Vector2 exactMovement, Vector2 pixels)
         {
             if (self.Scene == null || exactMovement == Vector2.Zero) return;
-            
-            // Check for KirbyPlayer
-            var kirby = self.Scene.Tracker.GetEntity<KirbyPlayer>();
-            if (kirby != null && kirby.Active)
+
+            // Legacy compatibility: move compatibility entities only.
+            // The new KirbyPlayerExtension mirrors the vanilla Player and does not need
+            // manual carry motion because vanilla platform movement already handles Player.
+            var legacy = self.Scene.Tracker.GetEntity<KirbyMode>();
+            if (legacy != null && legacy.Active)
             {
-                // Check if Kirby is riding this platform based on type
                 bool isRiding = false;
                 if (self is Solid solid)
                 {
-                    isRiding = kirby.IsRiding(solid);
+                    isRiding = legacy.IsRiding(solid);
                 }
                 else if (self is JumpThru jumpThru)
                 {
-                    isRiding = kirby.IsRiding(jumpThru);
+                    isRiding = legacy.IsRiding(jumpThru);
                 }
-                
+
                 if (isRiding)
                 {
-                    kirby.Position += pixels;
+                    legacy.Position += pixels;
+                }
+            }
+
+            var shim = self.Scene.Tracker.GetEntity<KirbyPlayer>();
+            if (shim != null && shim.Active)
+            {
+                bool isRiding = false;
+                if (self is Solid solid)
+                {
+                    isRiding = shim.IsRiding(solid);
+                }
+                else if (self is JumpThru jumpThru)
+                {
+                    isRiding = shim.IsRiding(jumpThru);
+                }
+
+                if (isRiding)
+                {
+                    shim.Position += pixels;
                 }
             }
             

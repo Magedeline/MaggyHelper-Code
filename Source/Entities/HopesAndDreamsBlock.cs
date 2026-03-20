@@ -21,9 +21,9 @@ namespace MaggyHelper.Entities
 
         private const string SFX_TRANSFORM_IN = "event:/desolozantas/char/kirby/transform_in";
         private const string SFX_TRANSFORM_OUT = "event:/desolozantas/char/kirby/transform_out";
-        // Legacy/compatibility (if needed)
-        private const string SFX_TRANSFORM = "event:/desolozantas/char/kirby/transform";
-        private const string SFX_TRANSFORM_OUT_OLD = "event:/game/general/seed_touch";
+        // Legacy/compatibility aliases
+        private const string SFX_TRANSFORM = SFX_TRANSFORM_IN;
+        private const string SFX_TRANSFORM_OUT_OLD = SFX_TRANSFORM_OUT;
         private const string SFX_DASH_ENTER = "event:/game/general/char_madeline_dreamblock_enter";
         private const string SFX_DASH_EXIT = "event:/game/general/char_madeline_dreamblock_exit";
 
@@ -236,14 +236,10 @@ namespace MaggyHelper.Entities
         {
             if (isTransforming) return;
 
-            var kirby = CollideFirst<KirbyPlayer>();
-            if (kirby != null && kirby.IsDashing)
+            var player = CollideFirst<global::Celeste.Player>();
+            if (player != null && player.IsKirbyPlayerMode() && player.DashAttacking)
             {
-                var player = level?.Tracker.GetEntity<global::Celeste.Player>();
-                if (player != null && player.IsKirbyPlayerMode())
-                {
-                    StartTransformation(player, false);
-                }
+                StartTransformation(player, false);
             }
         }
 

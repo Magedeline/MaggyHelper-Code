@@ -71,7 +71,7 @@ namespace MaggyHelper.Triggers
         private float particleTimer;
         
         // SFX paths
-        private const string SFX_DEFAULT_TRANSFORM = "event:/desolozantas/char/kirby/transform";
+        private const string SFX_DEFAULT_TRANSFORM = "event:/desolozantas/char/kirby/transform_in";
         
         // Particle types
         private static ParticleType P_KirbySparkle;
@@ -312,15 +312,11 @@ namespace MaggyHelper.Triggers
             
             try
             {
-                // Use session flag directly to avoid DynamicData issues
-                if (player?.Scene is Level level)
-                {
-                    currentlyKirby = level.Session.GetFlag("kirby_mode");
-                }
+                currentlyKirby = player?.IsKirbyMode() == true;
             }
             catch (System.NullReferenceException)
             {
-                // DynamicData can throw if player state is not fully initialized
+                // Player state can be mid-transition during room/entity bootstrap.
                 currentlyKirby = false;
             }
             

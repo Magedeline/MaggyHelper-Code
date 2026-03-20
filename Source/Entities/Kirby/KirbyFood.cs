@@ -1,4 +1,5 @@
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Entities.Kirby
 {
@@ -384,21 +385,48 @@ namespace MaggyHelper.Entities.Kirby
 
         private void HealPlayer(global::Celeste.Player player)
         {
-            // Try to find KirbyPlayer for healing
-            var kirbyPlayer = Scene.Tracker.GetEntity<KirbyPlayer>();
-            
-            if (kirbyPlayer != null)
+            var kirbyExt = Scene.Tracker.GetEntity<KirbyPlayerExtension>();
+            var kirbyLegacy = Scene.Tracker.GetEntity<KirbyMode>();
+            var kirbyShim = Scene.Tracker.GetEntity<KirbyPlayer>();
+
+            if (kirbyExt != null)
             {
                 int healAmount = HealAmount;
-                
+
                 // Max tomato heals to full
                 if (Type == FoodType.MaxTomato)
                 {
-                    healAmount = kirbyPlayer.MaxHealth;
+                    healAmount = kirbyExt.MaxHealth;
                 }
-                
-                kirbyPlayer.Heal(healAmount);
-                
+
+                kirbyExt.Heal(healAmount);
+
+                // Show heal number
+                ShowHealNumber(healAmount);
+            }
+            else if (kirbyLegacy != null)
+            {
+                int healAmount = HealAmount;
+                if (Type == FoodType.MaxTomato)
+                {
+                    healAmount = kirbyLegacy.MaxHealth;
+                }
+
+                kirbyLegacy.Heal(healAmount);
+
+                // Show heal number
+                ShowHealNumber(healAmount);
+            }
+            else if (kirbyShim != null)
+            {
+                int healAmount = HealAmount;
+                if (Type == FoodType.MaxTomato)
+                {
+                    healAmount = kirbyShim.MaxHealth;
+                }
+
+                kirbyShim.Heal(healAmount);
+
                 // Show heal number
                 ShowHealNumber(healAmount);
             }
@@ -431,13 +459,8 @@ namespace MaggyHelper.Entities.Kirby
         private void ApplyInvincibility(global::Celeste.Player player)
         {
             Audio.Play("event:/game/general/cassette_obtain", Position);
-            
-            // Apply invincibility effect through KirbyPlayer
-            var kirbyPlayer = Scene.Tracker.GetEntity<KirbyPlayer>();
-            if (kirbyPlayer != null)
-            {
-                // TODO: Implement invincibility state in KirbyPlayer
-            }
+
+            // TODO: Implement invincibility effect for Kirby runtime entities.
             
             // Visual effect
             var level = Scene as Level;

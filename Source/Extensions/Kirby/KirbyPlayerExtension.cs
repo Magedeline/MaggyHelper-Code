@@ -32,10 +32,10 @@ namespace MaggyHelper.Extensions.Kirby
         #region Constants
 
         private const string SFX_PATH = "event:/desolozantas/char/kirby/";
-        private const string SFX_TRANSFORM = SFX_PATH + "transform";
-        private const string SFX_HURT = SFX_PATH + "hurt";
-        private const string SFX_DIE = SFX_PATH + "die";
-        private const string SFX_HEAL = "event:/game/general/diamond_touch";
+        private const string SFX_TRANSFORM = SFX_PATH + "transform_in";
+        private const string SFX_HURT = SFX_PATH + "predeath";
+        private const string SFX_DIE = SFX_PATH + "predeath";
+        private const string SFX_HEAL = SFX_PATH + "revive";
         private const string SFX_BOUNCE = SFX_PATH + "bounce";
 
         #endregion

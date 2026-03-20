@@ -23,8 +23,8 @@ namespace MaggyHelper.Triggers
         private bool triggered;
         
         // SFX paths
-        private const string SFX_ENABLE = "event:/desolozantas/char/kirby/transform";
-        private const string SFX_DISABLE = "event:/game/general/seed_touch";
+        private const string SFX_ENABLE = "event:/desolozantas/char/kirby/transform_in";
+        private const string SFX_DISABLE = "event:/desolozantas/char/kirby/transform_out";
 
         public KirbyModeTrigger(EntityData data, Vector2 offset) : base(data, offset)
         {

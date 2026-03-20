@@ -11,6 +11,16 @@ namespace MaggyHelper.Extensions
     /// </summary>
     public static class PlayerKirbyExtensions
     {
+        private static KirbyPlayerExtension GetKirbyExtension(Level level)
+        {
+            return level?.Tracker?.GetEntity<KirbyPlayerExtension>();
+        }
+
+        private static KirbyMode GetKirbyLegacy(Level level)
+        {
+            return level?.Tracker?.GetEntity<KirbyMode>();
+        }
+
         public static bool IsKirbyMode(this Player player)
         {
             if (player == null)
@@ -90,11 +100,11 @@ namespace MaggyHelper.Extensions
             }
 
             // Try new extension first
-            var kirbyExt = level.Tracker.GetEntity<KirbyPlayerExtension>();
+            var kirbyExt = GetKirbyExtension(level);
             kirbyExt?.SetPowerState(power);
 
             // Legacy fallback
-            var kirby = level.Tracker.GetEntity<KirbyMode>();
+            var kirby = GetKirbyLegacy(level);
             kirby?.SetPowerState(power);
 
             var state = LevelStateManager.GetState();
@@ -102,6 +112,90 @@ namespace MaggyHelper.Extensions
             {
                 state.KirbyPower = power;
             }
+        }
+
+        public static KirbyMode.KirbyPowerState GetKirbyPowerState(this Player player)
+        {
+            if (player?.Scene is not Level level)
+            {
+                return KirbyMode.KirbyPowerState.None;
+            }
+
+            var kirbyExt = GetKirbyExtension(level);
+            if (kirbyExt != null)
+            {
+                return kirbyExt.CurrentPower;
+            }
+
+            var kirbyLegacy = GetKirbyLegacy(level);
+            if (kirbyLegacy != null)
+            {
+                return kirbyLegacy.CurrentPower;
+            }
+
+            return LevelStateManager.GetState()?.KirbyPower ?? KirbyMode.KirbyPowerState.None;
+        }
+
+        public static bool TryDamageKirby(this Player player, int damage, Vector2 source)
+        {
+            if (player?.Scene is not Level level || !player.IsKirbyMode())
+            {
+                return false;
+            }
+
+            var kirbyExt = GetKirbyExtension(level);
+            if (kirbyExt != null && !kirbyExt.IsDead)
+            {
+                kirbyExt.TakeDamage(damage, source);
+                return true;
+            }
+
+            var kirbyLegacy = GetKirbyLegacy(level);
+            if (kirbyLegacy != null && !kirbyLegacy.IsDead)
+            {
+                kirbyLegacy.TakeDamage(damage, source);
+                return true;
+            }
+
+            var kirbyShim = level.Tracker.GetEntity<KirbyPlayer>();
+            if (kirbyShim != null && !kirbyShim.IsDead)
+            {
+                kirbyShim.TakeDamage(damage);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool TryHealKirby(this Player player, int amount)
+        {
+            if (player?.Scene is not Level level || !player.IsKirbyMode())
+            {
+                return false;
+            }
+
+            var kirbyExt = GetKirbyExtension(level);
+            if (kirbyExt != null && !kirbyExt.IsDead)
+            {
+                kirbyExt.Heal(amount);
+                return true;
+            }
+
+            var kirbyLegacy = GetKirbyLegacy(level);
+            if (kirbyLegacy != null && !kirbyLegacy.IsDead)
+            {
+                kirbyLegacy.Heal(amount);
+                return true;
+            }
+
+            var kirbyShim = level.Tracker.GetEntity<KirbyPlayer>();
+            if (kirbyShim != null && !kirbyShim.IsDead)
+            {
+                kirbyShim.Heal(amount);
+                return true;
+            }
+
+            return false;
         }
 
         // Legacy aliases used by older content

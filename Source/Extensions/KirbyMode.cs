@@ -56,12 +56,12 @@ namespace MaggyHelper.Extensions
             Knight
         }
 
-        private const string SFX_INHALE = "event:/desolozantas/char/kirby/inhale";
-        private const string SFX_INHALE_END = "event:/desolozantas/char/kirby/inhale_end";
+        private const string SFX_INHALE = "event:/desolozantas/char/kirby/inhale_start";
+        private const string SFX_INHALE_END = "event:/desolozantas/char/kirby/spit";
         private const string SFX_SPIT = "event:/desolozantas/char/kirby/spit";
-        private const string SFX_HURT = "event:/desolozantas/char/kirby/hurt";
-        private const string SFX_HEAL = "event:/game/general/diamond_touch";
-        private const string SFX_DEATH = "event:/desolozantas/char/kirby/die";
+        private const string SFX_HURT = "event:/desolozantas/char/kirby/predeath";
+        private const string SFX_HEAL = "event:/desolozantas/char/kirby/revive";
+        private const string SFX_DEATH = "event:/desolozantas/char/kirby/predeath";
 
         private readonly KirbySettings settings = new KirbySettings();
         private global::Celeste.Player player;

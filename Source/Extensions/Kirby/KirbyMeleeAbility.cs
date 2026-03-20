@@ -27,9 +27,9 @@ namespace MaggyHelper.Extensions.Kirby
 
         #region Constants
 
-        private const string SFX_PUNCH = "event:/desolozantas/char/kirby/knight_attack";
-        private const string SFX_WEAPON = "event:/desolozantas/char/kirby/knight_attack";
-        private const string SFX_COMBO_FINISH = "event:/desolozantas/char/kirby/knight_special";
+        private const string SFX_PUNCH = "event:/desolozantas/char/kirby/kirby_knight/punch_A";
+        private const string SFX_WEAPON = "event:/desolozantas/char/kirby/kirby_knight/punch_B";
+        private const string SFX_COMBO_FINISH = "event:/desolozantas/char/kirby/kirby_knight/punch_Final";
 
         private const float ATTACK_COOLDOWN = 0.18f;
         private const float ATTACK_DURATION = 0.12f;

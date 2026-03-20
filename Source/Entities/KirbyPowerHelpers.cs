@@ -8,7 +8,8 @@ namespace MaggyHelper.Entities
     /// </summary>
     public static class WarperDashHelper
     {
-        private const string SFX_DASH = "event:/desolozantas/char/kirby/dash";
+        private const string SFX_DASH_LEFT = "event:/desolozantas/char/kirby/dash_red_left";
+        private const string SFX_DASH_RIGHT = "event:/desolozantas/char/kirby/dash_red_right";
         private const string SFX_DASH_CHARGE = "event:/desolozantas/char/kirby/dash_charge";
         
         /// <summary>
@@ -33,8 +34,8 @@ namespace MaggyHelper.Entities
                 direction = Vector2.UnitX;
             }
             
-            // Play dash sound
-            Audio.Play(SFX_DASH, position);
+            // Use directional dash events so FMOD routing remains deterministic.
+            Audio.Play(direction.X < 0f ? SFX_DASH_LEFT : SFX_DASH_RIGHT, position);
             
             // Create visual effect scaled by power
             int particleCount = (int)(8 * power);
@@ -87,9 +88,9 @@ namespace MaggyHelper.Entities
     /// </summary>
     public static class KirbyKnightHelper
     {
-        private const string SFX_KNIGHT_TRANSFORM = "event:/desolozantas/char/kirby/knight_transform";
-        private const string SFX_KNIGHT_ATTACK = "event:/desolozantas/char/kirby/knight_attack";
-        private const string SFX_KNIGHT_SPECIAL = "event:/desolozantas/char/kirby/knight_special";
+        private const string SFX_KNIGHT_TRANSFORM = "event:/desolozantas/char/kirby/kirby_knight/backflip";
+        private const string SFX_KNIGHT_ATTACK = "event:/desolozantas/char/kirby/kirby_knight/punch_A";
+        private const string SFX_KNIGHT_SPECIAL = "event:/desolozantas/char/kirby/kirby_knight/spin";
         
         /// <summary>
         /// Whether the knight form is currently active

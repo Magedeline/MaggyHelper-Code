@@ -117,6 +117,8 @@ namespace MaggyHelper.Extensions.Core
                     IngesteLogger.Error($"Error loading character module: {ex}");
                 }
             }
+
+            EnsureHeartCompanion(self);
             
             IngesteLogger.Debug($"LevelStateManager: Level loaded - {self.Session.Level}");
         }
@@ -183,6 +185,21 @@ namespace MaggyHelper.Extensions.Core
             _currentState.KirbyModeEnabled = session.GetFlag("kirby_mode");
             _currentState.CharaModeEnabled = session.GetFlag("chara_mode");
             _currentState.RalseiModeEnabled = session.GetFlag("ralsei_mode");
+        }
+
+        private static void EnsureHeartCompanion(Level level)
+        {
+            if (level == null)
+            {
+                return;
+            }
+
+            if (!MaggyHelperModule.IsInMaggyHelperMap())
+            {
+                return;
+            }
+
+            HeartCompanion.EnsureSquad(level);
         }
 
         #region Public API
