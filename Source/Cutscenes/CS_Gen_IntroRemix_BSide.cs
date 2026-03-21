@@ -248,8 +248,8 @@ public class CS_Gen_IntroRemix_BSide : Scene
 
     private void StartLevel()
     {
-        // Clean up audio
-        Audio.SetMusic(null);
+        // Restore the map's configured session music before handing off to gameplay.
+        session.Audio.Apply(forceSixteenthNoteHack: false);
 
         // Load into the actual B-Side level
         Engine.Scene = new LevelLoader(session);

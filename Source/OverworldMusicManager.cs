@@ -222,20 +222,12 @@ public static class OverworldMusicManager
 
     /// <summary>
     /// Determines whether we should be replacing music right now.
-    /// Returns true when:
-    /// - We're in the overworld and the selected chapter is a MaggyHelper map, OR
-    /// - We're in a MaggyHelper level
+    /// This manager is intended for overworld/menu contexts only.
     /// </summary>
     private static bool ShouldReplaceMusic()
     {
-        // Check if we're in a MaggyHelper level
-        if (Engine.Scene is Level level)
-        {
-            return IsOurSID(level.Session?.Area.GetSID());
-        }
-
         // Check if we're in the overworld with a MaggyHelper chapter selected
-        if (Engine.Scene is Overworld overworld)
+        if (Engine.Scene is Overworld)
         {
             return IsInMaggyHelperLevelSet();
         }

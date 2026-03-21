@@ -328,7 +328,7 @@ public class CS_Gen_IntroRemix_CSide : Scene
 
     private void StartLevel()
     {
-        Audio.SetMusic(null);
+        session.Audio.Apply(forceSixteenthNoteHack: false);
         Engine.Scene = new LevelLoader(session);
     }
 
