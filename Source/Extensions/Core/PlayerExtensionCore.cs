@@ -42,7 +42,12 @@ namespace MaggyHelper.Extensions.Core
                 // Player extensions
                 PlayerCharacterStates.Initialize();
                 PlayerSpriteExtensionsCore.Initialize();
-                
+
+                // Real-Player.cs patch layer — registers Kirby states in the actual
+                // Player.StateMachine and adds physics hooks aligned with Player.cs boundaries.
+                // [UPSTREAM-REF] https://github.com/NoelFB/Celeste/blob/master/Source/Player/Player.cs
+                MaggyHelper.PlayerPatch.PlayerPatchCore.Initialize();
+
                 // Level management
                 LevelStateManager.Initialize();
                 
@@ -103,7 +108,10 @@ namespace MaggyHelper.Extensions.Core
                 // Player extensions
                 PlayerSpriteExtensionsCore.Uninitialize();
                 PlayerCharacterStates.Uninitialize();
-                
+
+                // Real-Player.cs patch layer
+                MaggyHelper.PlayerPatch.PlayerPatchCore.Uninitialize();
+
                 // Core extensions
                 JumpThruExtensionsCore.Uninitialize();
                 ActorExtensionsCore.Uninitialize();

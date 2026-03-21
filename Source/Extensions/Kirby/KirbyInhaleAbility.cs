@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Monocle;
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Core;
 using System;
 using System.Collections.Generic;
 using MaggyHelper.Entities.Kirby;
@@ -9,13 +10,20 @@ namespace MaggyHelper.Extensions.Kirby
 {
     /// <summary>
     /// Kirby's signature ability — inhale enemies and objects.
-    /// 
+    ///
     /// Behaviour:
     ///   • Press/hold Inhale to open mouth and create a pull cone
     ///   • Entities in cone are pulled toward Kirby's mouth
     ///   • When close enough, they are swallowed
     ///   • Swallowing food heals; swallowing enemies optionally copies power
     ///   • If no copy power gained, Kirby gets "mouthful" state (can spit)
+    ///
+    /// Real-Player.cs integration (PlayerPatchCore):
+    ///   • StartInhale() transitions the real Player.StateMachine to StKirbyInhale.
+    ///   • StopInhale() returns the state machine to StNormal.
+    ///   • KirbyPlayerStatePatch.KirbyInhaleUpdate() handles restricted walk-only movement
+    ///     while inhaling, aligned with NormalUpdate's horizontal movement structure.
+    ///   • [UPSTREAM-REF] https://github.com/NoelFB/Celeste/blob/master/Source/Player/Player.cs
     /// </summary>
     public class KirbyInhaleAbility : KirbyAbilityBase, IKirbyAnimationProvider
     {
@@ -98,6 +106,16 @@ namespace MaggyHelper.Extensions.Kirby
             InhaledEntities.Clear();
             PendingCopyPower = KirbyMode.KirbyPowerState.None;
             PlaySfx(SFX_INHALE);
+
+            // [MOD-SPECIFIC] Transition real Player.StateMachine to StKirbyInhale.
+            // KirbyPlayerStatePatch.KirbyInhaleUpdate() will handle walk-only movement
+            // aligned with Player.NormalUpdate's horizontal movement structure.
+            // [UPSTREAM-REF] Player.cs NormalUpdate returns StClimb / StDash on transitions.
+            if (PlayerCharacterStates.StKirbyInhale >= 0
+                && Player?.StateMachine.State == CelestePlayer.StNormal)
+            {
+                Player.StateMachine.State = PlayerCharacterStates.StKirbyInhale;
+            }
         }
 
         public void StopInhale()
@@ -108,6 +126,13 @@ namespace MaggyHelper.Extensions.Kirby
             _mouthOpenTimer = Settings.MouthOpenTime;
             _inhaleTimer = 0f;
             PlaySfx(SFX_INHALE_END);
+
+            // [MOD-SPECIFIC] Return state machine to StNormal when inhale ends.
+            if (PlayerCharacterStates.StKirbyInhale >= 0
+                && Player?.StateMachine.State == PlayerCharacterStates.StKirbyInhale)
+            {
+                Player.StateMachine.State = CelestePlayer.StNormal;
+            }
         }
 
         private void UpdateMouthTimer()
