@@ -1,4 +1,4 @@
-using MaggyHelper.Extensions.Kirby;
+using global::MaggyHelper.Extensions.Kirby;
 namespace MaggyHelper.Entities
 {
     [CustomEntity(ids: "MaggyHelper/StarBlock")]

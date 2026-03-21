@@ -1,6 +1,6 @@
 using MaggyHelper.Effects.ShaderEffects;
-using MaggyHelper.Extensions.Core;
-using MaggyHelper.Extensions.Kirby;
+using global::MaggyHelper.Extensions.Core;
+using global::MaggyHelper.Extensions.Kirby;
 using MaggyHelper.HotReload;
 using MaggyHelper.Popstarberry;
 using MonoMod.RuntimeDetour;

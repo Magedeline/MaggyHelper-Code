@@ -5,7 +5,7 @@ using MaggyHelper.HotReload;
 using MaggyHelper.Popstarberry;
 using MaggyHelper;
 using MaggyHelper.Effects.ShaderEffects;
-using MaggyHelper.Extensions.Core;
+using global::MaggyHelper.Extensions.Core;
 using MaggyHelper; // Add this using directive
 using MonoMod.RuntimeDetour;
 using Monocle;

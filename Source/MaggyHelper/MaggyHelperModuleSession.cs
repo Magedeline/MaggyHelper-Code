@@ -1,5 +1,5 @@
 
-using MaggyHelper.Extensions.Core;
+using global::MaggyHelper.Extensions.Core;
 
 namespace MaggyHelper.MaggyHelper;
 

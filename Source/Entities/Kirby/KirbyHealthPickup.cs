@@ -1,6 +1,6 @@
 using MaggyHelper.Entities;
 using MaggyHelper.Extensions;
-using MaggyHelper.Extensions.Kirby;
+using global::MaggyHelper.Extensions.Kirby;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;

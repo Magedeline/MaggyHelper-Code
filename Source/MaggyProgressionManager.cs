@@ -1,4 +1,4 @@
-using MaggyHelper.Extensions.Core;
+using global::MaggyHelper.Extensions.Core;
 using MonoMod.Utils;
 
 ﻿#pragma warning disable CS0436 // Local patch save types intentionally shadow imported Celeste runtime types.

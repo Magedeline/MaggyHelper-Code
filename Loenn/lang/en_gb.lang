@@ -49,6 +49,20 @@ entities.MaggyHelper/HopesAndDreamsBlock.attributes.name.tertiaryColor=Tertiary 
 entities.MaggyHelper/HopesAndDreamsBlock.attributes.description.tertiaryColor=Madeline color for transformation effects (hex RGB).
 entities.MaggyHelper/HopesAndDreamsBlock.attributes.name.showStars=Show Stars
 entities.MaggyHelper/HopesAndDreamsBlock.attributes.description.showStars=If true, the block displays star particles.
+
+# -- KirbyActorPlayer Entity --
+entities.MaggyHelper/KirbyActorPlayer.placements.name.default=Kirby Actor Player
+entities.MaggyHelper/KirbyActorPlayer.placements.name.sweat_danger=Kirby Actor Player (Sweat Danger)
+entities.MaggyHelper/KirbyActorPlayer.placements.description.default=Spawns an actor-based Kirby player sprite for cutscenes, previews, and scripted scenes.
+entities.MaggyHelper/KirbyActorPlayer.placements.description.sweat_danger=Spawns the Kirby actor with sweat overlay enabled in the danger state.
+entities.MaggyHelper/KirbyActorPlayer.attributes.name.startAnimation=Start Animation
+entities.MaggyHelper/KirbyActorPlayer.attributes.description.startAnimation=Animation played when the entity spawns (must match an animation ID in the Kirby actor sprite bank).
+entities.MaggyHelper/KirbyActorPlayer.attributes.name.faceLeft=Face Left
+entities.MaggyHelper/KirbyActorPlayer.attributes.description.faceLeft=If true, the sprite starts facing left.
+entities.MaggyHelper/KirbyActorPlayer.attributes.name.showSweat=Show Sweat Overlay
+entities.MaggyHelper/KirbyActorPlayer.attributes.description.showSweat=If true, enables the kirby_player_sweat overlay sprite.
+entities.MaggyHelper/KirbyActorPlayer.attributes.name.sweatAnimation=Sweat Animation
+entities.MaggyHelper/KirbyActorPlayer.attributes.description.sweatAnimation=Animation used by the sweat overlay when Show Sweat Overlay is enabled.
 # -- Mod Names --
 # mods.modName.*
 mods.SkinModHelper.name=Skin Mod Helper

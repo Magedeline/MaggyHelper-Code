@@ -1,6 +1,6 @@
 using MaggyHelper.Entities;
 using MaggyHelper.Extensions;
-using MaggyHelper.Extensions.Kirby;
+using global::MaggyHelper.Extensions.Kirby;
 
 namespace MaggyHelper.Entities.Kirby
 {

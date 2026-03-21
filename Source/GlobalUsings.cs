@@ -15,10 +15,10 @@ global using Celeste.Mod.Entities; // For CustomEntity attribute
 global using MaggyHelper; // MaggyHelper root namespace (IngesteConstants, AreaModeExtender, etc.)
 global using MaggyHelper.Helpers; // Helper classes (AudioHelper, TextureUtil, BossActor, etc.)
 global using MaggyHelper.HotReload; // Hot reload attributes
-global using MaggyHelper.Extensions; // KirbyMode, KirbyHealthDisplay, etc.
-global using MaggyHelper.Extensions.Core; // Core extension helpers
+global using global::MaggyHelper.Extensions; // KirbyMode, KirbyHealthDisplay, etc.
+global using global::MaggyHelper.Extensions.Core; // Core extension helpers
 // Explicit type aliases to resolve ambiguity between MaggyHelper custom types and Celeste vanilla types
-global using KirbyModeExt = MaggyHelper.Extensions.KirbyMode;
+global using KirbyModeExt = global::MaggyHelper.Extensions.KirbyMode;
 global using MaggyHelperModule = MaggyHelper.MaggyHelperModule;
 global using IngesteModule = MaggyHelper.MaggyHelper.IngesteModule;
 global using IngesteLogger = MaggyHelper.MaggyHelper.IngesteLogger;

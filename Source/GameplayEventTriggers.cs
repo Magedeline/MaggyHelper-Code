@@ -1,5 +1,5 @@
 using MaggyHelper.Entities;
-using MaggyHelper.Extensions.Core;
+using global::MaggyHelper.Extensions.Core;
 using MaggyHelper.Utils;
 using Microsoft.Xna.Framework;
 using Monocle;
