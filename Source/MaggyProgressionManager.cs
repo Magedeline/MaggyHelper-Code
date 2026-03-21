@@ -328,9 +328,6 @@ public static class MaggyProgressionManager
         if (modSave?.TryGetPreferredCharacter(sid, out string preferredCharacter) == true)
             return PlayerCharacter.FromId(preferredCharacter);
 
-        if (MaggyHelperModule.Session?.IsKirbyModeActive == true || session.GetFlag("kirby_mode"))
-            return PlayerCharacter.KirbyCharacter;
-
         return PlayerCharacter.MadelineCharacter;
     }
 
@@ -351,9 +348,6 @@ public static class MaggyProgressionManager
         PlayerCharacter? sessionCharacter = MaggyHelperModule.Session?.GetActivePlayerCharacter();
         if (sessionCharacter.HasValue)
             return sessionCharacter.Value;
-
-        if (MaggyHelperModule.Session?.IsKirbyModeActive == true || level.Session.GetFlag("kirby_mode"))
-            return PlayerCharacter.KirbyCharacter;
 
         PlayerCharacter levelStateCharacter = LevelStateManager.GetActivePlayerCharacter();
         if (!string.IsNullOrWhiteSpace(levelStateCharacter.Id))

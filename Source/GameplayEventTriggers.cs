@@ -668,7 +668,7 @@ namespace MaggyHelper
         public CharacterSwapTrigger(EntityData data, Vector2 offset)
             : base(data, offset)
         {
-            targetCharacter = PlayerCharacter.NormalizeId(data.Attr("targetCharacter", PlayerCharacterIds.Kirby));
+            targetCharacter = PlayerCharacter.NormalizeId(data.Attr("targetCharacter", PlayerCharacterIds.Madeline));
             onlyOnce = data.Bool("onlyOnce", true);
         }
 

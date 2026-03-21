@@ -25,6 +25,8 @@ public class KirbyPlayer : Entity
 [Tracked]
 public class KirbyPlayerExtension : Entity
 {
+    public bool IsEnabled { get; set; }
+
     public bool IsInhaling
     {
         get => Inhale.IsInhaling;
@@ -50,6 +52,11 @@ public class KirbyPlayerExtension : Entity
     public void SetPowerState(global::MaggyHelper.Extensions.KirbyMode.KirbyPowerState state)
     {
         _powerState = state;
+    }
+
+    public global::MaggyHelper.Extensions.KirbyMode.KirbyPowerState GetPowerState()
+    {
+        return _powerState;
     }
 
     public KirbyInhaleState Inhale { get; } = new();

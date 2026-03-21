@@ -40,7 +40,20 @@ public readonly struct PlayerCharacter
             PlayerCharacterIds.Default => PlayerCharacterIds.Madeline,
             "maggy_player" => PlayerCharacterIds.Madeline,
             "maddy" => PlayerCharacterIds.Madeline,
-            "kirby_player" => PlayerCharacterIds.Kirby,
+            PlayerCharacterIds.Kirby => PlayerCharacterIds.Madeline,
+            "kirby_player" => PlayerCharacterIds.Madeline,
+            "kirby_classic" => PlayerCharacterIds.Madeline,
+            "meta_knight" => PlayerCharacterIds.Madeline,
+            "king_dedede" => PlayerCharacterIds.Madeline,
+            "bandana_waddle_dee" => PlayerCharacterIds.Madeline,
+            "adeline" => PlayerCharacterIds.Madeline,
+            "gooey" => PlayerCharacterIds.Madeline,
+            "marx" => PlayerCharacterIds.Madeline,
+            "magolor" => PlayerCharacterIds.Madeline,
+            "taranza" => PlayerCharacterIds.Madeline,
+            "susie" => PlayerCharacterIds.Madeline,
+            "susie_haltmann" => PlayerCharacterIds.Madeline,
+            "dark_meta_knight" => PlayerCharacterIds.Madeline,
             _ => normalized
         };
     }

@@ -220,8 +220,9 @@ public class MaggyHelperModuleSession : EverestModuleSession
     /// </summary>
     public void SetActivePlayerCharacter(PlayerCharacter character)
     {
-        ActiveCharacterId = character.Id;
-        IsKirbyModeActive = character.IsKirby;
+        PlayerCharacter normalized = PlayerCharacter.FromId(character.Id);
+        ActiveCharacterId = normalized.Id;
+        IsKirbyModeActive = normalized.IsKirby;
     }
     
     /// <summary>
