@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Kirby.Core;
 using MonoMod.RuntimeDetour;
+using Celeste.Mod.MaggyHelper.Patches.Player;
 
 namespace MaggyHelper.Extensions.Core
 {
@@ -11,6 +13,10 @@ namespace MaggyHelper.Extensions.Core
     /// Central hook management class for player extension system.
     /// Similar to Aqua's HookCenter, this manages initialization and cleanup
     /// of all extension hooks for custom character systems.
+    ///
+    /// Also owns the real Player.cs migration architecture:
+    ///   ForkedPlayerCore → PlayerModeRouter → KirbyPlayerPatch
+    /// These are wired here so their lifecycle is consistent with all other hooks.
     /// </summary>
     public class PlayerExtensionCore
     {
@@ -19,6 +25,18 @@ namespace MaggyHelper.Extensions.Core
 
         private bool _initialized = false;
         private List<ICharacterModule> _characterModules = new List<ICharacterModule>();
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // Real Player.cs migration layer
+        // ─────────────────────────────────────────────────────────────────────────
+
+        private ForkedPlayerCore _forkedPlayerCore;
+
+        /// <summary>
+        /// The real Player.cs migration core.
+        /// Provides access to upstream state constants and behavioral routing.
+        /// </summary>
+        public ForkedPlayerCore ForkedCore => _forkedPlayerCore;
 
         /// <summary>
         /// Initialize all extension hooks
@@ -45,7 +63,17 @@ namespace MaggyHelper.Extensions.Core
                 
                 // Level management
                 LevelStateManager.Initialize();
-                
+
+                // ── Real Player.cs migration layer ──────────────────────────────
+                // Build the patch/fork routing stack and install its hooks.
+                // KirbyPlayerPatch wraps a KirbyPlayerCore for Kirby runtime management.
+                var kirbyCore = new KirbyPlayerCore();
+                var kirbyPatch = new KirbyPlayerPatch(kirbyCore);
+                var router = new PlayerModeRouter(kirbyPatch);
+                _forkedPlayerCore = new ForkedPlayerCore(router);
+                _forkedPlayerCore.Hook();
+                // ────────────────────────────────────────────────────────────────
+
                 // Register default character modules
                 RegisterDefaultCharacterModules();
                 
@@ -99,6 +127,11 @@ namespace MaggyHelper.Extensions.Core
 
                 // Level management
                 LevelStateManager.Uninitialize();
+
+                // ── Real Player.cs migration layer ──────────────────────────────
+                _forkedPlayerCore?.Unhook();
+                _forkedPlayerCore = null;
+                // ────────────────────────────────────────────────────────────────
                 
                 // Player extensions
                 PlayerSpriteExtensionsCore.Uninitialize();
