@@ -1,4 +1,5 @@
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Core;
 using MaggyHelper.Utils;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -667,7 +668,7 @@ namespace MaggyHelper
         public CharacterSwapTrigger(EntityData data, Vector2 offset)
             : base(data, offset)
         {
-            targetCharacter = data.Attr("targetCharacter", "kirby");
+            targetCharacter = PlayerCharacter.NormalizeId(data.Attr("targetCharacter", PlayerCharacterIds.Kirby));
             onlyOnce = data.Bool("onlyOnce", true);
         }
 
@@ -678,8 +679,8 @@ namespace MaggyHelper
             triggered = true;
 
             Level level = SceneAs<Level>();
-            level.Session.SetFlag("character_kirby", targetCharacter == "kirby");
-            level.Session.SetFlag("character_madeline", targetCharacter == "madeline");
+            level.Session.SetFlag("character_kirby", targetCharacter == PlayerCharacterIds.Kirby);
+            level.Session.SetFlag("character_madeline", targetCharacter == PlayerCharacterIds.Madeline);
             MaggyProgressionManager.RecordPreferredCharacter(level, targetCharacter);
             Audio.Play("event:/game/general/cassette_bubblereturn", Position);
             (Scene as Level)?.Flash(Color.White * 0.4f);

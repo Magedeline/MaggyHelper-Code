@@ -46,6 +46,7 @@ public sealed class KirbyPlayerExtensionCore
         }
 
         On.Celeste.Player.Die += PlayerOnDie;
+        On.Celeste.Player.Update += PlayerOnUpdate;
         On.Celeste.Player.OnCollideH += PlayerOnCollideH;
         On.Celeste.Player.OnCollideV += PlayerOnCollideV;
 
@@ -60,6 +61,7 @@ public sealed class KirbyPlayerExtensionCore
         }
 
         On.Celeste.Player.Die -= PlayerOnDie;
+        On.Celeste.Player.Update -= PlayerOnUpdate;
         On.Celeste.Player.OnCollideH -= PlayerOnCollideH;
         On.Celeste.Player.OnCollideV -= PlayerOnCollideV;
 
@@ -116,6 +118,32 @@ public sealed class KirbyPlayerExtensionCore
 
         Audio.Play(SfxDie, self.Position);
         return orig(self, direction, evenIfInvincible, registerDeathInStats);
+    }
+
+    private void PlayerOnUpdate(On.Celeste.Player.orig_Update orig, Player self)
+    {
+        orig(self);
+
+        if (self?.Scene is not Level level)
+        {
+            return;
+        }
+
+        if (!IsKirbyActive(self))
+        {
+            return;
+        }
+
+        try
+        {
+            // Keep Kirby runtime attached to vanilla Player.Update flow without overriding Player.cs.
+            _playerCore.EnsureRuntime(self, level, enableSync: true);
+        }
+        catch (Exception ex)
+        {
+            // Preserve legacy paths if runtime attach fails in edge cases.
+            IngesteLogger.Warn($"KirbyPlayerExtensionCore: EnsureRuntime failed in Player.Update: {ex.Message}");
+        }
     }
 
     private static bool IsInstantKillHazardContact(Player player, bool includeVertical = false)

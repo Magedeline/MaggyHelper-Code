@@ -43,6 +43,15 @@ namespace MaggyHelper.Extensions.Kirby
 
         protected override void OnUpdate()
         {
+            if (Settings == null || !Settings.HoverEnabled)
+            {
+                if (IsHovering)
+                    EndHover();
+
+                IsExecuting = false;
+                return;
+            }
+
             if (Player == null || Extension.IsDead) return;
 
             bool onGround = Player.OnGround();

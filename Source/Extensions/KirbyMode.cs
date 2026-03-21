@@ -365,6 +365,9 @@ namespace MaggyHelper.Extensions
 
         private void UpdateHover()
         {
+            if (!this.settings.HoverEnabled)
+                return;
+
             if (this.player == null || this.IsDead)
                 return;
 

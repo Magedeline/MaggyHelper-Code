@@ -1,3 +1,5 @@
+using global::MaggyHelper.Extensions.Core;
+
 namespace MaggyHelper;
 
 /// <summary>
@@ -11,7 +13,7 @@ public class SavedChapterRespawnState
 
     public float RespawnY { get; set; } = 0f;
 
-    public string CharacterId { get; set; } = "madeline";
+    public string CharacterId { get; set; } = PlayerCharacterIds.Madeline;
 
     public string CheckpointId { get; set; } = string.Empty;
 

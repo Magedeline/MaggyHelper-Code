@@ -46,6 +46,7 @@ namespace MaggyHelper.Extensions.Kirby
         private Sprite _sprite;
         private KirbyHealthDisplay _hud;
         private bool _syncToPlayer;
+        private bool _kirbySkinApplied;
         private float _invulnTimer;
         private float _hurtAnimTimer;
         private bool _wasDead;
@@ -121,6 +122,9 @@ namespace MaggyHelper.Extensions.Kirby
         /// <summary>Quick access: Copy ability.</summary>
         public KirbyCopyAbility CopyAbility => _abilityManager.Get<KirbyCopyAbility>();
 
+        /// <summary>Quick access: Precision combat ability.</summary>
+        public KirbyPrecisionCombatAbility PrecisionCombat => _abilityManager.Get<KirbyPrecisionCombatAbility>();
+
         #endregion
 
         #region Constructor
@@ -140,6 +144,7 @@ namespace MaggyHelper.Extensions.Kirby
             _abilityManager.Register(new KirbyMeleeAbility());
             _abilityManager.Register(new KirbyRangeAbility());
             _abilityManager.Register(new KirbyCopyAbility());
+            _abilityManager.Register(new KirbyPrecisionCombatAbility());
         }
 
         /// <summary>
@@ -173,6 +178,15 @@ namespace MaggyHelper.Extensions.Kirby
 
         public override void Removed(Scene scene)
         {
+            SaveToSession();
+            DisablePlayerSync();
+
+            if (_hud != null)
+            {
+                _hud.RemoveSelf();
+                _hud = null;
+            }
+
             _abilityManager.OnRemoved(scene);
             base.Removed(scene);
         }
@@ -191,9 +205,15 @@ namespace MaggyHelper.Extensions.Kirby
                 // Re-apply visibility suppression so the real player doesn't reappear after transitions
                 if (_player != null && _syncToPlayer)
                 {
-                    _player.Visible = false;
-                    if (_player.Sprite != null) _player.Sprite.Visible = false;
-                    if (_player.Hair != null) _player.Hair.Visible = false;
+                    if (_settings.UseVanillaPlayerRender)
+                    {
+                        SetPlayerVisualsVisible(true);
+                        ApplyKirbyPlayerSkin();
+                    }
+                    else
+                    {
+                        SetPlayerVisualsVisible(false);
+                    }
                 }
             }
 
@@ -209,7 +229,7 @@ namespace MaggyHelper.Extensions.Kirby
 
             // Timers
             if (_invulnTimer > 0f)
-                _invulnTimer -= Engine.DeltaTime;
+                _invulnTimer = Math.Max(0f, _invulnTimer - Engine.DeltaTime);
 
             // Update all abilities
             _abilityManager.Update();
@@ -250,9 +270,21 @@ namespace MaggyHelper.Extensions.Kirby
             _syncToPlayer = true;
             if (_player != null)
             {
-                _player.Visible = false;
-                if (_player.Sprite != null) _player.Sprite.Visible = false;
-                if (_player.Hair != null) _player.Hair.Visible = false;
+                if (_settings.UseVanillaPlayerRender)
+                {
+                    SetPlayerVisualsVisible(true);
+                    ApplyKirbyPlayerSkin();
+                    if (_player.Hair != null)
+                        _player.Hair.Visible = false;
+                    if (_sprite != null)
+                        _sprite.Visible = false;
+                }
+                else
+                {
+                    SetPlayerVisualsVisible(false);
+                    if (_sprite != null)
+                        _sprite.Visible = true;
+                }
             }
         }
 
@@ -264,10 +296,70 @@ namespace MaggyHelper.Extensions.Kirby
             _syncToPlayer = false;
             if (_player != null)
             {
-                _player.Visible = true;
-                if (_player.Sprite != null) _player.Sprite.Visible = true;
-                if (_player.Hair != null) _player.Hair.Visible = true;
+                if (_settings.UseVanillaPlayerRender)
+                {
+                    RestoreDefaultPlayerSkin();
+                    if (_sprite != null)
+                        _sprite.Visible = true;
+                }
+
+                SetPlayerVisualsVisible(true);
             }
+        }
+
+        private void SetPlayerVisualsVisible(bool visible)
+        {
+            if (_player == null)
+                return;
+
+            _player.Visible = visible;
+            if (_player.Sprite != null)
+                _player.Sprite.Visible = visible;
+            if (_player.Hair != null)
+                _player.Hair.Visible = visible;
+
+            if (_settings.UseVanillaPlayerRender && _syncToPlayer)
+            {
+                if (_player.Hair != null)
+                    _player.Hair.Visible = false;
+            }
+        }
+
+        private void ApplyKirbyPlayerSkin()
+        {
+            if (_player?.Sprite == null || _kirbySkinApplied)
+                return;
+
+            if (!GFX.SpriteBank.Has("kirby_player"))
+                return;
+
+            GFX.SpriteBank.CreateOn(_player.Sprite, "kirby_player");
+            _kirbySkinApplied = true;
+        }
+
+        private void RestoreDefaultPlayerSkin()
+        {
+            if (_player?.Sprite == null || !_kirbySkinApplied)
+                return;
+
+            string restoreId = null;
+            if (_player.Scene is Level level)
+            {
+                var areaData = AreaData.Get(level.Session.Area);
+                if (areaData != null && AreaModeExtender.IsOurMap(areaData))
+                {
+                    restoreId = _player.Sprite.Mode == PlayerSpriteMode.Playback
+                        ? "maggy_player_playback"
+                        : "maggy_player";
+                }
+            }
+
+            restoreId ??= "player";
+
+            if (GFX.SpriteBank.Has(restoreId))
+                GFX.SpriteBank.CreateOn(_player.Sprite, restoreId);
+
+            _kirbySkinApplied = false;
         }
 
         #endregion
@@ -332,7 +424,11 @@ namespace MaggyHelper.Extensions.Kirby
                 level.Displacement.AddBurst(Position, 0.4f, 16f, 48f, 0.4f);
             }
 
-            _player?.Die((_player.Position - source).SafeNormalize());
+            Vector2 dieDirection = _player != null
+                ? (_player.Position - source).SafeNormalize()
+                : Vector2.Zero;
+
+            _player?.Die(dieDirection);
         }
 
         #endregion
@@ -383,8 +479,8 @@ namespace MaggyHelper.Extensions.Kirby
                 return;
             }
 
-            CurrentHealth = Math.Min(session.KirbyHealth, MaxHealth);
-            CurrentStamina = Math.Min(session.KirbyStamina, MaxStamina);
+            CurrentHealth = Math.Clamp(session.KirbyHealth, 0, MaxHealth);
+            CurrentStamina = Math.Clamp(session.KirbyStamina, 0f, MaxStamina);
 
             if (Enum.TryParse(session.CurrentKirbyPower, out KirbyMode.KirbyPowerState power))
                 CurrentPower = power;
@@ -411,7 +507,7 @@ namespace MaggyHelper.Extensions.Kirby
             Add(_sprite);
             _sprite.Position = Vector2.Zero;
             _sprite.Scale = Vector2.One;
-            _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Idle));
+            PlayResolvedAnim(KirbyAnimIds.Logical.Idle);
         }
 
         private void UpdateAnimation()
@@ -421,13 +517,13 @@ namespace MaggyHelper.Extensions.Kirby
             _sprite.FlipX = _player.Facing == Facings.Left;
             _sprite.FlipY = false;
 
-            if (_isDead) { _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Death)); return; }
+            if (_isDead) { PlayResolvedAnim(KirbyAnimIds.Logical.Death); return; }
 
             // Hurt flash: play damage animation while the invuln window is active.
             if (_hurtAnimTimer > 0f)
             {
                 _hurtAnimTimer -= Engine.DeltaTime;
-                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Damage));
+                PlayResolvedAnim(KirbyAnimIds.Logical.Damage);
                 return;
             }
 
@@ -435,44 +531,69 @@ namespace MaggyHelper.Extensions.Kirby
             string abilityAnim = _abilityManager.GetActiveAnimation();
             if (abilityAnim != null)
             {
-                string abilityAnimId = ResolveAnim(abilityAnim);
-                try { _sprite.Play(abilityAnimId); }
-                catch { /* Unknown animation ID — skip to avoid crash */ }
+                PlayResolvedAnim(abilityAnim);
                 return;
             }
 
             if (!string.IsNullOrEmpty(CompatAnimationOverride))
             {
-                _sprite.Play(ResolveAnim(CompatAnimationOverride));
+                PlayResolvedAnim(CompatAnimationOverride);
                 return;
             }
 
             // Dash
             if (_player.DashAttacking || _player.StateMachine.State == 2)
             {
-                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Dash)); return;
+                PlayResolvedAnim(KirbyAnimIds.Logical.Dash); return;
             }
 
             // Airborne
             if (!_player.OnGround())
             {
                 if (Hover != null && Hover.IsHovering)
-                    _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Hover));
+                    PlayResolvedAnim(KirbyAnimIds.Logical.Hover);
                 else if (_player.Speed.Y > 0f)
-                    _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Fall));
+                    PlayResolvedAnim(KirbyAnimIds.Logical.Fall);
                 else
-                    _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Jump));
+                    PlayResolvedAnim(KirbyAnimIds.Logical.Jump);
                 return;
             }
 
             // Ground
             float speedX = Math.Abs(_player.Speed.X);
             if (speedX <= 1f)
-                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Idle));
+                PlayResolvedAnim(KirbyAnimIds.Logical.Idle);
             else if (speedX < 90f)
-                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Walk));
+                PlayResolvedAnim(KirbyAnimIds.Logical.Walk);
             else
-                _sprite.Play(ResolveAnim(KirbyAnimIds.Logical.Run));
+                PlayResolvedAnim(KirbyAnimIds.Logical.Run);
+        }
+
+        private void PlayResolvedAnim(string requestedAnimId)
+        {
+            if (_sprite == null)
+                return;
+
+            string resolvedAnimId = ResolveAnim(requestedAnimId);
+            if (string.IsNullOrEmpty(resolvedAnimId))
+                return;
+
+            if (!_sprite.Has(resolvedAnimId))
+            {
+                if (_sprite.Has(KirbyAnimIds.Idle))
+                    resolvedAnimId = KirbyAnimIds.Idle;
+                else
+                    return;
+            }
+
+            try
+            {
+                _sprite.Play(resolvedAnimId);
+            }
+            catch
+            {
+                // Keep gameplay running if a third-party modifier mutates animation dictionaries at runtime.
+            }
         }
 
         /// <summary>Map a logical animation id to the sprite bank id.</summary>

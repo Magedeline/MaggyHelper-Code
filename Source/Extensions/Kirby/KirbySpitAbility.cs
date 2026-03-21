@@ -46,6 +46,9 @@ namespace MaggyHelper.Extensions.Kirby
 
         private void HandleInput()
         {
+            if (Extension?.PrecisionCombat?.CombatModeActive == true)
+                return;
+
             bool spitPressed = Settings.IsKeyPressed("Spit");
 
             if (spitPressed)

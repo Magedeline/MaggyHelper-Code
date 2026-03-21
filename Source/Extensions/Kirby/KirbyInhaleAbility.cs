@@ -44,7 +44,12 @@ namespace MaggyHelper.Extensions.Kirby
 
         protected override void OnUpdate()
         {
-            if (Player == null || !Settings.KirbyPlayerEnabled) return;
+            if (Player == null || Extension.IsDead || !Settings.KirbyPlayerEnabled)
+            {
+                if (IsInhaling)
+                    StopInhale();
+                return;
+            }
 
             UpdateMouthTimer();
             HandleInput();
@@ -57,12 +62,15 @@ namespace MaggyHelper.Extensions.Kirby
 
         private void HandleInput()
         {
+            if (Extension?.PrecisionCombat?.CombatModeActive == true)
+                return;
+
             bool held = Settings.IsKeyCheck("Inhale");
             bool pressed = Settings.IsKeyPressed("Inhale");
             bool inhaleInput = Settings.InhaleHoldMode ? held : pressed;
 
             // Start inhale
-            if (inhaleInput && !IsInhaling && _mouthOpenTimer <= 0f)
+            if (inhaleInput && !IsInhaling && !HasMouthful && _mouthOpenTimer <= 0f)
                 StartInhale();
 
             // Stop inhale (hold mode: release cancels)
@@ -87,6 +95,8 @@ namespace MaggyHelper.Extensions.Kirby
             IsInhaling = true;
             IsExecuting = true;
             _inhaleTimer = Settings.InhaleDuration;
+            InhaledEntities.Clear();
+            PendingCopyPower = KirbyMode.KirbyPowerState.None;
             PlaySfx(SFX_INHALE);
         }
 
@@ -103,7 +113,7 @@ namespace MaggyHelper.Extensions.Kirby
         private void UpdateMouthTimer()
         {
             if (_mouthOpenTimer > 0f)
-                _mouthOpenTimer -= Engine.DeltaTime;
+                _mouthOpenTimer = Math.Max(0f, _mouthOpenTimer - Engine.DeltaTime);
         }
 
         #endregion
@@ -119,6 +129,8 @@ namespace MaggyHelper.Extensions.Kirby
             float rangeSq = Settings.InhaleRange * Settings.InhaleRange;
 
             EmitInhaleParticles(mouthPos);
+
+            Entity swallowTarget = null;
 
             foreach (Entity candidate in Level.Entities)
             {
@@ -143,10 +155,13 @@ namespace MaggyHelper.Extensions.Kirby
                 // Swallow if close enough
                 if (Vector2.Distance(entity.Position, mouthPos) <= Settings.InhaleSwallowDistance)
                 {
-                    SwallowEntity(entity);
+                    swallowTarget = entity;
                     break;
                 }
             }
+
+            if (swallowTarget != null)
+                SwallowEntity(swallowTarget);
         }
 
         private void EmitInhaleParticles(Vector2 mouthPos)
@@ -200,6 +215,7 @@ namespace MaggyHelper.Extensions.Kirby
             {
                 // Automatic copy: set power immediately
                 Extension.SetPowerState(PendingCopyPower);
+                HasMouthful = false;
             }
             else
             {

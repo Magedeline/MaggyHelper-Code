@@ -32,6 +32,29 @@ public partial class MaggyHelperModuleSettings : EverestModuleSettings
     
     #endregion
 
+    #region Madeline Combat Settings
+
+    /// <summary>
+    /// Enable additive Madeline combat runtime (HUD + melee + side charge).
+    /// </summary>
+    [SettingName("MAGGYHELPER_MAD_COMBAT_ENABLED")]
+    public bool MadelineCombatEnabled { get; set; } = false;
+
+    /// <summary>
+    /// Show Madeline health / stamina HUD bars.
+    /// </summary>
+    [SettingName("MAGGYHELPER_MAD_COMBAT_HUD")]
+    public bool MadelineCombatShowHud { get; set; } = true;
+
+    /// <summary>
+    /// Max custom health for Madeline combat mode.
+    /// </summary>
+    [SettingName("MAGGYHELPER_MAD_COMBAT_MAX_HEALTH")]
+    [SettingRange(1, 12)]
+    public int MadelineCombatMaxHealth { get; set; } = 5;
+
+    #endregion
+
     #region Kirby Player Settings
     
     /// <summary>
@@ -138,6 +161,32 @@ public partial class MaggyHelperModuleSettings : EverestModuleSettings
     /// </summary>
     [SettingName("MAGGYHELPER_KIRBY_HOVER_HOLD")]
     public bool HoverHoldMode { get; set; } = false;
+
+    /// <summary>
+    /// Enable Kirby hovering/floating gameplay.
+    /// Default is off to keep movement precision-focused.
+    /// </summary>
+    [SettingName("MAGGYHELPER_KIRBY_HOVER_ENABLED")]
+    public bool KirbyHoverEnabled { get; set; } = false;
+
+    /// <summary>
+    /// Use vanilla Player rendering with Kirby sprite bank applied.
+    /// This keeps Player.cs behavior 1:1 while changing visuals.
+    /// </summary>
+    [SettingName("MAGGYHELPER_KIRBY_USE_PLAYER_RENDER")]
+    public bool KirbyUseVanillaPlayerRender { get; set; } = true;
+
+    /// <summary>
+    /// Enable the precision combat controller (punch/parry state machine).
+    /// </summary>
+    [SettingName("MAGGYHELPER_KIRBY_PRECISION_COMBAT")]
+    public bool KirbyPrecisionCombatEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Default combat mode on chapter/session start.
+    /// </summary>
+    [SettingName("MAGGYHELPER_KIRBY_COMBAT_MODE_DEFAULT")]
+    public bool KirbyCombatModeDefault { get; set; } = false;
     
     #endregion
 
@@ -226,6 +275,14 @@ public partial class MaggyHelperModuleSettings : EverestModuleSettings
     [SettingName("MAGGYHELPER_BIND_ATTACK")]
     [DefaultButtonBinding(Buttons.X, Keys.X)]
     public ButtonBinding KirbyAttackBind { get; set; }
+
+    /// <summary>
+    /// Precision combat punch binding.
+    /// Falls back to the general Attack bind when used by runtime logic.
+    /// </summary>
+    [SettingName("MAGGYHELPER_BIND_PUNCH")]
+    [DefaultButtonBinding(Buttons.X, Keys.X)]
+    public ButtonBinding KirbyPunchBind { get; set; }
     
     /// <summary>
     /// Kirby hover ability binding.
@@ -240,6 +297,21 @@ public partial class MaggyHelperModuleSettings : EverestModuleSettings
     [SettingName("MAGGYHELPER_BIND_SPIT")]
     [DefaultButtonBinding(Buttons.B, Keys.V)]
     public ButtonBinding KirbySpitBind { get; set; }
+
+    /// <summary>
+    /// Precision combat parry binding.
+    /// Falls back to Spit bind when used by runtime logic.
+    /// </summary>
+    [SettingName("MAGGYHELPER_BIND_PARRY")]
+    [DefaultButtonBinding(Buttons.B, Keys.V)]
+    public ButtonBinding KirbyParryBind { get; set; }
+
+    /// <summary>
+    /// Toggle precision combat mode on/off.
+    /// </summary>
+    [SettingName("MAGGYHELPER_BIND_COMBAT_TOGGLE")]
+    [DefaultButtonBinding(Buttons.LeftStick, Keys.F)]
+    public ButtonBinding KirbyCombatToggleBind { get; set; }
     
     /// <summary>
     /// Kirby cycle power binding.
@@ -268,6 +340,27 @@ public partial class MaggyHelperModuleSettings : EverestModuleSettings
     [SettingName("MAGGYHELPER_BIND_KNIGHT")]
     [DefaultButtonBinding(Buttons.RightTrigger, Keys.R)]
     public ButtonBinding KirbyKnightBind { get; set; }
+
+    /// <summary>
+    /// Madeline melee combat input.
+    /// </summary>
+    [SettingName("MAGGYHELPER_BIND_MAD_MELEE")]
+    [DefaultButtonBinding(Buttons.X, Keys.G)]
+    public ButtonBinding MadelineMeleeBind { get; set; }
+
+    /// <summary>
+    /// Madeline side charge attack hold input.
+    /// </summary>
+    [SettingName("MAGGYHELPER_BIND_MAD_CHARGE")]
+    [DefaultButtonBinding(Buttons.LeftTrigger, Keys.LeftShift)]
+    public ButtonBinding MadelineChargeBind { get; set; }
+
+    /// <summary>
+    /// Cycle Madeline's equipped weapon.
+    /// </summary>
+    [SettingName("MAGGYHELPER_BIND_MAD_WEAPON_CYCLE")]
+    [DefaultButtonBinding(Buttons.RightShoulder, Keys.Tab)]
+    public ButtonBinding MadelineWeaponCycleBind { get; set; }
     
     #endregion
 

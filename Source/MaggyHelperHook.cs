@@ -45,6 +45,13 @@ namespace MaggyHelper {
                 var areaData = AreaData.Get(level.Session.Area);
                 if (areaData != null && AreaModeExtender.IsOurMap(areaData))
                 {
+                    bool kirbyModeActive = level.Session.GetFlag("kirby_mode");
+                    if (kirbyModeActive && (MaggyHelperModule.Settings?.KirbyUseVanillaPlayerRender ?? true) && GFX.SpriteBank.Has("kirby_player"))
+                    {
+                        GFX.SpriteBank.CreateOn(self.Sprite, "kirby_player");
+                        return;
+                    }
+
                     string maggyId = self.Sprite.Mode switch
                     {
                         PlayerSpriteMode.Madeline          => "maggy_player",

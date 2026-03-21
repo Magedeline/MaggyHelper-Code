@@ -31,6 +31,16 @@ namespace MaggyHelper
         /// Whether hover requires holding the button.
         /// </summary>
         public bool HoverHoldMode => IngesteModule.Settings?.HoverHoldMode ?? false;
+
+        /// <summary>
+        /// Whether hovering/floating is enabled.
+        /// </summary>
+        public bool HoverEnabled => IngesteModule.Settings?.KirbyHoverEnabled ?? false;
+
+        /// <summary>
+        /// Whether Kirby visuals should be rendered through the vanilla Player sprite.
+        /// </summary>
+        public bool UseVanillaPlayerRender => IngesteModule.Settings?.KirbyUseVanillaPlayerRender ?? true;
         
         #endregion
 
@@ -125,6 +135,61 @@ namespace MaggyHelper
         /// Hover gravity approach speed.
         /// </summary>
         public float HoverGravity => 240f;
+
+        /// <summary>
+        /// Enable precision combat runtime (punch/parry).
+        /// </summary>
+        public bool PrecisionCombatEnabled => IngesteModule.Settings?.KirbyPrecisionCombatEnabled ?? true;
+
+        /// <summary>
+        /// Whether combat mode starts enabled by default.
+        /// </summary>
+        public bool CombatModeDefault => IngesteModule.Settings?.KirbyCombatModeDefault ?? false;
+
+        /// <summary>
+        /// Input buffer in frames for punch/parry actions.
+        /// </summary>
+        public int CombatInputBufferFrames => 5;
+
+        /// <summary>
+        /// Fixed simulation FPS used by frame-data conversion.
+        /// </summary>
+        public float CombatFrameRate => 60f;
+
+        /// <summary>
+        /// Punch startup duration in frames.
+        /// </summary>
+        public int PunchStartupFrames => 4;
+
+        /// <summary>
+        /// Punch active duration in frames.
+        /// </summary>
+        public int PunchActiveFrames => 3;
+
+        /// <summary>
+        /// Punch recovery duration in frames.
+        /// </summary>
+        public int PunchRecoveryFrames => 7;
+
+        /// <summary>
+        /// Parry startup duration in frames.
+        /// </summary>
+        public int ParryStartupFrames => 2;
+
+        /// <summary>
+        /// Parry active duration in frames.
+        /// </summary>
+        public int ParryActiveFrames => 6;
+
+        /// <summary>
+        /// Parry recovery duration in frames.
+        /// </summary>
+        public int ParryRecoveryFrames => 10;
+
+        /// <summary>
+        /// Convert frame counts to seconds using fixed combat frame-rate.
+        /// </summary>
+        public float FramesToSeconds(int frames) => frames / CombatFrameRate;
         
         #endregion
 
@@ -230,8 +295,11 @@ namespace MaggyHelper
                 "CrouchDash" => Input.CrouchDash.Pressed,
                 "Inhale" => settings.KirbyInhaleBind.Pressed,
                 "Attack" => settings.KirbyAttackBind.Pressed,
+                "Punch" => settings.KirbyPunchBind.Pressed || settings.KirbyAttackBind.Pressed,
                 "Hover" => settings.KirbyHoverBind.Pressed,
                 "Spit" => settings.KirbySpitBind.Pressed,
+                "Parry" => settings.KirbyParryBind.Pressed || settings.KirbySpitBind.Pressed,
+                "CombatToggle" => settings.KirbyCombatToggleBind.Pressed,
                 "CyclePower" => settings.KirbyCyclePowerBind.Pressed,
                 "DropPower" => settings.KirbyDropPowerBind.Pressed,
                 "Slide" => settings.KirbySlideBind.Pressed,
@@ -257,8 +325,11 @@ namespace MaggyHelper
                 "CrouchDash" => Input.CrouchDash.Check,
                 "Inhale" => settings.KirbyInhaleBind.Check,
                 "Attack" => settings.KirbyAttackBind.Check,
+                "Punch" => settings.KirbyPunchBind.Check || settings.KirbyAttackBind.Check,
                 "Hover" => settings.KirbyHoverBind.Check,
                 "Spit" => settings.KirbySpitBind.Check,
+                "Parry" => settings.KirbyParryBind.Check || settings.KirbySpitBind.Check,
+                "CombatToggle" => settings.KirbyCombatToggleBind.Check,
                 "CyclePower" => settings.KirbyCyclePowerBind.Check,
                 "DropPower" => settings.KirbyDropPowerBind.Check,
                 "Slide" => settings.KirbySlideBind.Check,
@@ -279,8 +350,11 @@ namespace MaggyHelper
             {
                 "Inhale" => settings.KirbyInhaleBind,
                 "Attack" => settings.KirbyAttackBind,
+                "Punch" => settings.KirbyPunchBind,
                 "Hover" => settings.KirbyHoverBind,
                 "Spit" => settings.KirbySpitBind,
+                "Parry" => settings.KirbyParryBind,
+                "CombatToggle" => settings.KirbyCombatToggleBind,
                 "CyclePower" => settings.KirbyCyclePowerBind,
                 "DropPower" => settings.KirbyDropPowerBind,
                 "Slide" => settings.KirbySlideBind,

@@ -71,6 +71,7 @@ public class MaggyHelperModule : EverestModule
             });
 
             LoadSubsystem("PlayerExtensionCore", () => PlayerExtensionCore.Instance.Hook());
+            LoadSubsystem("MadelineCombatSystem", () => MadelineCombatSystem.Load());
             LoadSubsystem("KirbyPauseMenuCompat", () => KirbyPauseMenuCompat.Load());
             LoadSubsystem("PopstarberryIntegration", () => PopstarberryIntegration.Initialize());
 
@@ -154,6 +155,7 @@ public class MaggyHelperModule : EverestModule
             }
 
             PlayerExtensionCore.Instance.Unhook();
+            MadelineCombatSystem.Unload();
             KirbyPauseMenuCompat.Unload();
             RemoveHotReloadHook();
             ShutdownHotReload();

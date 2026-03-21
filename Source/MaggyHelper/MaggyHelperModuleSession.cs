@@ -1,4 +1,6 @@
 
+using MaggyHelper.Extensions.Core;
+
 namespace MaggyHelper.MaggyHelper;
 
 /// <summary>
@@ -22,7 +24,7 @@ public class MaggyHelperModuleSession : EverestModuleSession
     /// <summary>
     /// Currently active character for this session.
     /// </summary>
-    public string ActiveCharacterId { get; set; } = "madeline";
+    public string ActiveCharacterId { get; set; } = PlayerCharacterIds.Madeline;
     
     /// <summary>
     /// Kirby's current health.
@@ -198,11 +200,28 @@ public class MaggyHelperModuleSession : EverestModuleSession
     {
         IsKirbyModeActive = false;
         CurrentKirbyPower = "None";
-        ActiveCharacterId = "madeline";
+        ActiveCharacterId = PlayerCharacterIds.Madeline;
         KirbyHealth = MaggyHelperModule.Settings?.KirbyMaxHealth ?? 6;
         KirbyStamina = MaggyHelperModule.Settings?.KirbyMaxStaminaFloat ?? 100f;
         IsKnightModeActive = false;
         PowerTimeRemaining = 0f;
+    }
+
+    /// <summary>
+    /// Get the active player character as a typed value.
+    /// </summary>
+    public PlayerCharacter GetActivePlayerCharacter()
+    {
+        return PlayerCharacter.FromId(ActiveCharacterId);
+    }
+
+    /// <summary>
+    /// Set the active player character and synchronize Kirby mode state.
+    /// </summary>
+    public void SetActivePlayerCharacter(PlayerCharacter character)
+    {
+        ActiveCharacterId = character.Id;
+        IsKirbyModeActive = character.IsKirby;
     }
     
     /// <summary>

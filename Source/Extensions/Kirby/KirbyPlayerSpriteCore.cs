@@ -183,7 +183,50 @@ namespace MaggyHelper.Extensions.Kirby
                     return withoutPrefix;
             }
 
-            return sprite.Has(KirbyAnimIds.Idle) ? KirbyAnimIds.Idle : logicalAnimId;
+            if (TryGetBestFallbackAnimId(sprite, out string fallbackAnimId))
+                return fallbackAnimId;
+
+            return KirbyAnimIds.Idle;
+        }
+
+        private static bool TryGetBestFallbackAnimId(Sprite sprite, out string fallbackAnimId)
+        {
+            fallbackAnimId = null;
+            if (sprite == null)
+                return false;
+
+            string[] preferredFallbacks =
+            {
+                KirbyAnimIds.Idle,
+                KirbyAnimIds.IdleA,
+                KirbyAnimIds.Walk,
+                KirbyAnimIds.RunSlow,
+                KirbyAnimIds.RunFast,
+                KirbyAnimIds.Fall,
+                KirbyAnimIds.FallSlow,
+                KirbyAnimIds.JumpSlow
+            };
+
+            for (int i = 0; i < preferredFallbacks.Length; i++)
+            {
+                string candidate = preferredFallbacks[i];
+                if (sprite.Has(candidate))
+                {
+                    fallbackAnimId = candidate;
+                    return true;
+                }
+            }
+
+            foreach (var pair in sprite.Animations)
+            {
+                if (!string.IsNullOrEmpty(pair.Key))
+                {
+                    fallbackAnimId = pair.Key;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool TryResolveLegacyKirbyAnimId(Sprite sprite, string logicalAnimId, out string resolved)

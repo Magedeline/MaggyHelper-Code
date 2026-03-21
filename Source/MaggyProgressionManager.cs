@@ -47,26 +47,26 @@ public static class MaggyProgressionManager
         if (!TryGetTrackedChapter(level, out string sid))
             return;
 
-        string characterId = ResolveCharacterId(level);
+        PlayerCharacter character = ResolveCharacter(level);
         var session = MaggyHelperModule.Session;
         var save = MaggyHelperModule.SaveData;
         if (session == null || save == null)
             return;
 
         level.Session.RespawnPoint = position;
-        session.ActiveCharacterId = characterId;
+        session.SetActivePlayerCharacter(character);
         session.HasRegisteredChapterSavePoint = true;
         session.LastCheckpointId = checkpointId ?? string.Empty;
 
-        save.SetPreferredCharacter(sid, characterId);
+        save.SetPreferredCharacter(sid, character.Id);
         save.SaveChapterRespawn(sid, new SavedChapterRespawnState
         {
             LevelName = level.Session.Level ?? string.Empty,
             RespawnX = position.X,
             RespawnY = position.Y,
-            CharacterId = characterId,
+            CharacterId = character.Id,
             CheckpointId = checkpointId ?? string.Empty,
-            KirbyModeActive = IsKirbyCharacter(characterId)
+            KirbyModeActive = character.IsKirby
         });
 
         RefreshProgression();
@@ -77,20 +77,19 @@ public static class MaggyProgressionManager
         if (!TryGetTrackedChapter(level, out string sid))
             return;
 
-        characterId = NormalizeCharacterId(characterId);
+        PlayerCharacter character = PlayerCharacter.FromId(characterId);
 
         var session = MaggyHelperModule.Session;
         var save = MaggyHelperModule.SaveData;
         if (session == null || save == null)
             return;
 
-        session.ActiveCharacterId = characterId;
-        session.IsKirbyModeActive = IsKirbyCharacter(characterId);
-        save.SetPreferredCharacter(sid, characterId);
+        session.SetActivePlayerCharacter(character);
+        save.SetPreferredCharacter(sid, character.Id);
 
-        level.Session.SetFlag("kirby_mode", session.IsKirbyModeActive);
-        level.Session.SetFlag("character_kirby", session.IsKirbyModeActive);
-        level.Session.SetFlag("character_madeline", !session.IsKirbyModeActive);
+        level.Session.SetFlag("kirby_mode", character.IsKirby);
+        level.Session.SetFlag("character_kirby", character.IsKirby);
+        level.Session.SetFlag("character_madeline", !character.IsKirby);
 
         RefreshProgression();
     }
@@ -295,41 +294,44 @@ public static class MaggyProgressionManager
         if (modSession == null)
             return;
 
-        characterId = NormalizeCharacterId(characterId);
-        modSession.ActiveCharacterId = characterId;
-        modSession.IsKirbyModeActive = IsKirbyCharacter(characterId);
+        PlayerCharacter character = PlayerCharacter.FromId(characterId);
+        modSession.SetActivePlayerCharacter(character);
 
-        level.Session.SetFlag("kirby_mode", modSession.IsKirbyModeActive);
-        level.Session.SetFlag("character_kirby", modSession.IsKirbyModeActive);
-        level.Session.SetFlag("character_madeline", !modSession.IsKirbyModeActive);
+        level.Session.SetFlag("kirby_mode", character.IsKirby);
+        level.Session.SetFlag("character_kirby", character.IsKirby);
+        level.Session.SetFlag("character_madeline", !character.IsKirby);
 
-        LevelStateManager.SetActiveCharacter(characterId, level);
+        LevelStateManager.SetActiveCharacter(character, level);
     }
 
     private static void ApplyCharacterToSession(MaggyHelperModuleSession modSession, Session session, string characterId)
     {
-        characterId = NormalizeCharacterId(characterId);
-        modSession.ActiveCharacterId = characterId;
-        modSession.IsKirbyModeActive = IsKirbyCharacter(characterId);
+        PlayerCharacter character = PlayerCharacter.FromId(characterId);
+        modSession.SetActivePlayerCharacter(character);
 
-        session.SetFlag("kirby_mode", modSession.IsKirbyModeActive);
-        session.SetFlag("character_kirby", modSession.IsKirbyModeActive);
-        session.SetFlag("character_madeline", !modSession.IsKirbyModeActive);
+        session.SetFlag("kirby_mode", character.IsKirby);
+        session.SetFlag("character_kirby", character.IsKirby);
+        session.SetFlag("character_madeline", !character.IsKirby);
     }
 
     private static string ResolveRequestedCharacter(string sid, Session session)
     {
+        return ResolveRequestedPlayerCharacter(sid, session).Id;
+    }
+
+    private static PlayerCharacter ResolveRequestedPlayerCharacter(string sid, Session session)
+    {
         var modSave = MaggyHelperModule.SaveData;
         if (modSave?.TryGetChapterRespawn(sid, out SavedChapterRespawnState respawnState) == true)
-            return respawnState.CharacterId;
+            return PlayerCharacter.FromId(respawnState.CharacterId);
 
         if (modSave?.TryGetPreferredCharacter(sid, out string preferredCharacter) == true)
-            return preferredCharacter;
+            return PlayerCharacter.FromId(preferredCharacter);
 
         if (MaggyHelperModule.Session?.IsKirbyModeActive == true || session.GetFlag("kirby_mode"))
-            return "kirby";
+            return PlayerCharacter.KirbyCharacter;
 
-        return "madeline";
+        return PlayerCharacter.MadelineCharacter;
     }
 
     private static bool TryGetTrackedChapter(Level level, out string sid)
@@ -344,35 +346,30 @@ public static class MaggyProgressionManager
             && AreaModeExtender.IsOurMap(AreaData.Get(level.Session.Area));
     }
 
-    private static string ResolveCharacterId(Level level)
+    private static PlayerCharacter ResolveCharacter(Level level)
     {
-        string sessionCharacter = MaggyHelperModule.Session?.ActiveCharacterId;
-        if (!string.IsNullOrWhiteSpace(sessionCharacter))
-            return NormalizeCharacterId(sessionCharacter);
+        PlayerCharacter? sessionCharacter = MaggyHelperModule.Session?.GetActivePlayerCharacter();
+        if (sessionCharacter.HasValue)
+            return sessionCharacter.Value;
 
         if (MaggyHelperModule.Session?.IsKirbyModeActive == true || level.Session.GetFlag("kirby_mode"))
-            return "kirby";
+            return PlayerCharacter.KirbyCharacter;
 
-        string levelStateCharacter = LevelStateManager.GetActiveCharacter();
-        if (!string.IsNullOrWhiteSpace(levelStateCharacter))
-            return NormalizeCharacterId(levelStateCharacter);
+        PlayerCharacter levelStateCharacter = LevelStateManager.GetActivePlayerCharacter();
+        if (!string.IsNullOrWhiteSpace(levelStateCharacter.Id))
+            return levelStateCharacter;
 
-        return "madeline";
+        return PlayerCharacter.MadelineCharacter;
     }
 
     private static string NormalizeCharacterId(string characterId)
     {
-        if (string.IsNullOrWhiteSpace(characterId))
-            return "madeline";
-
-        return characterId.Equals("default", StringComparison.OrdinalIgnoreCase)
-            ? "madeline"
-            : characterId;
+        return PlayerCharacter.NormalizeId(characterId);
     }
 
     private static bool IsKirbyCharacter(string characterId)
     {
-        return NormalizeCharacterId(characterId).StartsWith("kirby", StringComparison.OrdinalIgnoreCase);
+        return PlayerCharacter.FromId(characterId).IsKirby;
     }
 
     private static int CountTrackedStrawberries(MaggyHelperModuleSaveData modSave)

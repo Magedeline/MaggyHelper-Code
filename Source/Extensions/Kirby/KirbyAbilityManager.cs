@@ -15,6 +15,16 @@ namespace MaggyHelper.Extensions.Kirby
         private readonly KirbyPlayerExtension _extension;
         private readonly List<KirbyAbilityBase> _abilities = new();
         private readonly Dictionary<string, KirbyAbilityBase> _abilityMap = new();
+        private static readonly string[] AnimationPriority =
+        {
+            "precision_combat",
+            "melee",
+            "range",
+            "inhale",
+            "spit",
+            "copy",
+            "hover"
+        };
 
         public KirbyAbilityManager(KirbyPlayerExtension extension)
         {
@@ -124,15 +134,30 @@ namespace MaggyHelper.Extensions.Kirby
         /// </summary>
         public string GetActiveAnimation()
         {
-            // Check each ability in priority order
-            foreach (var a in _abilities)
+            for (int i = 0; i < AnimationPriority.Length; i++)
             {
-                if (a.IsExecuting && a is IKirbyAnimationProvider provider)
+                if (!_abilityMap.TryGetValue(AnimationPriority[i], out KirbyAbilityBase ability))
+                    continue;
+
+                if (ability.IsExecuting && ability is IKirbyAnimationProvider provider)
                 {
                     string anim = provider.GetAnimationId();
-                    if (anim != null) return anim;
+                    if (!string.IsNullOrEmpty(anim))
+                        return anim;
                 }
             }
+
+            // Fallback for any future abilities not listed in AnimationPriority.
+            foreach (var ability in _abilities)
+            {
+                if (ability.IsExecuting && ability is IKirbyAnimationProvider provider)
+                {
+                    string anim = provider.GetAnimationId();
+                    if (!string.IsNullOrEmpty(anim))
+                        return anim;
+                }
+            }
+
             return null;
         }
 

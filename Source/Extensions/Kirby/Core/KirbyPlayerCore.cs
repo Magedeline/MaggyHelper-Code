@@ -66,6 +66,43 @@ public sealed class KirbyPlayerCore
         SpawnOrActivateExtension(player, level);
     }
 
+    /// <summary>
+    /// Ensure Kirby runtime entities are attached to the current vanilla player
+    /// without replaying transform side effects.
+    /// </summary>
+    public void EnsureRuntime(Player player, Level level, bool enableSync = true)
+    {
+        if (player == null || level == null)
+        {
+            return;
+        }
+
+        var existing = level.Tracker.GetEntity<KirbyPlayerExtension>();
+        if (existing == null)
+        {
+            var ext = new KirbyPlayerExtension(player.Position);
+            level.Add(ext);
+            if (enableSync)
+            {
+                ext.EnablePlayerSync();
+            }
+
+            IngesteLogger.Debug("KirbyPlayerCore: Ensured KirbyPlayerExtension (spawned)");
+            return;
+        }
+
+        existing.Active = true;
+        existing.Visible = true;
+        existing.Position = player.Position;
+
+        if (enableSync)
+        {
+            existing.EnablePlayerSync();
+        }
+
+        IngesteLogger.Debug("KirbyPlayerCore: Ensured KirbyPlayerExtension (reactivated)");
+    }
+
     public void SaveOnLevelUnloaded(Level level)
     {
         var ext = GetExtension(level);

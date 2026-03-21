@@ -1,3 +1,5 @@
+using global::MaggyHelper.Extensions.Core;
+
 namespace MaggyHelper
 {
     /// <summary>
@@ -39,10 +41,10 @@ namespace MaggyHelper
         
         private static readonly Dictionary<string, CharacterData> characters = new Dictionary<string, CharacterData>(StringComparer.OrdinalIgnoreCase)
         {
-            { "default", new CharacterData("maggy_player", "Madeline") },
-            { "madeline", new CharacterData("maggy_player", "Madeline") },
+            { PlayerCharacterIds.Default, new CharacterData("maggy_player", "Madeline") },
+            { PlayerCharacterIds.Madeline, new CharacterData("maggy_player", "Madeline") },
             { "badeline", new CharacterData("maggy_badeline", "Badeline") },
-            { "kirby", new CharacterData("kirby", "Kirby", true) },
+            { PlayerCharacterIds.Kirby, new CharacterData("kirby", "Kirby", true) },
             { "kirby_classic", new CharacterData("kirby_classic", "Kirby (Classic)", true) },
             { "meta_knight", new CharacterData("meta_knight", "Meta Knight", true) },
             { "king_dedede", new CharacterData("king_dedede", "King Dedede", true) },
@@ -70,6 +72,8 @@ namespace MaggyHelper
         {
             if (string.IsNullOrEmpty(characterId))
                 return null;
+
+            characterId = PlayerCharacter.NormalizeId(characterId);
                 
             if (characters.TryGetValue(characterId, out var data))
                 return data;
@@ -139,7 +143,7 @@ namespace MaggyHelper
         /// </summary>
         public static string GetActiveCharacterId()
         {
-            return "default";
+            return PlayerCharacterIds.Madeline;
         }
     }
 }

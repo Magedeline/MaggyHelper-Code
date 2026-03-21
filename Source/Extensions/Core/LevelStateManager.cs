@@ -35,7 +35,7 @@ namespace MaggyHelper.Extensions.Core
             public float RalseiMagic { get; set; } = 100f;
             
             // Generic character settings
-            public string ActiveCharacterId { get; set; } = "";
+            public string ActiveCharacterId { get; set; } = PlayerCharacterIds.Madeline;
             public bool CustomPhysicsEnabled { get; set; } = true;
             public bool InfiniteDash { get; set; } = false;
             public bool InfiniteStamina { get; set; } = false;
@@ -61,7 +61,20 @@ namespace MaggyHelper.Extensions.Core
                 KirbyStamina = 100f;
                 CharaModeEnabled = false;
                 RalseiModeEnabled = false;
-                ActiveCharacterId = "";
+                ActiveCharacterId = PlayerCharacterIds.Madeline;
+            }
+
+            public PlayerCharacter GetActivePlayerCharacter()
+            {
+                return PlayerCharacter.FromId(ActiveCharacterId);
+            }
+
+            public void SetActivePlayerCharacter(PlayerCharacter character)
+            {
+                ActiveCharacterId = character.Id;
+                KirbyModeEnabled = character.IsKirby;
+                CharaModeEnabled = character.Id == "chara";
+                RalseiModeEnabled = character.Id == "ralsei";
             }
         }
 
@@ -236,7 +249,7 @@ namespace MaggyHelper.Extensions.Core
             if (_currentState != null)
             {
                 _currentState.KirbyModeEnabled = true;
-                _currentState.ActiveCharacterId = "kirby";
+                _currentState.ActiveCharacterId = PlayerCharacterIds.Kirby;
             }
             
             if (level?.Session != null)
@@ -253,9 +266,9 @@ namespace MaggyHelper.Extensions.Core
             if (_currentState != null)
             {
                 _currentState.KirbyModeEnabled = false;
-                if (_currentState.ActiveCharacterId == "kirby")
+                if (PlayerCharacter.FromId(_currentState.ActiveCharacterId).IsKirby)
                 {
-                    _currentState.ActiveCharacterId = "";
+                    _currentState.ActiveCharacterId = PlayerCharacterIds.Madeline;
                 }
             }
             
@@ -270,21 +283,24 @@ namespace MaggyHelper.Extensions.Core
         /// </summary>
         public static void SetActiveCharacter(string characterId, Level level = null)
         {
+            SetActiveCharacter(PlayerCharacter.FromId(characterId), level);
+        }
+
+        /// <summary>
+        /// Set the active character
+        /// </summary>
+        public static void SetActiveCharacter(PlayerCharacter character, Level level = null)
+        {
             if (_currentState != null)
             {
-                _currentState.ActiveCharacterId = characterId;
-                
-                // Update character-specific flags
-                _currentState.KirbyModeEnabled = characterId == "kirby";
-                _currentState.CharaModeEnabled = characterId == "chara";
-                _currentState.RalseiModeEnabled = characterId == "ralsei";
+                _currentState.SetActivePlayerCharacter(character);
             }
             
             if (level?.Session != null)
             {
-                level.Session.SetFlag("kirby_mode", characterId == "kirby");
-                level.Session.SetFlag("chara_mode", characterId == "chara");
-                level.Session.SetFlag("ralsei_mode", characterId == "ralsei");
+                level.Session.SetFlag("kirby_mode", character.IsKirby);
+                level.Session.SetFlag("chara_mode", character.Id == "chara");
+                level.Session.SetFlag("ralsei_mode", character.Id == "ralsei");
             }
         }
 
@@ -293,7 +309,15 @@ namespace MaggyHelper.Extensions.Core
         /// </summary>
         public static string GetActiveCharacter()
         {
-            return _currentState?.ActiveCharacterId ?? "";
+            return GetActivePlayerCharacter().Id;
+        }
+
+        /// <summary>
+        /// Get the active character as a typed value.
+        /// </summary>
+        public static PlayerCharacter GetActivePlayerCharacter()
+        {
+            return _currentState?.GetActivePlayerCharacter() ?? PlayerCharacter.MadelineCharacter;
         }
 
         #endregion

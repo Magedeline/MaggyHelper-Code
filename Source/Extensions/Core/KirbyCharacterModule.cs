@@ -12,7 +12,7 @@ namespace MaggyHelper.Extensions.Core
     /// </summary>
     public class KirbyCharacterModule : CharacterModuleBase
     {
-        public override string CharacterId => "kirby";
+        public override string CharacterId => PlayerCharacterIds.Kirby;
         public override string CharacterName => "Kirby";
 
         private readonly KirbyPlayerCore _playerCore;

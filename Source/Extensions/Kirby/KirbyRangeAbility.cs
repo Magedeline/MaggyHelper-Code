@@ -124,6 +124,9 @@ namespace MaggyHelper.Extensions.Kirby
 
         private void HandleInput()
         {
+            if (Extension?.PrecisionCombat?.CombatModeActive == true)
+                return;
+
             if (!HasRangeWeapon) return;
             if (Extension.Inhale?.IsInhaling ?? false) return;
 

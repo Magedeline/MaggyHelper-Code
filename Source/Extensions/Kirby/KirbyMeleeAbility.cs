@@ -141,6 +141,9 @@ namespace MaggyHelper.Extensions.Kirby
 
         private void HandleInput()
         {
+            if (Extension?.PrecisionCombat?.CombatModeActive == true)
+                return;
+
             if (IsExecuting) return; // Can't attack while mid-swing
 
             bool attackPressed = Settings.IsKeyPressed("Attack");
@@ -174,6 +177,9 @@ namespace MaggyHelper.Extensions.Kirby
 
         protected override bool CanActivate()
         {
+            if (Extension?.PrecisionCombat?.CombatModeActive == true)
+                return false;
+
             // Inhale takes priority — can't punch while inhaling
             return !(Extension.Inhale?.IsInhaling ?? false);
         }

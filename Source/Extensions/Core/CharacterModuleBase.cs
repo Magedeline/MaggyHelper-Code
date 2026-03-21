@@ -66,9 +66,9 @@ namespace MaggyHelper.Extensions.Core
             if (player?.Scene is Level level)
             {
                 level.Session.SetFlag($"{CharacterId}_mode", false);
-                if (LevelStateManager.GetActiveCharacter() == CharacterId)
+                if (LevelStateManager.GetActivePlayerCharacter() == PlayerCharacter.FromId(CharacterId))
                 {
-                    LevelStateManager.SetActiveCharacter("", level);
+                    LevelStateManager.SetActiveCharacter(PlayerCharacter.MadelineCharacter, level);
                 }
                 OnDisable(player, level);
                 

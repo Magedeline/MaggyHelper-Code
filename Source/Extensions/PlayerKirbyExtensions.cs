@@ -11,6 +11,25 @@ namespace MaggyHelper.Extensions
     /// </summary>
     public static class PlayerKirbyExtensions
     {
+        public static PlayerCharacter GetActivePlayerCharacter(this Player player)
+        {
+            if (player?.Scene is Level level)
+            {
+                var sessionCharacter = MaggyHelperModule.Session?.GetActivePlayerCharacter();
+                if (sessionCharacter.HasValue && !string.IsNullOrWhiteSpace(sessionCharacter.Value.Id))
+                {
+                    return sessionCharacter.Value;
+                }
+
+                if (level.Session?.GetFlag("kirby_mode") == true)
+                {
+                    return PlayerCharacter.KirbyCharacter;
+                }
+            }
+
+            return LevelStateManager.GetActivePlayerCharacter();
+        }
+
         private static KirbyPlayerExtension GetKirbyExtension(Level level)
         {
             return level?.Tracker?.GetEntity<KirbyPlayerExtension>();
