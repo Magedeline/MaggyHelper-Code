@@ -1,3 +1,5 @@
+using Celeste.Mod.MaggyHelper.Patches.Player;
+
 namespace MaggyHelper.Extensions.Core
 {
     /// <summary>
