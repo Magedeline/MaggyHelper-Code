@@ -55,7 +55,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         ///   2. LevelStateManager global state.
         ///   Fallback: Normal.
         /// </summary>
-        public PlayerRewriteMode GetMode(Celeste.Player player)
+        public PlayerRewriteMode GetMode(global::Celeste.Player player)
         {
             if (player?.Scene is not Level level)
                 return PlayerRewriteMode.Normal;

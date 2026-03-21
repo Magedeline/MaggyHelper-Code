@@ -41,7 +41,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Called each frame by ForkedPlayerCore when Kirby mode is active.
         /// Dispatches per-state Kirby behavior after vanilla Player.Update has run.
         /// </summary>
-        public void OnUpdate(Celeste.Player player, Level level)
+        public void OnUpdate(global::Celeste.Player player, Level level)
         {
             if (player == null || level == null)
                 return;
@@ -98,7 +98,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// </summary>
         public PlayerDeadBody OnPlayerDie(
             On.Celeste.Player.orig_Die orig,
-            Celeste.Player player,
+            global::Celeste.Player player,
             Vector2 direction,
             bool evenIfInvincible,
             bool registerDeathInStats)
@@ -148,7 +148,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         ///   - Inhale input detection
         ///   - Grounded slide ability trigger
         /// </summary>
-        private void OnKirbyNormalUpdate(Celeste.Player player, Level level, KirbyPlayerExtension ext)
+        private void OnKirbyNormalUpdate(global::Celeste.Player player, Level level, KirbyPlayerExtension ext)
         {
             // Ability manager handles its own input polling; no explicit delegation needed here
             // because KirbyPlayerExtension.Update() already calls _abilityManager.Update().
@@ -165,7 +165,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Vanilla DashUpdate + DashCoroutine have already run.
         /// Kirby-specific dash overrides: cancel inhale on dash start, dash particle colors, etc.
         /// </summary>
-        private void OnKirbyDashUpdate(Celeste.Player player, Level level, KirbyPlayerExtension ext)
+        private void OnKirbyDashUpdate(global::Celeste.Player player, Level level, KirbyPlayerExtension ext)
         {
             // Cancel active inhale if dash begins — consistent with mainline Kirby games.
             if (ext.Inhale?.IsInhaling == true)
@@ -182,7 +182,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Vanilla ClimbUpdate has already run.
         /// Kirby-specific climb: cancel hover while climbing, adjust stamina consumption rate if needed.
         /// </summary>
-        private void OnKirbyClimbUpdate(Celeste.Player player, Level level, KirbyPlayerExtension ext)
+        private void OnKirbyClimbUpdate(global::Celeste.Player player, Level level, KirbyPlayerExtension ext)
         {
             // Cancel all abilities (including hover) while climbing.
             // Using CancelAll since KirbyHoverAbility.EndHover is private.
@@ -199,7 +199,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         ///
         /// Vanilla SwimUpdate has already run.
         /// </summary>
-        private void OnKirbySwimUpdate(Celeste.Player player, Level level, KirbyPlayerExtension ext)
+        private void OnKirbySwimUpdate(global::Celeste.Player player, Level level, KirbyPlayerExtension ext)
         {
             // Phase 2: Kirby-specific swim behavior (puffed float in water, etc.).
         }
@@ -208,7 +208,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Kirby respawn handling (StIntroRespawn = 14).
         /// Resets transient Kirby runtime state after a death + respawn.
         /// </summary>
-        private void OnKirbyRespawn(Celeste.Player player, Level level, KirbyPlayerExtension ext)
+        private void OnKirbyRespawn(global::Celeste.Player player, Level level, KirbyPlayerExtension ext)
         {
             // KirbyPlayerExtension.UpdateRespawnState() already handles health/stamina reset
             // when it detects the respawn state. This hook is for any additional coordination
@@ -224,7 +224,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
             "Spinner", "Blade", "Crush", "CrushingBlock", "CrushBlock", "Spikes", "Spike", "Saw"
         };
 
-        private static bool IsInstantKillHazardContact(Celeste.Player player)
+        private static bool IsInstantKillHazardContact(global::Celeste.Player player)
         {
             if (player?.Scene is not Level level)
                 return false;

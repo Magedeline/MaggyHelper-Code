@@ -74,20 +74,22 @@ internal sealed class KirbyPlayerStatePatch
         // Horizontal movement mirrors NormalUpdate (UpstreamMaxRun, UpstreamRunAccel).
         // Gravity replaced with HoverGravity / HoverFallSpeed from KirbySettings.
         int hoverId = player.StateMachine.AddState(
-            onUpdate:  () => KirbyHoverUpdate(player),
-            coroutine: null,
-            begin:     () => KirbyHoverBegin(player),
-            end:       () => KirbyHoverEnd(player)
+            "MaggyHelper_KirbyHover",
+            () => KirbyHoverUpdate(player),
+            null,
+            () => KirbyHoverBegin(player),
+            () => KirbyHoverEnd(player)
         );
 
         // ── StKirbyInhale ─────────────────────────────────────────────────────
         // [MOD-SPECIFIC] Inhale state: restricted walk-only movement.
         // Pull cone logic lives in KirbyInhaleAbility; this state manages movement.
         int inhaleId = player.StateMachine.AddState(
-            onUpdate:  () => KirbyInhaleUpdate(player),
-            coroutine: null,
-            begin:     () => KirbyInhaleBegin(player),
-            end:       () => KirbyInhaleEnd(player)
+            "MaggyHelper_KirbyInhale",
+            () => KirbyInhaleUpdate(player),
+            null,
+            () => KirbyInhaleBegin(player),
+            () => KirbyInhaleEnd(player)
         );
 
         // ── StKirbySlide ──────────────────────────────────────────────────────
@@ -97,10 +99,11 @@ internal sealed class KirbyPlayerStatePatch
         // correctly detects it for enemy contact damage logic.
         // Pattern mirrors vanilla DashUpdate: set Speed = dir * speed each frame.
         int slideId = player.StateMachine.AddState(
-            onUpdate:  () => KirbySlideUpdate(player),
-            coroutine: null,
-            begin:     () => KirbySlideBegin(player),
-            end:       () => KirbySlideEnd(player)
+            "MaggyHelper_KirbySlide",
+            () => KirbySlideUpdate(player),
+            null,
+            () => KirbySlideBegin(player),
+            () => KirbySlideEnd(player)
         );
 
         // Record state IDs on first registration only.

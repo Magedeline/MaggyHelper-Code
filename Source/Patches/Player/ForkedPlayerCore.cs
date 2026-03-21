@@ -160,7 +160,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         // Hook implementations
         // ─────────────────────────────────────────────────────────────────────────
 
-        private void OnPlayerUpdate(On.Celeste.Player.orig_Update orig, Celeste.Player self)
+        private void OnPlayerUpdate(On.Celeste.Player.orig_Update orig, global::Celeste.Player self)
         {
             orig(self);
 
@@ -179,7 +179,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
 
         private PlayerDeadBody OnPlayerDie(
             On.Celeste.Player.orig_Die orig,
-            Celeste.Player self,
+            global::Celeste.Player self,
             Vector2 direction,
             bool evenIfInvincible,
             bool registerDeathInStats)
@@ -204,7 +204,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         ///   2. Within that path, dispatch to the correct state handler.
         ///   3. Vanilla Player.Update has already run; this is for mod-specific extensions only.
         /// </summary>
-        private void RouteUpdate(Celeste.Player player, Level level)
+        private void RouteUpdate(global::Celeste.Player player, Level level)
         {
             var mode = _router.GetMode(player);
 
@@ -226,7 +226,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Follows the same state-ID ordering as upstream Player.cs.
         /// Add mod-specific extensions to each state arm as migration progresses.
         /// </summary>
-        private void RouteNormalUpdate(Celeste.Player player, Level level)
+        private void RouteNormalUpdate(global::Celeste.Player player, Level level)
         {
             int state = player.StateMachine.State;
 
@@ -266,7 +266,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Corresponds to upstream Player.NormalUpdate().
         /// Vanilla behavior runs first; add mod-specific overrides here.
         /// </summary>
-        private void OnNormalStateUpdate(Celeste.Player player, Level level)
+        private void OnNormalStateUpdate(global::Celeste.Player player, Level level)
         {
             // Phase 2: port normal-movement modifiers (custom wind, gravity modifiers,
             // extended jump buffering, etc.) here without touching NormalUpdate internals.
@@ -277,7 +277,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Corresponds to upstream Player.DashUpdate() / DashCoroutine().
         /// Vanilla behavior runs first; add mod-specific overrides here.
         /// </summary>
-        private void OnDashStateUpdate(Celeste.Player player, Level level)
+        private void OnDashStateUpdate(global::Celeste.Player player, Level level)
         {
             // Phase 2: port custom dash modifiers (directional bias, Kirby pre-dash
             // inhale cancellation logic, etc.) here.
@@ -287,7 +287,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Extension point for climb state (StClimb = 1).
         /// Corresponds to upstream Player.ClimbUpdate().
         /// </summary>
-        private void OnClimbStateUpdate(Celeste.Player player, Level level)
+        private void OnClimbStateUpdate(global::Celeste.Player player, Level level)
         {
             // Phase 2: port climb modifiers (stamina overrides for Kirby, etc.) here.
         }
@@ -296,7 +296,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// Extension point for swim state (StSwim = 3).
         /// Corresponds to upstream Player.SwimUpdate().
         /// </summary>
-        private void OnSwimStateUpdate(Celeste.Player player, Level level)
+        private void OnSwimStateUpdate(global::Celeste.Player player, Level level)
         {
             // Phase 2: port swim modifiers here.
         }
@@ -308,13 +308,13 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// <summary>
         /// True while the player is in the normal movement state.
         /// </summary>
-        public static bool IsNormalState(Celeste.Player player) =>
+        public static bool IsNormalState(global::Celeste.Player player) =>
             player?.StateMachine?.State == StNormal;
 
         /// <summary>
         /// True while the player is in the dash or dash-attack state.
         /// </summary>
-        public static bool IsDashState(Celeste.Player player)
+        public static bool IsDashState(global::Celeste.Player player)
         {
             int state = player?.StateMachine?.State ?? -1;
             return state == StDash || player?.DashAttacking == true;
@@ -324,7 +324,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// True while the player is in a state where Kirby abilities can activate.
         /// (Normal, Dash, Climb — not during cutscene/intro states.)
         /// </summary>
-        public static bool IsAbilityEligibleState(Celeste.Player player)
+        public static bool IsAbilityEligibleState(global::Celeste.Player player)
         {
             int state = player?.StateMachine?.State ?? -1;
             return state == StNormal || state == StDash || state == StClimb || state == StSwim;
@@ -333,7 +333,7 @@ namespace Celeste.Mod.MaggyHelper.Patches.Player
         /// <summary>
         /// True while the player is in any intro/respawn state that should suppress gameplay behavior.
         /// </summary>
-        public static bool IsIntroState(Celeste.Player player)
+        public static bool IsIntroState(global::Celeste.Player player)
         {
             int state = player?.StateMachine?.State ?? -1;
             return state == StIntroWalk
