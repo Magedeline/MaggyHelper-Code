@@ -1,19 +1,28 @@
 using Microsoft.Xna.Framework;
 using Monocle;
 using MaggyHelper.Entities;
+using MaggyHelper.Extensions.Core;
 using System;
 
 namespace MaggyHelper.Extensions.Kirby
 {
     /// <summary>
     /// Kirby's hover / float ability.
-    /// 
+    ///
     /// Behaviour:
     ///   • While airborne, hold Hover to slow descent and use flap jumps
     ///   • Each flap costs stamina and provides a small upward boost
     ///   • Limited number of flap jumps before must land
     ///   • Stamina and flap count reset on ground touch
     ///   • Visual: puffed-up Kirby sprite while hovering
+    ///
+    /// Real-Player.cs integration (PlayerPatchCore):
+    ///   • BeginHover() now transitions the real Player.StateMachine to StKirbyHover.
+    ///   • EndHover() returns the state machine to StNormal.
+    ///   • When in StKirbyHover, KirbyPlayerStatePatch.KirbyHoverUpdate() handles gravity
+    ///     aligned with Player.NormalUpdate's gravity section. The slow-fall section in
+    ///     OnUpdate is suppressed to prevent double physics application.
+    ///   • [UPSTREAM-REF] https://github.com/NoelFB/Celeste/blob/master/Source/Player/Player.cs
     /// </summary>
     public class KirbyHoverAbility : KirbyAbilityBase, IKirbyAnimationProvider
     {
@@ -67,7 +76,7 @@ namespace MaggyHelper.Extensions.Kirby
             }
 
             // Check hover input
-            bool hoverHeld = Settings.IsKeyCheck("Hover");
+            bool hoverHeld    = Settings.IsKeyCheck("Hover");
             bool hoverPressed = Settings.IsKeyPressed("Hover");
 
             if (hoverHeld && Stamina > 0f && !onGround)
@@ -80,12 +89,18 @@ namespace MaggyHelper.Extensions.Kirby
 
                 // Flap on press
                 if (hoverPressed && _flapCount < Settings.MaxFloatJumps)
-                {
                     Flap();
-                }
 
-                // Slow fall
-                if (Player.Speed.Y > Settings.HoverFallSpeed)
+                // ── Slow-fall physics (legacy path) ───────────────────────────
+                // [MOD-SPECIFIC] Only applied here when the real-Player.cs state
+                // machine patch (StKirbyHover) is NOT active. When StKirbyHover is
+                // registered and the player is in that state, KirbyPlayerStatePatch
+                // handles gravity inside NormalUpdate's physics phase — applying it
+                // here too would cause double physics application.
+                bool stateHandlesPhysics = PlayerCharacterStates.StKirbyHover >= 0
+                    && Player?.StateMachine.State == PlayerCharacterStates.StKirbyHover;
+
+                if (!stateHandlesPhysics && Player.Speed.Y > Settings.HoverFallSpeed)
                 {
                     Player.Speed = new Vector2(
                         Player.Speed.X,
@@ -109,6 +124,16 @@ namespace MaggyHelper.Extensions.Kirby
         {
             IsHovering = true;
             IsExecuting = true;
+
+            // [MOD-SPECIFIC] Transition the real Player.StateMachine to StKirbyHover.
+            // This is the real-Player.cs integration: same pattern vanilla uses when
+            // NormalUpdate returns StDash (2) or StClimb (1) to trigger transitions.
+            // StKirbyHover was registered by KirbyPlayerStatePatch.RegisterStates().
+            if (PlayerCharacterStates.StKirbyHover >= 0
+                && Player?.StateMachine.State == CelestePlayer.StNormal)
+            {
+                Player.StateMachine.State = PlayerCharacterStates.StKirbyHover;
+            }
         }
 
         private void EndHover()
@@ -116,6 +141,14 @@ namespace MaggyHelper.Extensions.Kirby
             if (!IsHovering) return;
             IsHovering = false;
             IsExecuting = false;
+
+            // [MOD-SPECIFIC] Return state machine to StNormal when hover ends.
+            // Guards against cases where state already changed externally (e.g., dash).
+            if (PlayerCharacterStates.StKirbyHover >= 0
+                && Player?.StateMachine.State == PlayerCharacterStates.StKirbyHover)
+            {
+                Player.StateMachine.State = CelestePlayer.StNormal;
+            }
 
             // Exhale puff when stopping hover
             PlaySfx(SFX_EXHALE);
@@ -149,6 +182,12 @@ namespace MaggyHelper.Extensions.Kirby
         protected override void OnCancel()
         {
             IsHovering = false;
+            // Also exit state machine if we're in hover state (e.g., KirbyHoverEnd calls Cancel).
+            if (PlayerCharacterStates.StKirbyHover >= 0
+                && Player?.StateMachine.State == PlayerCharacterStates.StKirbyHover)
+            {
+                Player.StateMachine.State = CelestePlayer.StNormal;
+            }
         }
 
         #endregion
